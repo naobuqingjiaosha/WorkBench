@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "360392383e69351709b8dd206713c4508026502e",
+  "committedBase": "2c26fbcc7f667e6d7519bc181309c22d8c353396",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -881,7 +881,7 @@
     },
     {
       "path": "scripts/docs-maintenance.mjs",
-      "sha256": "2408134b9cc1165d8b7c65bb4019098e6a8fa6047237856edb8220e4da5e7856"
+      "sha256": "8351b8480c6d0a0ed70f15cf211062a39e1eeb5e8d53f3680d8745ab7dba954b"
     },
     {
       "path": "scripts/install-git-hooks.mjs",

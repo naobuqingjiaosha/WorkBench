@@ -1,14 +1,16 @@
 # 产品需求与追溯矩阵
 
-文档ID：KB-REQUIREMENTS。版本：1.4。更新：2026-10-26。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
+文档ID：KB-REQUIREMENTS。版本：1.5。更新：2026-10-26。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
 
-本轮复核（2026-10-26）：用户明确隔离必须落实到代码设计：源码与可写运行资源分离，开发及测试不能默认继承日常配置；数据、本机配置、测试用例及夹具不上传，业务功能要求不变。见[变更记录](docs/management/CHANGELOG.md)。
+本文维护用户已确认的功能、业务规则和可检查的验收条件。实现/验证/发布状态只在[开发进度](DEVELOPMENT_PROGRESS.md)维护；任务安排只在[项目计划](docs/management/PROJECT_PLAN.md)维护。
+
+复核（2026-10-26）：保留原BR、PR、SC编号与有效要求，移出设备发布和本轮交付描述，归并运行隔离与文档职责约束；不扩大功能承诺。见[变更记录](docs/management/CHANGELOG.md)。
 
 ## 1. 目标与范围
 
 面向单机使用者，集中组织行政周期工作、项目实施、模板文书、资料与部门工时。减少重复填写，保持事实、来源和版本可查。AI辅助收集、建议、起草与修改，最终事实和业务判断由用户作出。
 
-本期以现有工作台可用性及月检材料准备为主。工作记录已随台式机reliability-20261024-r1日常包启用，历史笔记本包仍按原范围理解；不新增通用任务引擎、云多租户、复杂角色权限或移动端。具体项目边界见[项目章程](docs/management/PROJECT_CHARTER.md)。
+范围包括现有工作办理、月检材料准备、月度工时、年度台账和工作记录；不扩展为通用任务引擎、云多租户、复杂角色权限或移动端。具体项目边界见[项目章程](docs/management/PROJECT_CHARTER.md)。
 
 ## 2. 业务规则
 
@@ -29,44 +31,44 @@
 
 ## 3. 功能需求与验收追溯
 
-### 前台设计落地（GOV-13，用户2026-10-24授权）
+### 前台设计要求（PR-18 / GOV-13）
 
 PR-18：将现有23张设计及交互说明应用到八个主页面、年度台账、月度工时、项目阶段、AI建议采用、预览/版本/同步及异常状态。页面数量和日期来自实际数据；AI建议逐项进入编辑缓冲，保存、生成、确认真实检查分别操作。同步冲突无默认选择，失败保留输入并给出逐对象结果；离开编辑区提供继续编辑、不保存离开和可实际执行的保存并离开。保留稳定业务对象与既有能力，不新增报送门槛或改变工时算法。
 
-实现及可复现验收见[前台设计实施说明](docs/guides/UI_DESIGN_IMPLEMENTATION.md)。本轮交付为工作区代码与隔离预览，未授权切换日常发布。
+设计及验收依据见[前台设计实施说明](docs/guides/UI_DESIGN_IMPLEMENTATION.md)；具体实现与发布结果另查开发进度。
 
 PR-18首页补充：用户再次指认01首页PNG并要求严格还原；首页的视觉比例、字号层级、图标和按钮强调以该图为准。验收须包含同尺寸实际截图与模块边界测量，不能用交互测试通过代替视觉还原；真实数据、来源及状态边界不变。
 
 PR-18密度补充（最新优先）：用户要求整体缩小，在浏览器100%缩放下看到所有页面框架及主要操作。保留设计的模块组织和相对列宽，组件大小以紧凑布局为准，取代原图固定像素尺寸；桌面验证至少覆盖1280×600及1366×650内容区。长列表/表单允许区域内滚动，导航、保存、导出等主要操作不得落在窗口外；不得通过浏览器缩放或整体缩放画布实现。
 
-### 本轮月度工作补充（GOV-12，用户2026-10-21确认）
+### 月度工作要求（PR-15～17 / GOV-12）
 
-- PR-15：工时使用确认名单、当月研发/员工/外包考勤和统一模板。实际应计日期与星期分开；未明确扣薪按满8小时，先扣研发再分配部门工时。9月成品仅作参考，康涛涛暂不纳入；用户加人后持久保存。项目可逐月变化，份额变化不得改变个人总数。手动及模型修改落实到新计算版本与Excel，保留其他修改。
+- PR-15：工时使用确认名单、当月研发/员工/外包考勤和统一模板。实际应计日期与星期分开；未明确扣薪按满8小时，先扣研发再分配部门工时。原9月成品仅作参考，具体纳入或排除人员以本机确认名单为准；用户加人后持久保存。项目可逐月变化，份额变化不得改变个人总数。手动及模型修改落实到新计算版本与Excel，保留其他修改。
 - PR-16：年度台账为月检主要来源，每项目工作表、多条独立记录，未知日期和事实留空。小微权力每月两条，只有同流程标记和数量核对，无项目/类别多样性条件。实际字段语义映射两个表，不分别生成互相矛盾的正文。
 - PR-17：管理副本或绑定目录原文件通过内部记录关联同步；读最新文件、三方冲突选择、签字/归档/历史报送版本保留。格式与签字不作为共享字段；未知或重复关联拒绝猜测。外部保存后检测提示、显式同步，生成前同步。季度年度引用区分参考记录和已确认事实。
 
-实现、限制和验收证据见[月度工作指南](docs/guides/MONTHLY_DEVELOPMENT.md)和[发布报告44](docs/44-月度工时与年度台账发布-2026-10-21.md)。PR-15～17对应改造已发布到现有Workbench；不包含工资金额计算。专项模型验证为模拟响应，真实模型和浏览器点击链仍未验收。
+适用操作及验收要求见[月度工作指南](docs/guides/MONTHLY_DEVELOPMENT.md)，历史依据见[发布报告44](docs/44-月度工时与年度台账发布-2026-10-21.md)。PR-15～17不包含工资金额计算；真实模型、界面操作和实际文件结果需分别验证。
 
-PR-15补充确认：工时须为整数，不应使用小数。用户同时要求本次不修改现有9月文件；本次发布保持现有分配算法，可能产生小数。此项属于已确认但尚未实现的后续规则，不能通过仅隐藏小数位冒充已落实。
+PR-15补充确认：未来工时须为整数，不应使用小数；保留原9月文件，不追溯重做。验收必须检查实际分配结果，不能仅隐藏小数位；实施状态见开发进度。
 
-保留原 PR-01～PR-12 编号，新增 PR-13/14 用于已明确的新方向。以下源码路径均相对仓库根；可在[源码索引](docs/reference/source-inventory.json)检索。验证列指向现有入口与历史证据，不表示本次重新执行。
+PR-01～PR-14及以上PR-15～PR-18沿用既有编号。以下源码路径均相对仓库根；可在[源码索引](docs/reference/source-inventory.json)检索。验证列指向现有入口与历史证据，不表示本次重新执行。
 
-| 编号 | 需求及可检查结果 | 代码入口 | 验证/历史证据 | 当前边界 |
+| 编号 | 需求及可检查结果 | 代码入口 | 验证/历史证据 | 验收边界 |
 |---|---|---|---|---|
-| PR-01 | 按领域、分类、具体类型建立工作，加载适用阶段/清单；错误归属拒绝 | domain/service.ts、work-type-navigation.ts、pages/Workbench.tsx | test/business-architecture.ts、type-navigation.ts；32 | 分类已发布，不能据此认定所有真实流程已验收 |
+| PR-01 | 按领域、分类、具体类型建立工作，加载适用阶段/清单；错误归属拒绝 | domain/service.ts、work-type-navigation.ts、pages/Workbench.tsx | test/business-architecture.ts、type-navigation.ts；32 | 分类展示不得改变原工作类型、流程或历史关系 |
 | PR-02 | 月/季/年期次独立，内容、模板与规则快照不跨期串用 | domain/periods.ts、workflow.ts | test/workflow.ts、phase2-business.ts；22/43 | 新材料不受报送状态阻断 |
 | PR-03 | 项目信息复用，缺失字段明确可见，不补造 | domain/work-context.ts、generate.ts | test/phase3-experience.ts；23 | 来源变更必须重新核对 |
 | PR-04 | DOCX变量/循环/图片、XLSX集合行生成，支持预览下载 | core/template.ts、template-fields.ts | test/template-collections.ts；37/42/43 | Word分页和Excel打印/重算仍需实际工具验收 |
 | PR-05 | 成果有版本与核对依据；文件缺失或待填内容阻止定稿 | domain/versions.ts、finalization.ts、document-source.ts | test/workflow.ts、system-stability.ts；29/43 | 定稿可保留，不能成为草稿下载门槛 |
 | PR-06 | 本地制度检索、条款定位，按本次意图启用引用 | core/kb.ts、domain/kb-cite.ts、policy-reference.ts | test/policy-generation.ts、kb-e2e.ts；31 | 引用存在不等于法律适用性或合规保证 |
 | PR-07 | 附件归属、文件检索与图片OCR可追溯 | core/store.ts、search-all.ts、ocr.ts | test/ocr-e2e.ts、vision-e2e.ts；29 | 扫描PDF直接OCR未作为已交付能力 |
-| PR-08 | 软删恢复、关联数据保护及配套恢复验证 | core/trash.ts、backup.ts、scripts/snapshot.mjs | test/trash-fact-review.ts、inspection-drafts.ts；29/43 | GOV-01剩余异常未全部关闭 |
-| PR-09 | 首页待办身份去重，加载/失败/空态清楚，输入可保护 | pages/Dashboard.tsx、domain/periods.ts、components/useUnsavedClose.ts | test/workbench-count.ts；42 | 服务退出原因尚未唯一定位 |
+| PR-08 | 软删恢复、关联数据保护及配套恢复验证 | core/trash.ts、backup.ts、scripts/snapshot.mjs | test/trash-fact-review.ts、inspection-drafts.ts；29/43 | 正常、异常、恢复与文件一致性分别验证，不能只检查软删标记 |
+| PR-09 | 首页待办身份去重，加载/失败/空态清楚，输入可保护 | pages/Dashboard.tsx、domain/periods.ts、components/useUnsavedClose.ts | test/workbench-count.ts；42 | 必须覆盖加载失败、空态、数量完整性及编辑离开保护 |
 | PR-10 | 同月研发/考勤/部门模板匹配、逐日核算、冲突处理及XLSX导出 | domain/timesheets.ts、pages/Timesheets.tsx | test/workflow.ts、phase2-business.ts；22 | 真实整月业务对账与长期别名档案待补 |
 | PR-11 | 模型配置、单次资料使用确认、失败可理解 | ai/gateway.ts、consent.ts、local-model.ts | test/local-model.ts、phase5-business-assistant.ts；31/43 | 不沿用历史付费额度，四类真实写作未验收 |
 | PR-12 | 模板/流程可维护，关键操作及证据可查，AI可接续 | domain/template-history.ts、core/health.ts、项目知识文档 | test/template-management.ts；本文及文档检查 | 文档检查不等于功能测试 |
-| PR-13 | 工作记录可持久保存、查询、更正、撤回及助手引用 | domain/work-records.ts、work-record-chat.ts、038 | test/work-records.ts；38；本轮发布核验 | 台式机日常已启用，完整业务验收另计 |
-| PR-14 | 同工作历史参考、共享检查草稿、限定字段建议、整体采用及多模板生成 | domain/inspection-drafts.ts、api/routes-inspection-drafts.ts、039 | test/inspection-drafts.ts；41 A01～A20、43 | 已发布；真实模型与桌面Office边界保留 |
+| PR-13 | 工作记录可持久保存、查询、更正、撤回及助手引用 | domain/work-records.ts、work-record-chat.ts、038 | test/work-records.ts；38 | 查询、更正、撤回和引用修订均须验证，不以其他设备状态代替 |
+| PR-14 | 同工作历史参考、共享检查草稿、限定字段建议、整体采用及多模板生成 | domain/inspection-drafts.ts、api/routes-inspection-drafts.ts、039 | test/inspection-drafts.ts；41 A01～A20、43 | 真实模型、桌面Office及业务事实分别验收 |
 
 表中 domain/api/core 均位于 packages/server/src；test 位于 packages/server/test；pages/components 位于 packages/web/src。准确文件和接口清单见[数据与接口说明](docs/reference/DATA_AND_API.md)。
 
@@ -75,7 +77,7 @@ PR-15补充确认：工时须为整数，不应使用小数。用户同时要求
 | 场景 | 正常结果 | 必查异常 |
 |---|---|---|
 | SC-01 月度检查材料 | 本月进入、自动参考、修改草稿、采用或下载待确认文件 | 无历史、跨年、多项目、缺日期/结果、模型失败、旧响应、重复生成、来源更正 |
-| SC-02 工作记录 | 告知原话、持久保存、按发生时间检索、更正撤回 | 未知日期、计划误判、重复提交、旧引用失效；台式机已发布，真实业务核对继续 |
+| SC-02 工作记录 | 告知原话、持久保存、按发生时间检索、更正撤回 | 未知日期、计划误判、重复提交、旧引用失效 |
 | SC-03 在办项目 | 按适用阶段准备成果和真实证明 | 缺证明、错误模板、不同粒度阶段不能当相同工作量 |
 | SC-04 历史项目 | 补录已发生事实与资料，显示档案缺口 | 不能补造日期或强迫重演已完成流程 |
 | SC-05 季度材料 | 明确来源范围、区分事实/分析/建议、可追溯修改 | 计划当成果、跨期、冲突、来源未读或改变 |
@@ -92,7 +94,7 @@ PR-15补充确认：工时须为整数，不应使用小数。用户同时要求
 
 ## 6. 需求变更与未定项
 
-多设备约束：用户明确Codex远程无法实现，接续流程不得依赖远程控制或跨主机聊天交接。各设备本地开发的部署建议见[换机清单第7节](docs/guides/DEVICE_HANDOFF.md#7-长期多设备开发建议待采用)；尚未实施，不包含自动同步数据库或自动Git推送承诺。
+多设备约束：用户明确Codex远程无法实现，接续流程不得依赖远程控制或跨主机聊天交接。各设备本地开发及交接规则见[换机清单](docs/guides/DEVICE_HANDOFF.md)，不包含自动同步数据库或自动Git推送承诺。
 
 任务书41已取消旧报送及强制办结要求；报告35的BL-05不再作为新报送功能待办，BL-04的“零检查如何完成”不能阻断草稿生成，汇总统计口径仍需业务确认。普通零散工作方向改为工作记录，不据旧单次任务设计恢复额外流程。
 
@@ -100,10 +102,14 @@ PR-15补充确认：工时须为整数，不应使用小数。用户同时要求
 
 原始需求及阶段版本见[原始需求](docs/需求说明.md)、[整理前需求全文](docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md)。本次整理没有扩大功能承诺。
 
-## 源码交付与本机资料隔离
+## 7. 源码交付与运行隔离
 
 用户2026-10-26确认：Git只交付应用源码、依赖与构建规则、通用工具、开发文档及无真实值的配置样例；测试用例和虚构夹具也仅保留本机。运行数据、真实资料、个人配置、历史扫描和验收产物不得随源码上传。取消跟踪必须保留本地文件，不自动改写已上传历史。提交前检查实际暂存文件，推送前检查新增提交历史；详细规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)。
 
-### 运行环境分离约束（2026-10-26）
+### 运行隔离验收条件
 
 新安装默认数据及私有配置独立于源码；统一解析daily/development/test，配置错误不能静默回退。开发界面核对后端身份，测试不读取日常配置或自动复制日常资源。应用构建不依赖本机测试用例；测试代码及夹具不上传。现有数据布局兼容保留，实际迁移和发布须单独处理。实现见runtime-layout、dev-server及Vite代理；本机验证见runtime-layout.mjs，未等同完整业务验收。
+
+## 8. 项目文档职责
+
+README只作项目介绍。CONTEXT维护业务术语，PRODUCT_REQUIREMENTS维护要求与验收条件，SYSTEM_ARCHITECTURE维护当前技术结构，DEVELOPMENT_PROGRESS维护实现/验证/发布状态，GPT_CONTEXT维护简短接续与阅读路线。操作步骤进入guides，历史变更进入CHANGELOG，任务队列仅维护PROJECT_PLAN。交付时逐一核对五份根文档，禁止把不同设备或版本的状态混写为当前事实。

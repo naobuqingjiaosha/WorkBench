@@ -4,6 +4,31 @@
 
 记录格式以[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)为准，最新任务在前。同一任务的收尾修正更新同一条记录；未完成事项关联原GOV，不在本文件另建待办。此前实施和发布证据继续引用原报告，不补造历史逐次操作记录。
 
+## 2026-10-26｜GOV-11｜明确五份根文档职责，README仅保留项目介绍
+
+**目标与依据：** 用户要求修改CONTEXT、DEVELOPMENT_PROGRESS、GPT_CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE，并明确以后README只写项目介绍。本次只整理文档及索引分类，不修改应用功能或运行环境。
+
+**开始状态与核实：** main/2c26fbcc7f667e6d7519bc181309c22d8c353396，工作区干净；本地origin/main及只读git ls-remote均指向该提交，架构隔离改造已由用户提交推送。2026-10-26 17:24北京时间核对发布指针、RELEASE、8787健康接口及进程命令行，本机仍运行ui-design-20261024-r1。未查业务数据库行数/实际迁移集合，未重算全部发布摘要；不把旧设备reliability记录当本机状态。
+
+**文件与前后变化：**
+- README.md：由介绍、安装、开发、测试和交接混合入口改为项目介绍、能力范围、设计原则、技术概览及文档链接。新增docs/guides/INSTALLATION.md承接原安装、配置、构建和启动内容，避免操作说明丢失。
+- CONTEXT.md：保留全部业务术语，将检查草稿、整体采用、文件已生成归入对应类别，去除工程与交付状态。业务含义无变化。
+- PRODUCT_REQUIREMENTS.md：保留BR/PR/SC编号、规则和验收要求，移出具体设备发布与本轮交付表述；名单中的个人实例改为遵循本机确认名单，不在共享需求写具体人员信息；归并运行隔离和文档职责约束。
+- SYSTEM_ARCHITECTURE.md：重写为整体结构、模块职责、业务对象、存储、一致性、AI、环境、启动发布及恢复设计，清除过时pack遗漏与设备运行流水。原技术要点按职责保留，应用架构未新增变更。
+- DEVELOPMENT_PROGRESS.md：以本机当前源码/运行核实为主，纠正未提交和旧设备发布状态；区分历史验证、本次文档检查、未发布与未验收事项。
+- GPT_CONTEXT.md：缩短为AI阅读路线、最新接续要点和不可丢失约束，状态主记录链接DEVELOPMENT_PROGRESS，不再复制完整历史发布表。
+- AGENTS.md、docs/management/DOCUMENT_CONTROL.md：固化六份根文档职责，区分根README项目介绍与docs/README导航索引，修正过时Git暂存状态和测试移交口径。
+- docs/management/PROJECT_PLAN.md：仅更新GOV-11相关摘要，架构提交已推送，本次文档整理尚未提交；清除旧pack遗漏待办。docs/guides/DEVELOPMENT.md补安装指南入口。
+- scripts/docs-maintenance.mjs：更新README用途说明并登记INSTALLATION指南；生成docs/README.md、docs/knowledge-index.json和docs/reference/source-inventory.json。
+
+**原文保留：** 整理前九份文档及SHA256清单保存在本机[整理前快照](../archive/2026-10-26-172619-before-document-roles/manifest.json)，目录被排除上传，原历史报告不改写。Git基点2c26fbc也保留已提交原文。
+
+**五份文档复核：** CONTEXT归整术语且含义不变；PRODUCT_REQUIREMENTS保留需求并明确文档约束；SYSTEM_ARCHITECTURE整理当前实现，不新增技术能力；DEVELOPMENT_PROGRESS纠正实际Git及本机运行状态；GPT_CONTEXT更新接续与阅读路线。
+
+**验证：** 文档generate/check通过：23份文档、202个本地引用、215份源码、0错误；共享内容检查248文件通过，git diff --check通过。静态对照确认原28个术语与36个BR/PR/SC编号全部保留、9份原文快照摘要一致，README无安装命令和实时提交状态，应用源码无变更、索引无暂存操作。仅文档和静态索引分类变化，不运行应用业务测试，不把前轮测试记成本轮重验。
+
+**交付与未完成：** 本次修改保存本地，未git add/commit/push、未发布、未迁移真实资料、未新增业务验收。旧敏感历史清理及日常新版本发布仍按原GOV任务另行处理。建议提交说明：docs: 明确项目介绍与五份核心文档职责。
+
 ## 2026-10-26｜GOV-11｜运行架构分离源码、配置、数据与测试
 
 **原因与范围：** 用户明确不能仅做本地/Git隔离，需要代码设计本身体现边界。本轮基于前轮未提交修改继续开发；原154项取消跟踪删除保持在索引中，不重新暂存其他文件，不改远端历史。

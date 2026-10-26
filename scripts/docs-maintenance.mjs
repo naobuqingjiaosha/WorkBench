@@ -29,7 +29,7 @@ const roots = ['AGENTS.md', 'README.md', 'GPT_CONTEXT.md', 'CONTEXT.md', 'PRODUC
 const readingOrder = ['AGENTS.md', 'GPT_CONTEXT.md', 'DEVELOPMENT_PROGRESS.md', 'CONTEXT.md', 'PRODUCT_REQUIREMENTS.md', 'SYSTEM_ARCHITECTURE.md', 'docs/README.md'];
 const purposes = {
   'AGENTS.md': '仓库执行约定、数据保护与维护责任',
-  'README.md': '人类阅读入口、当前产品和启动说明',
+  'README.md': '项目介绍、用途、能力概览和文档入口；不维护操作或进度',
   'GPT_CONTEXT.md': 'AI最小接续上下文及按需阅读路线',
   'CONTEXT.md': '唯一业务术语词典，不承担运行状态',
   'PRODUCT_REQUIREMENTS.md': '当前需求、业务规则、场景及代码验证追溯',
@@ -42,8 +42,9 @@ const purposes = {
   'docs/management/QUALITY_AND_ACCEPTANCE.md': '质量方法、验收计划和证据要求',
   'docs/management/DOCUMENT_CONTROL.md': '知识权威规则、索引契约和维护方法',
   'docs/management/CHANGELOG.md': '逐任务实际修改、验证、五份文档复核及本地保存和Git交付状态',
+  'docs/guides/INSTALLATION.md': '首次安装、本机配置、构建和日常启动步骤',
   'docs/guides/USER_GUIDE.md': '当前日常版操作、异常处理及反馈',
-  'docs/guides/DATA_BOUNDARIES.md': '源码、测试、本机配置与业务资料的上传边界',
+  'docs/guides/DATA_BOUNDARIES.md': '源码、测试、本机配置与业务资料的运行和上传边界',
   'docs/guides/DEVELOPMENT.md': '开发环境、隔离验证、构建和交付',
   'docs/guides/DEVICE_HANDOFF.md': '每次任务收尾、换机移交范围、新机验证与现有打包限制',
   'docs/guides/MONTHLY_DEVELOPMENT.md': 'GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界',

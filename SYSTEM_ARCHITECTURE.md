@@ -1,157 +1,120 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.7。更新：2026-10-26。依据：当前源码及台式机reliability-20261024-r1发布核验。
+文档ID：KB-ARCHITECTURE。版本：1.8。更新：2026-10-26。性质：当前源码的结构与运行设计。
 
-本轮复核（2026-10-26）：新增统一运行环境解析模块，源码/数据/配置/测试在运行设计上分离；开发代理核对后端身份。业务模型与数据库结构不变，旧资料未迁移。见[变更记录](docs/management/CHANGELOG.md)。
+本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。复核：本次重整文档，应用结构未新增变更，见[变更记录](docs/management/CHANGELOG.md)。
 
-首批修复实现约束：助手沿用before_json保存执行后的目标字段值，撤销事务先比较当前值，冲突及缺少快照的历史动作拒绝撤销，force不能跳过；工时定稿按run ID共享进程内Promise，失败释放，依赖现有单服务锁，不宣称跨进程事务幂等。删除级联沿用deleted_at标识本批，独立删除操作生成不重复时间；恢复只恢复同批子项，普通文件读取与两类搜索共同校验父工作可见性。检查图片在期次之外继续按inspection_id过滤；备份仅清理本次唯一临时路径，旧残片保留；Word token恢复经过XML转义及换行/制表编码。工作记录复用NavigationGuard，保存仍在原表单完成，无新草稿存储机制。
+## 1. 整体结构
 
-## 1. 部署与组件
+工作台是面向本机单用户的模块化单体应用。React前端通过HTTP调用同一Fastify后端，后端在一个应用中组织业务模块、文件处理、数据库和AI能力。npm workspaces管理前后端依赖。
 
 ```mermaid
-flowchart LR
-  U[本机浏览器] --> W[React 19 / Vite 7]
-  W --> A[Fastify 5 API]
-  A --> D[领域服务]
-  D --> S[SQLite 元数据与版本关系]
-  D --> F[磁盘模板和业务文件]
-  D --> K[检索 / 解析 / OCR]
-  D --> G[模型网关与资料使用确认]
-  G --> M[已配置的本地或外部模型]
+flowchart TB
+  U[本机浏览器] --> W[React / TypeScript界面]
+  W --> A[Fastify HTTP接口]
+  A --> D[工作 / 期次 / 阶段 / 草稿 / 工时 / 台账 / 记录]
+  D --> C[模板 / 文件版本 / 检索 / OCR / 备份]
+  D --> G[AI网关与资料授权]
+  D --> S[(SQLite)]
+  C --> S
+  C --> F[内部业务文件]
+  C --> E[已绑定外部资料]
+  G --> M[本地或外部模型服务]
+  R[统一运行环境与路径] -.-> A
+  R -.-> S
+  R -.-> F
 ```
 
-这是 npm workspaces 单仓库。后端 TypeScript 由 Node.js 24运行，开发也提供tsx；前端构建为静态资源，由同一服务提供。SQLite使用 `node:sqlite`，文档处理采用ExcelJS、PizZip、PDF.js、Tesseract.js。准确依赖以package-lock.json为准；本轮没有升级依赖或重新审计依赖漏洞。
+技术栈为React、Vite、TypeScript、Node.js 24+、Fastify及Node内置SQLite。文档处理使用ExcelJS、PizZip、PDF.js、Tesseract.js；旧版Excel转换依赖Windows上的Microsoft Excel。具体依赖版本以package-lock.json为准。
 
-## 2. 当前运行与开发代码分离
+## 2. 模块与职责
 
-当前设备启动指针选择data/releases/ui-design-20261024-r1；下面reliability链路记录云端原台式机，不代表本次清理切换了运行包。
+| 位置 | 职责 |
+|---|---|
+| packages/web/src/pages | 首页、工作、流程规范、文件、知识、助手、设置、回收站及工作记录页面；工作内承载期次、阶段、工时和台账 |
+| packages/web/src/components | 草稿、预览、附件、编辑保护及共享界面；NavigationGuard统一处理应用内离开确认 |
+| packages/web/src/api.ts | HTTP调用、响应类型、错误与会话令牌处理 |
+| packages/server/src/index.ts | 进程锁、初始化、请求保护、路由与静态资源注册 |
+| packages/server/src/api | 参数与归属检查、错误响应、领域服务调用；常规响应使用ok/data或ok/error信封 |
+| packages/server/src/domain | 工作、期次、阶段、检查草稿、成果、版本、工时、年度台账和工作记录等业务规则 |
+| packages/server/src/core | 配置、路径、文件登记、模板、检索、OCR、日志、备份及运行保护 |
+| packages/server/src/ai | 服务商与用途档案、模型调用网关、资料授权、调用日志和助手能力 |
+| packages/server/src/db | SQLite连接、事务与有序迁移 |
+| scripts | 允许共享的启动、开发、隔离测试运行器、打包、快照和仓库检查工具 |
+| packages/server/test | 本机测试用例及夹具，不随源码上传、不作为应用构建依赖 |
 
-```text
-启动工作台.cmd / npm start
-  → scripts/start.mjs
-  → data/runtime/current-release.json
-  → data/releases/reliability-20261024-r1/packages/server/src/index.ts
-  → 原 data/runtime/workbench.db + 原 data/files + 根 packages/web/dist
-```
+这是职责划分，不宣称已经实现完全独立的模块部署或严格无环依赖。生产需要的旧Excel转换工具位于core/convert-legacy-excel.ps1，通过模块相对路径调用，不依赖本机测试脚本。
 
-发布包不是脏工作区的镜像。本次以Git基点7902f92重建旧运行源码，并核对摘要与旧进程相同，再合入11份已验证修复。台式机原数据库已含038/039/040等40项迁移，本轮新增0项；工作记录入口保留并经日常页面核验。笔记本ui-design旧包排除038的事实保存在历史快照，不套用到台式机。启动器验证指针范围和发布清单，无效指针拒绝启动；直接运行源码绕过该选择。
+## 3. 业务对象与数据关系
 
-健康接口的 `loadedBuild` 是进程加载时固定的后端、依赖锁、前端摘要；磁盘文件变化不意味着进程已经加载变化。本次核查见[运行基线](docs/reference/current-baseline.json)，后续发布必须重新核对。
+工作类型定义流程、阶段要求和模板适用关系。具体工作承接这些规则，并关联各自的期次、阶段和成果。
 
-## 3. 目录职责
+- 周期工作通过work_period区分月、季、年范围；阶段通过position_instance表达项目过程，二者不混用。
+- inspection_draft保存可编辑字段、来源及修订历史；inspection_record登记实际检查。草稿不自动进入真实检查统计。
+- artifact登记成果与工作、期次、检查等的关联及文件位置；doc_version保留修订和核对关系。
+- template及position_template_doc表达模板内容和适用范围；目录分类不等于复制业务事实或模板。
+- 工时计算保存来源与计算输入；年度台账维护记录、修订、关联文件与同步依据。
+- work_record及其历史、回答记录维护用户原话与有效引用；与旧agent_memory分开。
 
-### 换机开发与接续（2026-10-24复核）
+完整对象说明见[术语](CONTEXT.md)，字段与接口定位见[数据与API](docs/reference/DATA_AND_API.md)。实际数据库结构须核对schema_migration的完整集合，不能仅由源码文件或最高迁移编号推断。
 
-台式机已完成源码接收、依赖准备、隔离验证及本轮本机发布；旧私有业务资料迁入与完整跨机往返未验收，不依赖Codex远程。仓库文档用于新设备接续，执行者本地保存、用户手动推送；正式运行由发布指针选择。worktree不能代替数据库、端口和外部文件隔离，main分支不等于正式发布。部署建议见换机清单第7节，收尾责任见[文档治理](docs/management/DOCUMENT_CONTROL.md)。
+## 4. 存储与文件一致性
 
-本次未改变应用架构。迁移需分别保存开发工作区（含未提交/未跟踪文件与Git历史）、正式运行组合（发布指针、所选包、配套根dist和依赖锁）、一致的数据与内部文件快照，以及外部绑定原件和本机工具。`.gitignore`排除data、outputs及dist，单纯Git拉取不包含完整运行现场。`scripts/pack.mjs`当前固定清单遗漏五份根接续文档、AGENTS、Git历史、发布指针与data/releases；即使附带运行数据，也不能单独作为开发换机包。详见[换机清单](docs/guides/DEVICE_HANDOFF.md)。
+SQLite保存业务记录、状态、关系、设置、模型配置和处理日志。磁盘保存实际模板、附件、原始副本、成果及历史版本。模型凭证属于当前环境的私有配置数据，不能进入共享文档或源码样例。
 
-### 前台设计 V2（GOV-13，已限定发布）
+文件通过登记记录、根目录类型和已绑定路径定位，不按同名文件猜测。外部参考原件保持只读；可写的绑定成果按显式业务操作处理。外部原件不自动包含在内部文件快照中。
 
-笔记本历史ui-design-20261024-r1从monthly-workspaces基线合入界面及3个后端配套文件，排除工作记录，详见[报告45](docs/45-前台设计限定发布-2026-10-24.md)。台式机现由reliability-20261024-r1承接本机已运行的界面和工作记录能力，并修复RecordComposer离开保护；本轮没有重新设计界面，也没有把历史视觉/业务验收扩大为当前全部功能已验收。
+数据库与磁盘是两套存储：数据库事务不能单独保证文件操作成功。document-write、来源签名、修订校验、版本保留及失败补偿共同保护写入；不宣称存在覆盖所有数据库与文件操作的整体事务。
 
-`design.css` 和 `DesignSystem.tsx` 统一导航、卡片、列表与响应式布局。`NavigationGuard` 注册编辑区的 dirty/busy/save/discard，应用内导航统一保护；浏览器关闭保留原生警告。`useWorkbenchCollection` 分批读取全部工作后进行本地筛选和计数，防止单批截断造成数量错误。
+软删除、恢复和文件访问共同检查父对象状态。父级恢复只恢复同批删除对象，独立删除不混同；文件占用、异常补偿等完整验证范围见进度与GOV-01。
 
-全局密度由最后加载的 `compact.css` 控制：原生100%缩放下使用184px侧栏、13px正文和32px控件，桌面页面采用有界面板滚动，操作栏独立固定；工时页输入/结果滚动区与保存/导出栏分离，弹窗体内部滚动。
+## 5. 关键业务链路
 
-首页另由限定作用域的 `home.css` 对齐01设计图；`useWorkflowInbox` 将同一待办数据用于列表、摘要和待核对工作计数，避免独立请求形成不一致口径。首页使用单行页头和按图测量的约7:5列宽，窄屏转单列。
+| 链路 | 处理方式与约束 |
+|---|---|
+| 检查草稿 | 当前期次及同工作历史 → 创建/恢复草稿 → 人工编辑或限定字段AI建议 → revision校验 → 采用/生成。人工修改优先，陈旧响应不能覆盖新稿；必要事实齐全且明确确认后才登记实际检查 |
+| 文书生成 | 收集有范围的业务上下文与来源 → 模板及建议 → 生成、登记成果与版本 → 下载；来源变化提示重新核对，生成不代表报送或完成 |
+| 月度工时 | 匹配确认名单、研发与考勤来源 → 校验/计算 → 保留输入版本 → 确认及Excel导出；同一run的并发定稿复用进程内Promise，失败后可重试，不宣称跨进程幂等 |
+| 年度台账 | 记录编辑与修订 → 关联文档 → 摘要和共同基线三方比较 → 显式处理冲突 → 保存/生成/同步。修改后实际检查确认可能失效，不能继续计为当前事实 |
+| 工作记录 | 原话、发生时间、性质与关联 → 持久保存 → 查询/更正/撤回 → 按有效修订引用；记录不自动成为外部证明 |
+| 知识与OCR | 资料解析、原文/条款定位、检索及图片OCR；能找到资料不等于资料适用，扫描PDF直接OCR不作为已完成的通用能力 |
 
-`AnnualLedgerWorkspace` 将记录列表、编辑缓冲、AI字段对照、实际文件预览和显式同步整合到现有期次。建议接口读取未保存快照但不写入；生成接口接收指定文件种类与修订，逐文件返回结果。同步先校验扫描令牌与冲突，再按映射字段决定是否写入，并返回各对象已更新/未改动/失败/未执行状态；这不是跨数据库和磁盘的整体事务或持久操作日志。
+Word变量需符合当前模板引擎对格式运行的限制，Excel集合行需符合布局规则；结构解析不能代替Office分页、打印和重算检查。旧XLS转换使用上传副本，禁用宏与外链，不改写原件。
 
-未新增数据库迁移或依赖。`scripts/preview-ui-design.mjs` 将前端构建、数据库、文件和备份隔离到 `.tmp/ui-design-preview`，默认18894，不修改日常指针或前端产物。详见[实现与核验边界](docs/guides/UI_DESIGN_IMPLEMENTATION.md)。
+## 6. AI接入
 
-### 月度工作（040，已发布）
+业务服务按任务收集选定范围的上下文，通过ai/gateway选择用途档案及服务商，执行资料授权、模型请求、错误处理和调用记录。网关支持OpenAI兼容的聊天及向量接口，连接可配置的本地或外部服务。
 
-新增 `timesheet-workspace.ts` / `timesheet-layout.ts` 复用原工时计算、来源快照和ExcelJS；`MonthlyTimesheet` 替换原工时日常页面入口，名单偏好和逐月计算分开。多份考勤、扣薪例外、确认日历、局部修改及分配保存到计算输入，不把模型回复当成修改成功。旧XLS通过Windows Excel COM只读转换副本，禁用宏与外链。
+历史、模型建议、规则整理与人工确认分别保留来源。助手写操作仍经过业务规则；覆盖写撤销需要比较执行后的目标值，不能覆盖后续人工修改，缺少快照也不能猜测撤销。制度参考默认关闭，本地模型失败不能自动转为未经授权的外发。
 
-`annual-ledger.ts` / `ledger-office.ts` 与 `/api/periods/:id/ledger` 管理年度台账、记录、关联文件和修订。040新增 `timesheet_preferences`、`annual_ledger`、`ledger_entry`、`ledger_entry_version`、`ledger_document`；隐藏UUID关联台账行和两表。文件摘要及共同基线参与三方比较，冲突解决带扫描令牌；写文件前再次比较摘要，替换前留版本。签字等历史文档不自动改写。
+Git交付与模型请求是独立边界：数据不上传GitHub，不代表选择外部模型时不会发送本次授权范围内的资料。
 
-`AnnualLedger` 嵌入原月检期次，复用工作/期次与目录绑定；旧检查面板保留在折叠区。确认实际检查后桥接原 `inspection_record`；修改后待重新确认，旧事实不继续计入当前统计。`business-evidence.ts` 读取台账和关联文件状态，季度年度可引用，已导入历史和未确认草稿保留不确定性。网页编辑共享字段，完整Excel编辑由本机Office完成。
+## 7. 运行环境与配置
 
-发布以039日常包为基础，只合入清单中的19项修改，助手范围推断等无关候选继续排除。040仅新增5张表；日常迁移前后64张原有表内容一致。旧包迁移器已在副本验证可保留040，回退功能不得删除新记录。
+core/runtime-layout.ts只解析代码根、环境变量及本机配置，不打开数据库、不创建目录。启动器和应用配置使用此入口；备份执行与文件删除保护共用backupDirectoryConfig，OCR及升级工具同样使用当前环境路径。
 
-隔离启动 `scripts/dev-monthly.mjs` 将数据库、文件、前端均放入 `.tmp/monthly-development`，不更新日常发布指针。新模块来源和测试详见[开发指南](docs/guides/MONTHLY_DEVELOPMENT.md)。
-
-| 目录/文件 | 职责 | 修改后的关联检查 |
+| 模式 | 数据与配置 | 入口 |
 |---|---|---|
-| packages/web/src/pages | 工作台、期次、模板、助手、工时、设置等页面 | 实际浏览器任务、空态/失败/输入保护 |
-| packages/web/src/components | 草稿、检查、成果、附件、预览等复用组件 | 入口间共享状态、晚到响应与旧版本 |
-| packages/web/src/api.ts | API调用及前端类型 | 响应信封、错误、修订与会话令牌 |
-| packages/server/src/index.ts | 启动、路由、文件访问与静态前端 | 锁、初始化顺序、错误信封 |
-| packages/server/src/api | HTTP参数、状态码和领域调用 | 归属、字段、令牌、冲突和下载 |
-| packages/server/src/domain | 工作、期次、检查、草稿、成果、工时、证据规则 | 业务约束及相关回归 |
-| packages/server/src/core | 配置、文件、模板、检索、OCR、路径、锁、备份 | 数据完整性、隔离、异常补偿 |
-| packages/server/src/ai | 模型网关、档案和外发确认 | 本地失败、请求范围、预算及降级 |
-| packages/server/src/db | SQLite连接、迁移和SQL | 迁移集合、外键、历史兼容 |
-| packages/server/test / scripts | 自动测试、隔离、启动与快照工具 | 操作是否初始化/写数据，不能凭名称视为只读 |
-| docs / outputs / data | 知识文档 / 本机验证证据 / 运行数据与发布备份 | 后两者不保证随Git分发 |
+| daily | 新安装默认源码外独立根；既有安装可识别legacy布局 | npm start / 启动工作台.cmd |
+| development | 独立开发根，默认18889；清除继承的日常路径与常见凭证变量 | npm run dev / npm run server |
+| test | 受控临时根；不读日常配置，不自动复制日常OCR或前端资源 | scripts/test-isolated.mjs |
 
-所有源码、页面、路由声明、迁移及根npm命令可检索[静态源码索引](docs/reference/source-inventory.json)。
+新布局的环境根下分别保存workbench.config.json、files、runtime和backups。WORKBENCH_HOME选择日常根，WORKBENCH_DEV_HOME选择开发根；相对配置路径以环境根解释，显式资源变量优先。格式错误、路径越界、链接重定向及互相重叠的资源目录拒绝使用。详细规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)。
 
-## 4. 领域和数据关系
+Vite开发端口5273，代理跟随WORKBENCH_DEV_PORT，并在转发前核对后端development身份与预期数据库。只读代码或构建资源与可写业务资源分开；这不是操作系统权限沙箱。
 
-业务术语唯一入口为[CONTEXT.md](CONTEXT.md)，数据库与接口详解见[DATA_AND_API.md](docs/reference/DATA_AND_API.md)。
+## 8. 启动、发布与恢复
 
-- 工作类型定义适用流程和模板，工作实例与阶段/期次保留自己的快照；更新配置不能静默重写历史。
-- 工作可有多个期次，项目可有多个阶段；期次不得复用同一套工作级阶段状态。
-- 实际检查与草稿独立：草稿保存字段、来源、历史引用、修订与采用关联；实际统计继续依据inspection_record。
-- 成果artifact关联工作、期次、检查/草稿修订及文件，doc_version保留版本关系；元数据与磁盘文件缺一不可。
-- 工作记录038包含work_record、work_record_history、work_record_answer，仅属于开发候选。
-- 迁移按文件名有序检查schema_migration中的完整版本标识；缺038仍可有039和040，不能按最大数字判断。
+日常启动器读取当前环境的runtime/current-release.json，有有效指针时选择完整发布包，无指针时运行工作区源码；指针无效拒绝回退。旧布局使用项目data/runtime及data/releases，新布局按环境规则定位。
 
-## 5. 关键链路与约束
+后端取得运行锁后，准备配置和目录，打开数据库并执行缺失迁移，补齐预置配置，加载绑定根及后台处理。健康接口的loadedBuild记录进程加载时身份；修改磁盘源码或推送Git不代表运行进程已升级。
 
-### 5.1 月检共享草稿
+自动数据库备份、成对文件快照和默认源码包用途不同。默认pack不读取真实配置，只打包允许共享的文件；显式私有完整备份不能上传。恢复需要核对数据库与文件、配置及外部路径配套，不能仅复制数据库冒充完整移交。
 
-页面InspectionDrafts与助手使用同一草稿服务；routes-workflow注册routes-inspection-drafts。读取当前期次与同工作历史 → 新建/恢复草稿 → 结构化建议或人工编辑 → 校验revision → 采用/生成。
+## 9. 交付、保护与扩展
 
-suggest只接受允许字段，调用既有writing配置与网关；人工修改优先，陈旧响应不能覆盖新稿。request_key与采用/生成关联控制重复操作。核心事实齐全才调用saveInspection；模板额外必填单独判断。部分失败逐模板反馈，旧文件保留且可下载。
+仓库策略、忽略规则、提交/推送钩子及默认打包共同限制共享范围。应用编译入口只包含源码，本机测试使用独立配置；新克隆缺少测试用例不能被记录为测试通过。
 
-### 5.2 普通成果与证据写作
+本机Host/Origin与会话令牌保护写API，不构成多用户权限系统。功能扩展优先进入既有领域服务与迁移机制，避免重复规则；发布、真实数据迁移与付费模型调用分别依据有效授权。
 
-work-context/business-evidence收集有范围的资料；evidence-task/writing/checks处理事实、段落引用及局限；generate、document-write、document-source、versions、finalization完成文件与版本。
-
-document-write串行化工作内写入并结合事务、提交回调和失败补偿；来源签名覆盖上下文、模板及文件，旧窗口令牌/修订错误返回冲突。规则整理和模型稿不同，自动引用检查仍不能证明一般语义正确性。
-
-### 5.3 文件、模板与目录
-
-模板目录使用category；适用范围沿用类型、通用标记与position_template_doc，不因目录展示复制模板。变量为 `{变量名}`；Word变量不能跨格式运行，Excel集合行必须符合既有模板引擎限制。
-
-文件访问依据登记记录、root_kind和绑定根定位，不通过同名文件猜测。参考目录、业务目录及软删访问规则见store、paths、trash。外部原件不纳入默认内部文件快照。
-
-### 5.4 工时、知识库与记忆
-
-timesheets处理同月输入、匹配、计算、检查和导出，运行归属具体工作及期次。知识库保留原文与条款定位，本地解析与检索不等于资料适用性判断。扫描PDF直接OCR不作为现有完整能力。
-
-旧agent_memory与038工作记录是不同机制；新记录不自动改写旧记忆或业务事实。工作记录查询、更正、撤回和引用修订不能绕开原业务确认。
-
-## 6. 运行保护与已知限制
-
-- 本机Host/Origin与会话令牌保护写API；这不是多用户身份权限系统。不要据此直接开放公网。
-- 进程锁防止同一运行库重复服务；异常事件可记入健康记录，根因仍需实际诊断。
-- 测试子进程启动前设置完整隔离环境，预加载检查早于数据库和目录初始化。
-- Vite检查日常服务锁，禁止运行中默认覆盖根dist。错误提示提到的build:staged并非当前npm脚本，使用开发指南里的真实暂存构建命令。
-- Office包有界读取、路径边界与来源检查是已有保护，不宣称整个系统已经通过安全认证。
-- 自动备份主要保护数据库；完整恢复需数据库、文件、发布包、前端、配置与外部路径安排。
-
-## 7. 维护与扩展
-
-优先修改相关领域服务并补失败路径，避免复制readiness、模板适用性或来源规则。迁移、文件写入、删除和恢复变更必须在独立副本验证。发布只包含获准范围，配套比较依赖、后端、前端与迁移集合。
-
-技术决策及剩余风险见[风险与决策](docs/management/RISKS_AND_DECISIONS.md)；历次架构演进见[整理前架构](docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md)及报告22～43。
-
-## 源码交付边界
-
-`scripts/repository-policy.mjs`定义可分享路径与常见敏感内容检查。`.gitignore`默认排除未知根路径；check-repository分别检查工作区共享文件、Git暂存blob或待推送提交，钩子由prepare安装。钩子不是操作系统权限隔离或服务端访问控制，不能代替人工业务脱敏。
-
-真实配置继续使用被忽略的workbench.config.json，仓库仅提供workbench.config.example.json。测试用例留在本机原目录，通用隔离运行器保持共享。docs-maintenance仅生成共享文件的索引；pack复用路径与内容边界，默认不复制真实配置、测试或历史报告。显式完整备份仍属于私有产物，不可上传。所有154项取消跟踪文件已验证本机摘要未变；原Git历史需单独清理。
-
-## 运行环境与依赖边界（2026-10-26）
-
-`runtime-layout.ts`只依赖Node文件读取及路径边界原语，不依赖数据库、HTTP或领域模块。`loadRuntimeLayout`显式接收代码根与环境变量，返回当前环境的配置位置、可写资源位置及只读前端位置；该解析过程不初始化数据库或创建目录。
-
-启动器与core/config在进程入口选择同一环境。config仅将解析结果提供给数据库初始化、日志/锁、OCR和业务文件服务；backupDirectoryConfig统一备份与删除保护的路径选择，备份可重新读取当前环境配置。程序包默认连本机配置也不读取。
-
-新安装的配置与files/runtime/backups位于源码外。开发根按源码路径摘要分开，开发进程不继承日常路径/常见凭证，Vite每次转发核对development及预期DB；测试根按次创建，不读取配置、不复制日常缓存。编译入口只包含应用源码，本机测试使用单独tsconfig。源码Git策略与打包过滤承担交付边界，不代替运行隔离。
-
-兼容旧布局只在daily且未显式配置新根时生效；不搬迁旧数据，不替换当前发布指针。具体布局、环境变量和兼容规则见[运行边界](docs/guides/DATA_BOUNDARIES.md)。该设计不是操作系统权限沙箱，也不阻止用户在应用中明确绑定外部资料。
+安装见[安装指南](docs/guides/INSTALLATION.md)，开发见[开发指南](docs/guides/DEVELOPMENT.md)，操作与恢复见[运维手册](docs/guides/OPERATIONS.md)。历史架构和发布差异由[变更记录](docs/management/CHANGELOG.md)及本机历史报告承接，不在本文追加设备运行流水。

@@ -2,13 +2,15 @@
 
 适用范围：本仓库。维护日期：2026-10-26。本文提供项目约定，不代替用户当前任务与授权。
 
-当前目录状态（2026-10-26）：源码仓库已恢复正常Git跟踪。本轮按用户要求将数据、本机配置、测试用例和历史证据退出跟踪，本地原件保留；只允许源码、通用工具、开发文档及配置样例上传。具体边界由scripts/repository-policy.mjs与.gitignore共同定义，执行npm run repo:check和暂存检查。当前Git索引中的154项删除为有意取消跟踪，不是本地文件丢失；未提交、未推送、未改写历史。
+源码交付约定：只共享源码、通用工具、开发文档及配置样例；数据、本机配置、测试用例和历史证据保留本机、不上传。具体边界由scripts/repository-policy.mjs与.gitignore定义。取消跟踪不等于本地删除，当前Git与发布状态读取DEVELOPMENT_PROGRESS并实时核实。
+
+文档职责：README只写项目介绍；CONTEXT只维护业务术语；PRODUCT_REQUIREMENTS写需求与验收条件；SYSTEM_ARCHITECTURE写技术结构；DEVELOPMENT_PROGRESS写实现、验证及交付状态；GPT_CONTEXT写简短接续和阅读路线。安装/操作进入docs/guides，历史进入CHANGELOG，不能在README追加任务记录。
 
 ## 开始前
 
 1. 读 [GPT_CONTEXT.md](GPT_CONTEXT.md) 和 [docs/README.md](docs/README.md)，确认本次任务范围。
 2. 读 [CONTEXT.md](CONTEXT.md) 的业务术语；按任务读需求、架构、计划或操作手册。
-3. 检查 Git 状态；此仓库有其他任务留下的未提交修改。保留它们，不重置、不覆盖、不自动全部提交或发布。
+3. 检查Git状态、分支、HEAD和上游差异；涉及近期更新时同时核对远端。有既有修改时保留它们，不重置、不覆盖、不自动全部提交或发布。
 4. 涉及运行状态时重新读发布指针、对应 RELEASE.json 和健康接口；不要把工作区代码当成日常运行代码。
 5. 遇到文档冲突按 [文档治理](docs/management/DOCUMENT_CONTROL.md) 分别判断需求依据、源码事实、发布事实与验证证据。不能简单以文件日期或编号大小裁决。
 
@@ -40,7 +42,7 @@
 - 用户要求每次项目任务结束将本次文件修改实际保存到本地；由用户手动进行Git推送。默认不执行git add、git commit或git push；“保存”不等于“提交”“推送”或“发布”。用户另行明确授权本地提交时，仅处理其授权范围，推送仍由用户执行。
 - 每次逐一核对并同步 GPT_CONTEXT.md、CONTEXT.md、PRODUCT_REQUIREMENTS.md、SYSTEM_ARCHITECTURE.md、DEVELOPMENT_PROGRESS.md。变化写入对应职责位置；无变化更新复核信息并在变更记录中说明，不编造需求、术语或实现变化。仅口头承诺或更新本机全局记忆不算完成。
 - 按[文档治理第5节](docs/management/DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)将日期/GOV、修改原因、文件与前后变化、验证结果、五份文档复核、未完成项及保存/提交/推送/发布状态写入[变更记录](docs/management/CHANGELOG.md)。记录本任务增量，不把整个工作区旧改动算作本次完成；为用户提供明确文件清单及建议提交说明。
-- GPT_CONTEXT保留最新接续摘要，DEVELOPMENT_PROGRESS记录本次范围、验证、未完成项和发布状态；下一步仍只维护现有GOV队列。换机前按[换机开发与接续清单](docs/guides/DEVICE_HANDOFF.md)核对未提交文件、发布包、数据和外部路径。
+- GPT_CONTEXT保留最新接续摘要，DEVELOPMENT_PROGRESS记录本次范围、验证、未完成项和发布状态；下一步仍只维护现有GOV队列。开发换机按[换机开发与接续清单](docs/guides/DEVICE_HANDOFF.md)核对源码、依赖和文档；测试资源、本机配置、正式数据与发布包仅在用户另行要求时接续，不把源码交付等同完整运行迁移。
 - 改需求更新 PRODUCT_REQUIREMENTS；改结构更新 SYSTEM_ARCHITECTURE；改状态更新 DEVELOPMENT_PROGRESS 与对应 GOV 任务；改术语更新 CONTEXT。
 - 当前任务队列唯一位置是 [项目计划](docs/management/PROJECT_PLAN.md)。编号沿用 GOV-01 等，不另造并行队列。
 - 历史报告保留，在原文顶部标注适用边界；不要反复把长篇历史追加到当前入口。

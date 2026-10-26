@@ -15,12 +15,13 @@
 | [开发进度与当前基线](../DEVELOPMENT_PROGRESS.md) | 当前发布、能力分层和验收边界 |
 | [AI 项目接续入口](../GPT_CONTEXT.md) | AI最小接续上下文及按需阅读路线 |
 | [产品需求与追溯矩阵](../PRODUCT_REQUIREMENTS.md) | 当前需求、业务规则、场景及代码验证追溯 |
-| [工作台（WorkBench）](../README.md) | 人类阅读入口、当前产品和启动说明 |
+| [工作台（WorkBench）](../README.md) | 项目介绍、用途、能力概览和文档入口；不维护操作或进度 |
 | [系统架构](../SYSTEM_ARCHITECTURE.md) | 当前结构、关键链路、运行与候选边界 |
 | [项目知识与文档总览](README.md) | 自动生成的完整文档目录与分类 |
-| [源码、测试和本机资料的边界](guides/DATA_BOUNDARIES.md) | 源码、测试、本机配置与业务资料的上传边界 |
+| [源码、测试和本机资料的边界](guides/DATA_BOUNDARIES.md) | 源码、测试、本机配置与业务资料的运行和上传边界 |
 | [开发与验证指南](guides/DEVELOPMENT.md) | 开发环境、隔离验证、构建和交付 |
 | [换机开发与接续清单](guides/DEVICE_HANDOFF.md) | 每次任务收尾、换机移交范围、新机验证与现有打包限制 |
+| [安装与启动指南](guides/INSTALLATION.md) | 首次安装、本机配置、构建和日常启动步骤 |
 | [月度工时与年度台账操作及开发验收](guides/MONTHLY_DEVELOPMENT.md) | GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界 |
 | [运行、备份、恢复与发布手册](guides/OPERATIONS.md) | 运行、备份、恢复、发布与排障 |
 | [前台设计 V2 实施与隔离核验](guides/UI_DESIGN_IMPLEMENTATION.md) | GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界 |

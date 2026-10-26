@@ -1,6 +1,6 @@
 # 文档治理与AI读取规范
 
-文档ID：PM-DOCUMENT-CONTROL。版本：1.1。更新：2026-10-24。状态：当前维护约定。
+文档ID：PM-DOCUMENT-CONTROL。版本：1.2。更新：2026-10-26。状态：当前维护约定。
 
 2026-10-26边界更新：仅共享源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例及历史验证产物均保留本机、不上传。旧文中要求随Git携带测试或运行快照的表述由本条替代，具体见[源码与资料边界](../guides/DATA_BOUNDARIES.md)。
 
@@ -8,7 +8,9 @@
 
 | 信息 | 唯一维护位置 |
 |---|---|
-| 总入口/AI阅读路线 | README、GPT_CONTEXT、docs/README |
+| 项目介绍、用途与能力概览 | 根README；只作项目介绍，不维护安装操作、实时状态或任务流水 |
+| AI接续与阅读路线 | GPT_CONTEXT；保持简短，状态主记录链接DEVELOPMENT_PROGRESS |
+| 全部文档的导航索引 | docs/README；由生成器维护，与根README职责不同 |
 | 业务术语 | CONTEXT |
 | 当前功能和业务约束 | PRODUCT_REQUIREMENTS |
 | 当前技术结构 | SYSTEM_ARCHITECTURE |
@@ -17,7 +19,7 @@
 | 任务负责人、依赖、状态与下一步 | management/PROJECT_PLAN |
 | 风险、业务未定项和关键决策 | management/RISKS_AND_DECISIONS |
 | 验证方法与未验收项 | management/QUALITY_AND_ACCEPTANCE |
-| 使用/开发/运维 | guides下对应手册 |
+| 安装/使用/开发/运维 | guides/INSTALLATION及对应手册；README只放入口链接 |
 | 数据/API定位 | reference/DATA_AND_API与source-inventory |
 | 原始报告、方案与阶段证据 | docs既有编号报告、collab及archive；不当作当前总状态 |
 
@@ -109,7 +111,7 @@ generate只写docs目录中的总览和两份索引，check不写文件。源码
 
 ## 6. 移交与保密
 
-最小AI移交包为根文档、docs、package.json、锁文件、相关源码与测试；不要只发一份GPT_CONTEXT就假定对方能访问链接。
+最小源码接续范围为共享根文档、docs、package.json、锁文件和相关源码；测试用例/夹具、私有配置、数据与历史证据不随Git交付。需要时在授权范围单独接续；不要只发一份GPT_CONTEXT就假定对方能访问所有链接。
 
 data与outputs通常被Git忽略，包含本机数据、发布包、备份和验证证据，不自动包含在移交包。若需验证运行或原始结果，按授权另供对应脱敏证据和摘要；拿不到就标未核实。
 

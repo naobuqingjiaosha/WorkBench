@@ -26,7 +26,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "仓库执行约定、数据保护与维护责任",
-      "sha256": "a2bdf64fea64867c7fae9c97d141384fe48655f24f5f89c35e5dc09bf03daf83",
+      "sha256": "235ca66127fe3072a85cf30ddc224b50a2ac287e415ac417c0e666405d36ee07",
       "linksTo": [
         "CONTEXT.md",
         "GPT_CONTEXT.md",
@@ -101,20 +101,48 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一业务术语词典，不承担运行状态",
-      "sha256": "7451f958544c71c7900acb2d17a5a50ef8b6c017ed64d0e26922bee3f167ba48",
+      "sha256": "59f9d9e1378c32b1ff5898b251512e063d49901bad7454c0cd8df9ef28bd5b76",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "PRODUCT_REQUIREMENTS.md",
-        "SYSTEM_ARCHITECTURE.md",
         "docs/management/CHANGELOG.md"
       ],
       "localLinks": [
+        {
+          "target": "PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
         {
           "target": "docs/management/CHANGELOG.md",
           "path": "docs/management/CHANGELOG.md",
           "availability": "repository",
           "exists": true
-        },
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT_PROGRESS",
+      "path": "DEVELOPMENT_PROGRESS.md",
+      "title": "开发进度与当前基线",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前发布、能力分层和验收边界",
+      "sha256": "00123d4a9f0297e0d5d8218a03cc7237789b0d37dda6666f3e8ac12c25eace19",
+      "linksTo": [
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
         {
           "target": "PRODUCT_REQUIREMENTS.md",
           "path": "PRODUCT_REQUIREMENTS.md",
@@ -128,72 +156,26 @@
           "exists": true
         },
         {
-          "target": "DEVELOPMENT_PROGRESS.md",
-          "path": "DEVELOPMENT_PROGRESS.md",
-          "availability": "repository",
-          "exists": true
-        }
-      ]
-    },
-    {
-      "id": "DEVELOPMENT_PROGRESS",
-      "path": "DEVELOPMENT_PROGRESS.md",
-      "title": "开发进度与当前基线",
-      "role": "current",
-      "status": "current-baseline",
-      "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "1403e4ed909451ff5ed4a9e35ef9c31a9a747ea8e08d5ee9333bfb3e17b89054",
-      "linksTo": [
-        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-        "docs/management/CHANGELOG.md",
-        "docs/management/PROJECT_PLAN.md"
-      ],
-      "localLinks": [
-        {
           "target": "docs/management/PROJECT_PLAN.md",
           "path": "docs/management/PROJECT_PLAN.md",
           "availability": "repository",
           "exists": true
-        },
-        {
-          "target": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
-          "path": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/reference/current-baseline.json",
-          "path": "docs/reference/current-baseline.json",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/management/PROJECT_PLAN.md",
-          "path": "docs/management/PROJECT_PLAN.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
-          "path": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
-          "path": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
-          "availability": "local-evidence",
-          "exists": null
         },
         {
           "target": "docs/management/CHANGELOG.md",
           "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
           "availability": "repository",
           "exists": true
         }
@@ -206,21 +188,28 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "8ce71843632bc7ff59f1cbb85c362cbb62b885ebc2f7d7346f6b6e71d2e48bfe",
+      "sha256": "be895d2613db425a312a70819f8a570fde2827b90fa01a216776f203f19ac442",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
         "PRODUCT_REQUIREMENTS.md",
+        "README.md",
         "SYSTEM_ARCHITECTURE.md",
         "docs/README.md",
-        "docs/guides/DEVICE_HANDOFF.md",
-        "docs/guides/OPERATIONS.md",
+        "docs/guides/DATA_BOUNDARIES.md",
+        "docs/guides/DEVELOPMENT.md",
         "docs/management/CHANGELOG.md",
         "docs/management/DOCUMENT_CONTROL.md",
         "docs/management/PROJECT_PLAN.md"
       ],
       "localLinks": [
+        {
+          "target": "README.md",
+          "path": "README.md",
+          "availability": "repository",
+          "exists": true
+        },
         {
           "target": "AGENTS.md",
           "path": "AGENTS.md",
@@ -252,8 +241,8 @@
           "exists": true
         },
         {
-          "target": "docs/management/CHANGELOG.md",
-          "path": "docs/management/CHANGELOG.md",
+          "target": "docs/README.md",
+          "path": "docs/README.md",
           "availability": "repository",
           "exists": true
         },
@@ -264,46 +253,28 @@
           "exists": true
         },
         {
-          "target": "docs/README.md",
-          "path": "docs/README.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
-          "path": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/guides/OPERATIONS.md",
-          "path": "docs/guides/OPERATIONS.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/reference/current-baseline.json",
-          "path": "docs/reference/current-baseline.json",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/guides/DEVICE_HANDOFF.md",
-          "path": "docs/guides/DEVICE_HANDOFF.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
           "target": "docs/management/DOCUMENT_CONTROL.md",
           "path": "docs/management/DOCUMENT_CONTROL.md",
           "availability": "repository",
           "exists": true
         },
         {
-          "target": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
-          "path": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
-          "availability": "local-evidence",
-          "exists": null
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DATA_BOUNDARIES.md",
+          "path": "docs/guides/DATA_BOUNDARIES.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
         }
       ]
     },
@@ -314,7 +285,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前需求、业务规则、场景及代码验证追溯",
-      "sha256": "e6b8d27295efe9064c4d188111eb68f79ab646ab974d15f310647fcecd34d262",
+      "sha256": "12e9f5f4e702ab460398227eabf769f91168d4e742e454cb1a0e0a6ee43062f1",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -325,6 +296,7 @@
         "docs/management/CHANGELOG.md",
         "docs/management/DOCUMENT_CONTROL.md",
         "docs/management/PROJECT_CHARTER.md",
+        "docs/management/PROJECT_PLAN.md",
         "docs/management/QUALITY_AND_ACCEPTANCE.md",
         "docs/management/RISKS_AND_DECISIONS.md",
         "docs/reference/DATA_AND_API.md"
@@ -333,6 +305,18 @@
         {
           "target": "DEVELOPMENT_PROGRESS.md",
           "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
           "availability": "repository",
           "exists": true
         },
@@ -421,7 +405,7 @@
           "exists": true
         },
         {
-          "target": "docs/guides/DEVICE_HANDOFF.md#7-长期多设备开发建议待采用",
+          "target": "docs/guides/DEVICE_HANDOFF.md",
           "path": "docs/guides/DEVICE_HANDOFF.md",
           "availability": "repository",
           "exists": true
@@ -470,76 +454,23 @@
       "title": "工作台（WorkBench）",
       "role": "entry",
       "status": "current-baseline",
-      "purpose": "人类阅读入口、当前产品和启动说明",
-      "sha256": "612dea342af81e9afd6ff1d1d417850ec1caff73cfaf15a786082e21fcbf0965",
+      "purpose": "项目介绍、用途、能力概览和文档入口；不维护操作或进度",
+      "sha256": "e22e2800d0efc03d64aca0e4814596274c1d4dbc0e35f70beef86a5b06d8e9e0",
       "linksTo": [
-        "AGENTS.md",
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
         "GPT_CONTEXT.md",
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
         "docs/README.md",
-        "docs/guides/DATA_BOUNDARIES.md",
         "docs/guides/DEVELOPMENT.md",
-        "docs/guides/OPERATIONS.md",
-        "docs/guides/USER_GUIDE.md",
-        "docs/management/CHANGELOG.md",
-        "docs/management/PROJECT_PLAN.md",
-        "docs/reference/DATA_AND_API.md"
+        "docs/guides/INSTALLATION.md",
+        "docs/guides/USER_GUIDE.md"
       ],
       "localLinks": [
         {
           "target": "DEVELOPMENT_PROGRESS.md",
           "path": "DEVELOPMENT_PROGRESS.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/management/CHANGELOG.md",
-          "path": "docs/management/CHANGELOG.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DATA_BOUNDARIES.md",
-          "path": "docs/guides/DATA_BOUNDARIES.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/OPERATIONS.md",
-          "path": "docs/guides/OPERATIONS.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DEVELOPMENT.md",
-          "path": "docs/guides/DEVELOPMENT.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DATA_BOUNDARIES.md",
-          "path": "docs/guides/DATA_BOUNDARIES.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/USER_GUIDE.md",
-          "path": "docs/guides/USER_GUIDE.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DATA_BOUNDARIES.md",
-          "path": "docs/guides/DATA_BOUNDARIES.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DEVELOPMENT.md",
-          "path": "docs/guides/DEVELOPMENT.md",
           "availability": "repository",
           "exists": true
         },
@@ -556,6 +487,106 @@
           "exists": true
         },
         {
+          "target": "docs/guides/INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "SYSTEM_ARCHITECTURE",
+      "path": "SYSTEM_ARCHITECTURE.md",
+      "title": "系统架构",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前结构、关键链路、运行与候选边界",
+      "sha256": "3709dbc9556b27cc8dadebb13b29e32b6d0baa144a753654c6c510092170354b",
+      "linksTo": [
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "README.md",
+        "docs/guides/DATA_BOUNDARIES.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/INSTALLATION.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/management/CHANGELOG.md",
+        "docs/reference/DATA_AND_API.md"
+      ],
+      "localLinks": [
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "README.md",
+          "path": "README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
           "target": "CONTEXT.md",
           "path": "CONTEXT.md",
           "availability": "repository",
@@ -568,14 +599,20 @@
           "exists": true
         },
         {
-          "target": "DEVELOPMENT_PROGRESS.md",
-          "path": "DEVELOPMENT_PROGRESS.md",
+          "target": "docs/guides/DATA_BOUNDARIES.md",
+          "path": "docs/guides/DATA_BOUNDARIES.md",
           "availability": "repository",
           "exists": true
         },
         {
-          "target": "docs/management/PROJECT_PLAN.md",
-          "path": "docs/management/PROJECT_PLAN.md",
+          "target": "docs/guides/INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
           "availability": "repository",
           "exists": true
         },
@@ -590,124 +627,6 @@
           "path": "docs/management/CHANGELOG.md",
           "availability": "repository",
           "exists": true
-        },
-        {
-          "target": "docs/README.md",
-          "path": "docs/README.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "AGENTS.md",
-          "path": "AGENTS.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "GPT_CONTEXT.md",
-          "path": "GPT_CONTEXT.md",
-          "availability": "repository",
-          "exists": true
-        }
-      ]
-    },
-    {
-      "id": "SYSTEM_ARCHITECTURE",
-      "path": "SYSTEM_ARCHITECTURE.md",
-      "title": "系统架构",
-      "role": "current",
-      "status": "current-baseline",
-      "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "3da437ccf6bbcac1b6f11c3c6645d4e8c8535685469ee59272a225a7ddbfc2aa",
-      "linksTo": [
-        "CONTEXT.md",
-        "docs/guides/DATA_BOUNDARIES.md",
-        "docs/guides/DEVICE_HANDOFF.md",
-        "docs/guides/MONTHLY_DEVELOPMENT.md",
-        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-        "docs/management/CHANGELOG.md",
-        "docs/management/DOCUMENT_CONTROL.md",
-        "docs/management/RISKS_AND_DECISIONS.md",
-        "docs/reference/DATA_AND_API.md"
-      ],
-      "localLinks": [
-        {
-          "target": "docs/management/CHANGELOG.md",
-          "path": "docs/management/CHANGELOG.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/reference/current-baseline.json",
-          "path": "docs/reference/current-baseline.json",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/management/DOCUMENT_CONTROL.md",
-          "path": "docs/management/DOCUMENT_CONTROL.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/DEVICE_HANDOFF.md",
-          "path": "docs/guides/DEVICE_HANDOFF.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/45-前台设计限定发布-2026-10-24.md",
-          "path": "docs/45-前台设计限定发布-2026-10-24.md",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/guides/MONTHLY_DEVELOPMENT.md",
-          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/reference/source-inventory.json",
-          "path": "docs/reference/source-inventory.json",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "CONTEXT.md",
-          "path": "CONTEXT.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/reference/DATA_AND_API.md",
-          "path": "docs/reference/DATA_AND_API.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/management/RISKS_AND_DECISIONS.md",
-          "path": "docs/management/RISKS_AND_DECISIONS.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
-          "target": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
-          "path": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
-          "availability": "local-evidence",
-          "exists": null
-        },
-        {
-          "target": "docs/guides/DATA_BOUNDARIES.md",
-          "path": "docs/guides/DATA_BOUNDARIES.md",
-          "availability": "repository",
-          "exists": true
         }
       ]
     },
@@ -718,7 +637,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "自动生成的完整文档目录与分类",
-      "sha256": "e696fee65548e7c87dfadb07d029b9c3a2f8c8e6b06eb9b53ffc31bbd42ee059",
+      "sha256": "9704fd5db8f322bb2ebd8f2825a2c45ce244cffcee469f440e3e04b6f612c5de",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -731,6 +650,7 @@
         "docs/guides/DATA_BOUNDARIES.md",
         "docs/guides/DEVELOPMENT.md",
         "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/INSTALLATION.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
         "docs/guides/OPERATIONS.md",
         "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
@@ -841,6 +761,12 @@
           "exists": true
         },
         {
+          "target": "guides/INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
           "target": "guides/MONTHLY_DEVELOPMENT.md",
           "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
           "availability": "repository",
@@ -920,7 +846,7 @@
       "title": "源码、测试和本机资料的边界",
       "role": "current",
       "status": "current-baseline",
-      "purpose": "源码、测试、本机配置与业务资料的上传边界",
+      "purpose": "源码、测试、本机配置与业务资料的运行和上传边界",
       "sha256": "c73003b71b050a6d83a345a44cfebb77f85213cc83f01dc7d7bb0873bdc83428",
       "linksTo": [],
       "localLinks": []
@@ -932,11 +858,12 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "开发环境、隔离验证、构建和交付",
-      "sha256": "ec0af68c04487b5f49ba18a645c72cd21815e9c20b9defd8b594c9471bebcc10",
+      "sha256": "98d219254a7b218fd54132bf90a7385dc15eb21a668c6b8d7de4c82614e09eca",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
         "docs/guides/DATA_BOUNDARIES.md",
+        "docs/guides/INSTALLATION.md",
         "docs/guides/OPERATIONS.md",
         "docs/management/CHANGELOG.md",
         "docs/management/DOCUMENT_CONTROL.md"
@@ -945,6 +872,12 @@
         {
           "target": "DATA_BOUNDARIES.md",
           "path": "docs/guides/DATA_BOUNDARIES.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
           "availability": "repository",
           "exists": true
         },
@@ -1053,6 +986,79 @@
         {
           "target": "DEVELOPMENT.md",
           "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/INSTALLATION",
+      "path": "docs/guides/INSTALLATION.md",
+      "title": "安装与启动指南",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "首次安装、本机配置、构建和日常启动步骤",
+      "sha256": "afa1ee4a44bada420fbd8b2d967bc0891e0c6c0fc7fe10bfa820d0b397c8f6da",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/guides/DATA_BOUNDARIES.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/guides/USER_GUIDE.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DATA_BOUNDARIES.md",
+          "path": "docs/guides/DATA_BOUNDARIES.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DATA_BOUNDARIES.md",
+          "path": "docs/guides/DATA_BOUNDARIES.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
           "availability": "repository",
           "exists": true
         }
@@ -1273,7 +1279,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "逐任务实际修改、验证、五份文档复核及本地保存和Git交付状态",
-      "sha256": "51fadcd975a915f6e071f78768a0794289621d339200faa00a0d6315db437a67",
+      "sha256": "55864747b29c12b32b0e65d414f876ba7d23267b73ddfc57ac118c9df431b584",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -1301,6 +1307,12 @@
           "path": "docs/management/DOCUMENT_CONTROL.md",
           "availability": "repository",
           "exists": true
+        },
+        {
+          "target": "../archive/2026-10-26-172619-before-document-roles/manifest.json",
+          "path": "docs/archive/2026-10-26-172619-before-document-roles/manifest.json",
+          "availability": "local-evidence",
+          "exists": null
         },
         {
           "target": "../../../工作台审计/PUBLISH_20261024_R1/发布报告.txt",
@@ -1443,7 +1455,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "知识权威规则、索引契约和维护方法",
-      "sha256": "779b7594d9f2ed6a4dfca175be9e85fd71f9057368c13109b7f0788e1f2affaa",
+      "sha256": "e94c88c92018e015aa41e42b8dcbaf777fa82ca38e719e1de5635d64841d11fe",
       "linksTo": [
         "docs/guides/DATA_BOUNDARIES.md",
         "docs/management/CHANGELOG.md"
@@ -1508,7 +1520,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "7742d0b736cc2c519cb22e65fa0f7ff930c480763f6aea53167ce7db21753dff",
+      "sha256": "84bce56dd0f7b4820a729a321c1dce7562f45c9decfceb3cc5f1dfb5c22f1705",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVICE_HANDOFF.md",
