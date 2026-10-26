@@ -2,7 +2,7 @@
 
 文档ID：KB-CONTEXT。版本：1.0。更新：2026-10-26。性质：业务术语词典。
 
-本轮复核（2026-10-26）：恢复云端源码及目录清理不改变业务术语，原始事实与文件生成的边界保持不变。见[变更记录](docs/management/CHANGELOG.md)。
+本轮复核（2026-10-26）：README结构调整不改变业务术语，对象及事实边界保持不变。见[变更记录](docs/management/CHANGELOG.md)。
 
 本文只定义业务术语。当前需求、实现与发布状态分别见[产品需求](PRODUCT_REQUIREMENTS.md)、[系统架构](SYSTEM_ARCHITECTURE.md)和[开发进度](DEVELOPMENT_PROGRESS.md)。
 

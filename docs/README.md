@@ -15,7 +15,7 @@
 | [开发进度与当前基线](../DEVELOPMENT_PROGRESS.md) | 当前发布、能力分层和验收边界 |
 | [AI 项目接续入口](../GPT_CONTEXT.md) | AI最小接续上下文及按需阅读路线 |
 | [产品需求与追溯矩阵](../PRODUCT_REQUIREMENTS.md) | 当前需求、业务规则、场景及代码验证追溯 |
-| [工作台](../README.md) | 人类阅读入口、当前产品和启动说明 |
+| [工作台（WorkBench）](../README.md) | 人类阅读入口、当前产品和启动说明 |
 | [系统架构](../SYSTEM_ARCHITECTURE.md) | 当前结构、关键链路、运行与候选边界 |
 | [项目知识与文档总览](README.md) | 自动生成的完整文档目录与分类 |
 | [开发与验证指南](guides/DEVELOPMENT.md) | 开发环境、隔离验证、构建和交付 |
