@@ -26,12 +26,13 @@
 | [运行、备份、恢复与发布手册](guides/OPERATIONS.md) | 运行、备份、恢复、发布与排障 |
 | [前台设计 V2 实施与隔离核验](guides/UI_DESIGN_IMPLEMENTATION.md) | GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界 |
 | [使用说明](guides/USER_GUIDE.md) | 当前日常版操作、异常处理及反馈 |
-| [项目变更记录](management/CHANGELOG.md) | 逐任务实际修改、验证、五份文档复核及本地保存和Git交付状态 |
+| [项目变更记录](management/CHANGELOG.md) | 既有任务历史记录；不代表当前状态，不再追加新任务 |
 | [文档治理与AI读取规范](management/DOCUMENT_CONTROL.md) | 知识权威规则、索引契约和维护方法 |
 | [项目章程与范围说明](management/PROJECT_CHARTER.md) | 目标、范围、交付、责任、资源和阶段出口 |
 | [项目计划与唯一执行队列](management/PROJECT_PLAN.md) | 唯一GOV执行队列、依赖、状态与下一步 |
 | [质量管理与验收计划](management/QUALITY_AND_ACCEPTANCE.md) | 质量方法、验收计划和证据要求 |
 | [风险、问题与决策记录](management/RISKS_AND_DECISIONS.md) | 风险、问题、业务未定项与已有决策 |
+| [项目工作日志](management/WORK_LOG.md) | 每次工作的目标、修改、验证、文档复核及交付记录 |
 | [数据字典、接口约定与定位](reference/DATA_AND_API.md) | 关键数据字典、API约定及源码定位 |
 
 ## 维护与移交

@@ -2,7 +2,7 @@
 
 文档ID：KB-ARCHITECTURE。版本：1.8。更新：2026-10-26。性质：当前源码的结构与运行设计。
 
-本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。复核：本次重整文档，应用结构未新增变更，见[变更记录](docs/management/CHANGELOG.md)。
+本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
 ## 1. 整体结构
 
@@ -117,4 +117,4 @@ Vite开发端口5273，代理跟随WORKBENCH_DEV_PORT，并在转发前核对后
 
 本机Host/Origin与会话令牌保护写API，不构成多用户权限系统。功能扩展优先进入既有领域服务与迁移机制，避免重复规则；发布、真实数据迁移与付费模型调用分别依据有效授权。
 
-安装见[安装指南](docs/guides/INSTALLATION.md)，开发见[开发指南](docs/guides/DEVELOPMENT.md)，操作与恢复见[运维手册](docs/guides/OPERATIONS.md)。历史架构和发布差异由[变更记录](docs/management/CHANGELOG.md)及本机历史报告承接，不在本文追加设备运行流水。
+安装见[安装指南](docs/guides/INSTALLATION.md)，开发见[开发指南](docs/guides/DEVELOPMENT.md)，操作与恢复见[运维手册](docs/guides/OPERATIONS.md)。架构和发布的变更经过见[工作日志](docs/management/WORK_LOG.md)，早期证据见[历史变更记录](docs/management/CHANGELOG.md)及本机历史报告。

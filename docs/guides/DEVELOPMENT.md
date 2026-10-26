@@ -18,7 +18,7 @@ npm --version
 npm ci
 ```
 
-npm ci会重建node_modules；已有环境不是每次任务都要运行，更不能在日常服务运行时随意替换其共享依赖。本文的命令是操作说明，本次文档整理未安装依赖。
+npm ci会重建node_modules；已有环境不是每次任务都要运行，更不能在日常服务运行时随意替换其共享依赖。安装命令不表示当前环境已经完成安装。
 
 ## 2. 代码定位
 
@@ -75,7 +75,7 @@ Vite会清理指定输出目录，因此必须选择本次专属目录。不要�
 
 ## 8. 文档与技术债
 
-每次逐一复核五份根文档，按[文档治理](../management/DOCUMENT_CONTROL.md)填写[变更记录](../management/CHANGELOG.md)。变更记录包括文件及前后差异、理由、验证、未完成项和保存/暂存/提交/推送/发布/验收状态；建议提交标题采用 `类型(范围): 具体变化`。修改结构/API/迁移后刷新source-inventory，状态更新到对应GOV。运行：
+每次逐一复核五份根文档，将受影响正文完整整合为当前有效说明，删除失效和重复表述；没有内容变化时不追加复核段落。按[文档治理](../management/DOCUMENT_CONTROL.md)填写[工作日志](../management/WORK_LOG.md)，记录文件及前后差异、理由、验证、五份文档复核、未完成项和保存/暂存/提交/推送/发布/验收状态；建议提交标题采用 `类型(范围): 具体变化`。修改结构/API/迁移后刷新source-inventory，状态更新到对应GOV。运行：
 
 ```powershell
 node scripts/docs-maintenance.mjs generate

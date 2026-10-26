@@ -4,7 +4,7 @@
 
 源码交付约定：只共享源码、通用工具、开发文档及配置样例；数据、本机配置、测试用例和历史证据保留本机、不上传。具体边界由scripts/repository-policy.mjs与.gitignore定义。取消跟踪不等于本地删除，当前Git与发布状态读取DEVELOPMENT_PROGRESS并实时核实。
 
-文档职责：README只写项目介绍；CONTEXT只维护业务术语；PRODUCT_REQUIREMENTS写需求与验收条件；SYSTEM_ARCHITECTURE写技术结构；DEVELOPMENT_PROGRESS写实现、验证及交付状态；GPT_CONTEXT写简短接续和阅读路线。安装/操作进入docs/guides，历史进入CHANGELOG，不能在README追加任务记录。
+文档职责：README只写项目介绍；CONTEXT只维护业务术语；PRODUCT_REQUIREMENTS写需求与验收条件；SYSTEM_ARCHITECTURE写技术结构；DEVELOPMENT_PROGRESS写当前实现、验证及发布状态；GPT_CONTEXT写简短接续和阅读路线。安装/操作进入docs/guides；每次实际工作进入docs/management/WORK_LOG.md，CHANGELOG保留已有历史。
 
 ## 开始前
 
@@ -40,9 +40,9 @@
 ## 交付与维护
 
 - 用户要求每次项目任务结束将本次文件修改实际保存到本地；由用户手动进行Git推送。默认不执行git add、git commit或git push；“保存”不等于“提交”“推送”或“发布”。用户另行明确授权本地提交时，仅处理其授权范围，推送仍由用户执行。
-- 每次逐一核对并同步 GPT_CONTEXT.md、CONTEXT.md、PRODUCT_REQUIREMENTS.md、SYSTEM_ARCHITECTURE.md、DEVELOPMENT_PROGRESS.md。变化写入对应职责位置；无变化更新复核信息并在变更记录中说明，不编造需求、术语或实现变化。仅口头承诺或更新本机全局记忆不算完成。
-- 按[文档治理第5节](docs/management/DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)将日期/GOV、修改原因、文件与前后变化、验证结果、五份文档复核、未完成项及保存/提交/推送/发布状态写入[变更记录](docs/management/CHANGELOG.md)。记录本任务增量，不把整个工作区旧改动算作本次完成；为用户提供明确文件清单及建议提交说明。
-- GPT_CONTEXT保留最新接续摘要，DEVELOPMENT_PROGRESS记录本次范围、验证、未完成项和发布状态；下一步仍只维护现有GOV队列。开发换机按[换机开发与接续清单](docs/guides/DEVICE_HANDOFF.md)核对源码、依赖和文档；测试资源、本机配置、正式数据与发布包仅在用户另行要求时接续，不把源码交付等同完整运行迁移。
+- 每次逐一核对 GPT_CONTEXT.md、CONTEXT.md、PRODUCT_REQUIREMENTS.md、SYSTEM_ARCHITECTURE.md、DEVELOPMENT_PROGRESS.md 的全文及相关文档。更新时整合受影响章节，直接替换过时结论、删除重复内容，使正文成为完整有效的当前说明；不得靠追加“本次/上一轮/下次”段落或顶部更正掩盖旧正文。无内容变化时不改正文，复核结果只写工作日志，不编造需求、术语或实现变化。
+- 按[文档治理第5节](docs/management/DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)将日期/GOV、修改原因、文件与前后变化、验证结果、五份文档复核、未完成项及保存/提交/推送/发布状态写入[工作日志](docs/management/WORK_LOG.md)。每项任务一条记录，同一任务的补充合并到原条目；CHANGELOG不再追加新任务。日志只记实际增量，为用户提供明确文件清单及建议提交说明。
+- GPT_CONTEXT提供理解当前项目所需的接续入口，DEVELOPMENT_PROGRESS维护完整的当前能力、环境、验证边界和未完成项，不承担任务流水。下一步仍只维护现有GOV队列。开发换机按[换机开发与接续清单](docs/guides/DEVICE_HANDOFF.md)核对源码、依赖和文档；测试资源、本机配置、正式数据与发布包仅在用户另行要求时接续，不把源码交付等同完整运行迁移。
 - 改需求更新 PRODUCT_REQUIREMENTS；改结构更新 SYSTEM_ARCHITECTURE；改状态更新 DEVELOPMENT_PROGRESS 与对应 GOV 任务；改术语更新 CONTEXT。
 - 当前任务队列唯一位置是 [项目计划](docs/management/PROJECT_PLAN.md)。编号沿用 GOV-01 等，不另造并行队列。
 - 历史报告保留，在原文顶部标注适用边界；不要反复把长篇历史追加到当前入口。

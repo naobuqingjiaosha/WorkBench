@@ -4,8 +4,6 @@
 
 本文只定义业务对象及容易混淆的概念，不记录实现方式、测试结果、Git状态或设备发布情况。业务要求见[产品需求](PRODUCT_REQUIREMENTS.md)，运行状态见[开发进度](DEVELOPMENT_PROGRESS.md)。
 
-复核（2026-10-26）：归整已有术语的位置与职责，业务含义未改变；修改记录见[变更记录](docs/management/CHANGELOG.md)。
-
 ## 工作组织
 
 **业务线**：
