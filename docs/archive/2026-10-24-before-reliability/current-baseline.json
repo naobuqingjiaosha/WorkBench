@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "baselineDate": "2026-10-24",
+  "observedAt": "2026-10-24T05:39:05.747Z",
+  "timezone": "Asia/Shanghai",
+  "scope": "GOV-13 release plus user-authorized removal of only two works",
+  "pointer": {
+    "path": "data/releases/ui-design-20261024-r1",
+    "previous": "data/releases/monthly-workspaces-20261021-r1",
+    "scope": "GOV-13 新界面、100%紧凑布局、台账和检查草稿的AI采用/保存/同步交互",
+    "excluded": [
+      "038工作记录迁移、页面和对话路由",
+      "其他证据分析与引文候选",
+      "预览测试数据和测试文件",
+      "整数工时算法调整"
+    ],
+    "backup": "data/backups/before-ui-design-20261024-r1",
+    "authorized": "2026-10-24"
+  },
+  "release": {
+    "name": "ui-design-20261024-r1",
+    "base": "monthly-workspaces-20261021-r1",
+    "status": "published",
+    "publishedAt": "2026-10-24T04:59:54.763Z",
+    "changeCount": 31,
+    "manifestSha256": "13ef47e25a2e054edfa63ea20933c9d77a7e549fce5aa8ee6b26798bd093febb"
+  },
+  "health": {
+    "httpStatus": 200,
+    "status": "ok",
+    "webBuilt": true,
+    "loadedBuild": {
+      "startedAt": "2026-10-24T05:38:17.971Z",
+      "pid": 34048,
+      "sourceSha256": "aec1c719295f086f92050e87a04df6e39abaae5fd9f65ccc21aa6252d309a61e",
+      "dependenciesSha256": "67303d35c4cbc34914944eca2d1904836ac78352550c45c9bf480f11776abf5a",
+      "frontendSha256": "142a9cec4a9b5ada1a654c0d2db869f1597f30a71bb6724c1d326cc15495c9d0"
+    },
+    "databasePath": "data/runtime/workbench.db",
+    "fileRoot": "data/files"
+  },
+  "calculated": {
+    "sourceSha256": "aec1c719295f086f92050e87a04df6e39abaae5fd9f65ccc21aa6252d309a61e",
+    "dependenciesSha256": "67303d35c4cbc34914944eca2d1904836ac78352550c45c9bf480f11776abf5a",
+    "frontendSha256": "142a9cec4a9b5ada1a654c0d2db869f1597f30a71bb6724c1d326cc15495c9d0"
+  },
+  "migrations": [
+    "001_core",
+    "002_fts",
+    "003_ocr",
+    "004_archive",
+    "005_schedule",
+    "006_agent",
+    "007_evidence_review",
+    "008_indexes",
+    "009_integrity",
+    "010_folder_binding",
+    "011_period_dir",
+    "012_kb_source",
+    "013_output_mode",
+    "014_template_health",
+    "015_trash",
+    "017_doc_version",
+    "018_position_template_doc",
+    "019_kb_extract",
+    "020_app_health_event",
+    "020b_kb_cite",
+    "021_doc_kb_link",
+    "022_doc_version_final_unique",
+    "023_workflow",
+    "024_project_doc_snapshot",
+    "025_memory_facts",
+    "026_policy_requirements",
+    "027_business_structure",
+    "028_document_requirements",
+    "029_template_history",
+    "030_business_execution",
+    "031_document_experience",
+    "032_file_roles",
+    "033_inspection_records",
+    "034_inspection_business_fields",
+    "035_business_assistant",
+    "036_evidence_writing",
+    "037_work_type_navigation",
+    "039_inspection_drafts",
+    "040_monthly_workspaces"
+  ],
+  "dataVerification": {
+    "operation": "two-works-clear",
+    "date": "2026-10-24",
+    "scope": "Only works 113 and 114 and their related business rows",
+    "backup": "data/backups/before-two-works-clear-20261024-r1",
+    "changedTables": [
+      "workbench",
+      "work_period_rule",
+      "work_period",
+      "period_material",
+      "workflow_event"
+    ],
+    "counts": {
+      "workbench": 0,
+      "work_period": 0,
+      "period_material": 0,
+      "workflow_event": 0,
+      "artifact": 0,
+      "template": 77,
+      "position_template_doc": 138,
+      "timesheet_source": 1
+    },
+    "unrelatedFilesUnchanged": 155,
+    "integrity": [
+      {
+        "integrity_check": "ok"
+      }
+    ],
+    "foreignKeys": [],
+    "settingsAndModelRowsUnchanged": true,
+    "globalTimesheetSourcesPreserved": true,
+    "loadedBuild": {
+      "startedAt": "2026-10-24T05:38:17.971Z",
+      "pid": 34048,
+      "sourceSha256": "aec1c719295f086f92050e87a04df6e39abaae5fd9f65ccc21aa6252d309a61e",
+      "dependenciesSha256": "67303d35c4cbc34914944eca2d1904836ac78352550c45c9bf480f11776abf5a",
+      "frontendSha256": "142a9cec4a9b5ada1a654c0d2db869f1597f30a71bb6724c1d326cc15495c9d0"
+    }
+  },
+  "publicationDataVerification": {
+    "tablesUnchanged": 69,
+    "filesUnchanged": 155,
+    "counts": {
+      "workbench": 2,
+      "work_period": 2,
+      "artifact": 0,
+      "template": 77,
+      "timesheet_run": 0
+    },
+    "integrity": [
+      {
+        "integrity_check": "ok"
+      }
+    ],
+    "foreignKeys": 0,
+    "migrationUnchanged": true
+  }
+}

@@ -1,0 +1,10 @@
+import {DatabaseSync} from 'node:sqlite';
+import {writeFileSync} from 'node:fs';
+const db=new DatabaseSync('data/runtime/workbench.db',{readOnly:true});
+const tables=db.prepare("SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
+const result={tables:tables.map(t=>({name:t.name,count:db.prepare(`SELECT count(*) n FROM "${t.name}"`).get().n,columns:db.prepare(`PRAGMA table_info("${t.name}")`).all().map(c=>c.name)})),workbenches:db.prepare('SELECT * FROM workbench').all()};
+writeFileSync('work/cleanup-20261021/db-audit.json',JSON.stringify(result,null,2));
+console.log(JSON.stringify(result.tables));
+console.log(JSON.stringify(result.workbenches.map(w=>({id:w.id,name:w.name,title:w.title,type:w.type_code,deleted_at:w.deleted_at}))));
+console.log('integrity',db.prepare('PRAGMA quick_check').all());
+console.log('foreign keys',db.prepare('PRAGMA foreign_key_check').all());db.close();

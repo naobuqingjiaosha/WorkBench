@@ -1,0 +1,86 @@
+import type ExcelJS from 'exceljs';
+import {ApiError} from '../api/reply.ts';
+import {departmentLayout,monthDays,type RunInput,type Calculation} from './timesheets.ts';
+
+/** Keep the supplied workbook. Only date columns, selected people/project rows and dependent totals change. */
+export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput){
+ const layout=departmentLayout(book,input.month),s=layout.sheet,count=monthDays(input.month),year=Number(input.month.slice(0,4)),month=Number(input.month.slice(5));
+ const retainedRd=s.getRows(1,s.rowCount)?.filter(r=>r.getCell(4).text.trim()==='研发工时').map(r=>({row:r.number,cells:Array.from({length:s.columnCount},(_,i)=>({value:structuredClone(r.getCell(i+1).value),style:structuredClone(r.getCell(i+1).style)}))}))??[];
+ let total=layout.totalCol;
+ if(total<40){
+  const additions=40-total,style=structuredClone(s.getColumn(total-1).style),width=s.getColumn(total-1).width;
+  s.spliceColumns(total,0,...Array.from({length:additions},()=>[]));
+  for(let c=total;c<40;c++){s.getColumn(c).style=structuredClone(style);s.getColumn(c).width=width;}
+  total=40;
+  // These source rows are reference data, not department allocation rows.
+  for(const saved of retainedRd){const row=s.getRow(saved.row);row.eachCell(c=>{c.value=null;});saved.cells.forEach((c,i)=>{row.getCell(i+1).value=c.value;row.getCell(i+1).style=c.style;});}
+ }
+ const cover=book.getWorksheet('封面');if(cover){cover.getCell('C8').value=year;cover.getCell('E8').value=month;}
+ for(let d=1;d<=31;d++){
+  s.getCell(layout.headerRow,8+d).value=d<=count?new Date(Date.UTC(year,month-1,d)):null;
+  s.getCell(layout.headerRow,8+d).numFmt='d';
+  s.getCell(layout.headerRow+1,8+d).value=d<=count?'星期'+'日一二三四五六'[new Date(Date.UTC(year,month-1,d)).getUTCDay()]:null;
+ }
+ s.getCell(layout.headerRow,total).value='合计';s.getCell(layout.headerRow+1,total).value='--';
+ const wanted=input.requiredPeople;
+ // Unselected people stay as empty, non-person rows so original rows and styles are not deleted.
+ for(const row of layout.rows){
+  for(let c=9;c<=total;c++)s.getCell(row.row,c).value=null;
+  if(wanted&&!wanted.includes(row.person)){for(let c=1;c<=8;c++)s.getCell(row.row,c).value=null;}
+  else s.getCell(row.row,total).value={formula:`SUM(I${row.row}:AM${row.row})`,result:0};
+ }
+ const pairs=layout.rows.filter(r=>!wanted||wanted.includes(r.person)).map(r=>({person:r.person,project:r.project}));
+ for(const person of wanted??[]){const assigned=input.assignments[person];const projects=typeof assigned==='string'?[assigned]:assigned??[];
+  const targets=[...new Set([...projects,...(input.overrides??[]).filter(o=>o.person===person&&o.project).map(o=>o.project!),...(input.allocations??[]).filter(o=>o.person===person).flatMap(o=>Object.keys(o.shares))])];
+  for(const project of targets)if(!pairs.some(p=>p.person===person&&p.project===project)){
+   if(!input.projects.includes(project))throw new ApiError('PROJECT_UNKNOWN','新增行的项目不在已确认清单中');
+   const footer=layout.rows.length?Math.max(...layout.rows.map(r=>r.row))+1:layout.headerRow+2;
+   const target=s.getRow(footer);s.insertRow(footer,[], 'i');
+   const src=s.getRow(layout.rows[0]!.row);for(let c=1;c<=total;c++)s.getCell(footer,c).style=structuredClone(src.getCell(c).style);
+   target.height=src.height;s.getCell(footer,3).value=person;s.getCell(footer,4).value='服务工时';s.getCell(footer,5).value=project;
+   s.getCell(footer,total).value={formula:`SUM(I${footer}:AM${footer})`,result:0};pairs.push({person,project});
+   layout.rows.push({row:footer,person,project});
+  }
+ }
+ // Repair shifted row totals, clear previous-month comments and all cached hours on selected rows.
+ for(let r=layout.headerRow+2;r<=s.rowCount;r++)if(s.getCell(r,3).text&&['服务工时','部门工时'].includes(s.getCell(r,4).text)){
+  for(let c=9;c<total;c++){s.getCell(r,c).value=null;s.getCell(r,c).note='';}
+  s.getCell(r,total).value={formula:`SUM(I${r}:AM${r})`,result:0};
+  for(let c=total+1;c<=s.columnCount;c++)if(/备注/.test(s.getCell(layout.headerRow,c).text))s.getCell(r,c).value=null;
+ }
+ s.pageSetup.printArea=`A1:${s.getColumn(Math.max(total,s.columnCount)).letter}${s.rowCount}`;
+ book.calcProperties.fullCalcOnLoad=true;
+}
+
+export function refreshTimesheetSummary(book:ExcelJS.Workbook,layout:ReturnType<typeof departmentLayout>,result:Calculation){
+ const {sheet:s,rows,totalCol}=layout,first=Math.min(...rows.map(r=>r.row)),last=Math.max(...rows.map(r=>r.row));
+ let footer=last+1;
+ while(s.getCell(footer,3).text&&!/合计|总计|小计/.test(s.getCell(footer,3).text))footer++;
+ if(!s.getCell(footer,3).text)s.getCell(footer,3).value='合计';
+ for(let c=9;c<=totalCol;c++){
+  const letter=s.getColumn(c).letter;
+  const value=rows.reduce((sum,r)=>{const v=s.getCell(r.row,c);return sum+Number(v.formula?v.result??0:v.value??0);},0);
+  s.getCell(footer,c).value={formula:`SUM(${rows.map(r=>letter+r.row).join(',')})`,result:value};
+ }
+ s.pageSetup.printArea=`A1:${s.getColumn(Math.max(totalCol,s.columnCount)).letter}${Math.max(footer,s.rowCount)}`;
+ const summary=book.worksheets.find(ws=>ws.name.startsWith('人员工时汇总'));
+ if(!summary)return;
+ // The old summary omitted the later people. Rebuild its person-dependent rows over the complete detail range.
+ const names=Object.keys(result.personTotals);
+ for(const range of [...summary.model.merges])summary.unMergeCells(range);
+ for(let r=3;r<=summary.rowCount;r++)for(let c=1;c<=8;c++)summary.getCell(r,c).value=null;
+ for(let c=1;c<=8;c++){summary.getCell(1,c).value=null;summary.getCell(2,c).value=null;}
+ summary.mergeCells('A1:F1');summary.getCell('A1').value='人员工时汇总及校验';summary.getRow(1).height=30;
+ [8,16,16,16,18,18].forEach((width,i)=>{summary.getColumn(i+1).width=width;});
+ const labels=['序号','人员','研发工时','部门工时','个人总工时','核对'];
+ labels.forEach((v,i)=>summary.getCell(2,i+1).value=v);
+ names.forEach((name,i)=>{const r=i+3,rd=result.days.filter(d=>d.person===name).reduce((sum,d)=>sum+d.rd,0),dept=result.personTotals[name]!;
+  summary.getCell(r,1).value=i+1;summary.getCell(r,2).value=name;summary.getCell(r,3).value=rd;
+  summary.getCell(r,4).value={formula:`SUMIFS('工时明细表（填写）'!$${s.getColumn(totalCol).letter}$${first}:$${s.getColumn(totalCol).letter}$${last},'工时明细表（填写）'!$C$${first}:$C$${last},B${r},'工时明细表（填写）'!$D$${first}:$D$${last},"<>研发工时")`,result:dept};
+  summary.getCell(r,5).value={formula:`SUM(C${r}:D${r})`,result:rd+dept};summary.getCell(r,6).value=result.issues.some(x=>x.person===name)?'待核对':'计算通过';
+ });
+ const end=names.length+3;summary.getCell(end,2).value='合计';for(const col of ['C','D','E']){let sum=0;for(let r=3;r<end;r++){const c=summary.getCell(`${col}${r}`);sum+=Number(c.formula?c.result:c.value);}summary.getCell(`${col}${end}`).value={formula:`SUM(${col}3:${col}${end-1})`,result:sum};}
+ for(let r=2;r<=end;r++){summary.getRow(r).height=24;for(let c=1;c<=6;c++){const cell=summary.getCell(r,c);cell.style=structuredClone(cell.style);cell.alignment={horizontal:r===2||c<=2?'center':'right',vertical:'middle',wrapText:true};cell.font={name:'宋体',size:11,bold:r===2||r===end};cell.border={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};}}
+ summary.pageSetup.printArea=`A1:F${end}`;
+ summary.pageSetup.fitToPage=true;summary.pageSetup.fitToWidth=1;summary.pageSetup.fitToHeight=1;
+}

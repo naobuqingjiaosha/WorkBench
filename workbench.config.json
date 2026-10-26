@@ -1,0 +1,15 @@
+{
+  "_说明": "改完需要重启工作台（backup 段的开关/时间/保留份数例外：界面「设置 → 备份」里改的会立即生效，不用重启）。dataRoot 填绝对路径，可以指向 OneDrive/坚果云同步目录。",
+  "_备份说明": "数据库只有本地一份，硬盘坏了工作台/字段/别名/清单/记录就全没了（用户文件在 iCloud 有备份，数据库没有）。backup 段就是给 data/runtime/workbench.db 做定时一致性快照：auto=是否自动备份；hour=每天几点之后跑第一次（0-23，本地时间，默认 3 点）；dir=备份目录（相对路径按项目根解析，默认 data/backups；想防硬盘坏就指到另一块盘或同步目录，如 D:/备份/工作台）；keepDaily=按天保留几份（默认 7）；keepWeekly=按周保留几份（默认 4）；weeklyDay=周备的周界是星期几（0=周日，默认 1=周一）。备份只含数据库，不含 data/files 里的用户文件 —— 那些文件不会被本功能删除。",
+  "dataRoot": "D:/project/工作台/data/files",
+  "port": 8787,
+  "host": "127.0.0.1",
+  "backup": {
+    "auto": true,
+    "hour": 3,
+    "dir": "data/backups",
+    "keepDaily": 7,
+    "keepWeekly": 4,
+    "weeklyDay": 1
+  }
+}

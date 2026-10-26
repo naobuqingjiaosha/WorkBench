@@ -1,0 +1,100 @@
+import assert from 'node:assert/strict';
+import { existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync } from 'node:fs';
+import { join,relative,resolve } from 'node:path';
+import Fastify from 'fastify';
+import ExcelJS from 'exceljs';
+import PizZip from 'pizzip';
+const parent=resolve('.tmp');mkdirSync(parent,{recursive:true});const tmp=process.env.WORKBENCH_ISOLATION_ROOT!;
+process.env.WORKBENCH_TEST_MODE='1';
+const {initDatabase,closeDatabase,all}=await import('../src/db/index.ts');
+const {ensureBaseDirs}=await import('../src/core/config.ts');
+const service=await import('../src/domain/service.ts');
+const archive=await import('../src/domain/archive.ts');
+const {analyzeTemplateFields,applyTemplateFields}=await import('../src/core/template-fields.ts');
+const {checkTemplateHealth,scanTemplate}=await import('../src/core/template.ts');
+const {registerTemplateRoutes}=await import('../src/api/routes-template.ts');
+const app=Fastify();registerTemplateRoutes(app);
+let count=0;const check=(name:string,fn:()=>void)=>{fn();count++;console.log('✓ '+name);};
+try {
+  initDatabase(process.env.WORKBENCH_DB!);ensureBaseDirs();archive.seedArchiveFields();
+  const book=new ExcelJS.Workbook(),sheet=book.addWorksheet('原表');
+  sheet.getCell('A1').value='填表日期： 年 月 日';
+  sheet.getCell('A2').value='监督时间：{变量}年{变量}月{变量}日';
+  sheet.getCell('A3').value='监督人员姓名：{变量}';
+  sheet.getCell('A4').value='单位名称';sheet.getCell('B4').value='';
+  sheet.getCell('A5').value='签订日期：2020年1月2日';
+  sheet.getCell('A6').value='合计';sheet.getCell('B6').value={formula:'1+2',result:3};
+  sheet.getCell('A7').value={richText:[{font:{bold:true},text:'联系人：'},{font:{italic:true},text:'___'}]};
+  sheet.getCell('A8').value='备注：___ 联系电话：___';
+  sheet.getCell('A9').value='日期';sheet.mergeCells('A9:C9');sheet.getCell('D9').value='';
+  sheet.getCell('A10').value='{检查日期}';sheet.getCell('A11').value='{项目名称}';sheet.getCell('A12').value='{合同编号}';sheet.getCell('A13').value='{检查人}';
+  sheet.getCell('A14').value='{检查时间}';sheet.getCell('A15').value='{签订日期}';
+  sheet.getCell('D16').value='备注';
+  sheet.getCell('A1').font={bold:true,color:{argb:'FF112233'}};sheet.getColumn(1).width=32;
+  const source=join(tmp,'original.xlsx');await book.xlsx.writeFile(source);
+  const typeId=service.upsertWorkType({code:'intelligence',name:'字段测试',mode:'document'});
+  const t=service.registerTemplate({absSourcePath:source,name:'自动识别原表',workTypeId:typeId});
+  const originalPath=service.templateAbsPath(t),originalBytes=readFileSync(originalPath);
+  const response=await app.inject(`/api/templates/${t.id}/smart-fields`);assert.equal(response.statusCode,200,response.body);
+  const result=response.json().data;
+  check('无需先写变量即可识别日期、标签空位和通用占位符',()=>{
+    for(const name of ['填表日期','监督时间','监督人员姓名','单位名称','联系人','备注','联系电话'])assert.ok(result.candidates.some((c:{name:string})=>c.name===name),name);
+    assert.equal(result.candidates.find((c:{name:string})=>c.name==='监督时间').original,'{变量}年{变量}月{变量}日');
+    assert.equal(result.candidates.find((c:{location:string})=>c.location==='原表!D9').name,'日期');
+    assert.ok(!result.candidates.some((c:{location:string})=>c.location==='原表!E16'));
+  });
+  check('具体日期仅给出待确认建议，分析阶段不改变原件',()=>{
+    assert.equal(result.candidates.find((c:{location:string})=>c.location==='原表!A5').confidence,'review');
+    assert.deepEqual(readFileSync(originalPath),originalBytes);
+  });
+  const picks=result.candidates.filter((c:{location:string})=>c.location!=='原表!A5').map((c:{id:string;name:string})=>({id:c.id,name:c.name}));
+  const apply=await app.inject({method:'POST',url:`/api/templates/${t.id}/smart-fields/apply`,payload:{fingerprint:result.fingerprint,selections:picks}});assert.equal(apply.statusCode,200,apply.body);
+  const fresh=service.getTemplate(t.id)!;
+  const converted=new ExcelJS.Workbook();await converted.xlsx.readFile(service.templateAbsPath(fresh));const convertedSheet=converted.worksheets[0]!;
+  check('确认后转换为语义变量，并保留原件、模板身份和固定日期',()=>{
+    assert.equal(fresh.id,t.id);assert.equal(fresh.code,t.code);assert.deepEqual(readFileSync(originalPath),originalBytes);
+    assert.equal(convertedSheet.getCell('A2').text,'监督时间：{监督时间}');assert.equal(convertedSheet.getCell('A3').text,'监督人员姓名：{监督人员姓名}');
+    assert.equal(convertedSheet.getCell('B4').text,'{单位名称}');assert.equal(convertedSheet.getCell('A5').text,'签订日期：2020年1月2日');
+    assert.equal(convertedSheet.getCell('A8').text,'备注：{备注} 联系电话：{联系电话}');
+  });
+  check('保留 Excel 样式、列宽、富文本和公式',()=>{
+    assert.equal(convertedSheet.getCell('A1').font.bold,true);assert.equal(convertedSheet.getColumn(1).width,32);
+    assert.equal(convertedSheet.getCell('B6').formula,'1+2');
+    const rich=convertedSheet.getCell('A7').value as ExcelJS.CellRichTextValue;assert.equal(rich.richText[0]?.font?.bold,true);assert.equal(rich.richText[1]?.font?.italic,true);
+    assert.equal(convertedSheet.getCell('A7').text,'联系人：{联系人}');assert.equal(checkTemplateHealth(service.templateAbsPath(fresh)).ok,true);
+  });
+  const stale=await app.inject({method:'POST',url:`/api/templates/${t.id}/smart-fields/apply`,payload:{fingerprint:result.fingerprint,selections:picks}});
+  check('旧分析不能重复覆盖新模板',()=>assert.equal(stale.statusCode,409));
+  const auto=(await app.inject({method:'POST',url:`/api/templates/${t.id}/auto-fill`,payload:{}})).json().data;
+  check('日期自动带入并显示来源，业务日期和人员不乱填',()=>{
+    const byName=new Map<string,{value:string;via:string}>(auto.resolved.map((r:{name:string;value:string;via:string})=>[r.name,r]));
+    assert.equal(byName.get('填表日期')?.value,auto.today);assert.match(byName.get('填表日期')?.via??'',/系统/);
+    for(const name of ['监督时间','检查日期','检查时间','签订日期','监督人员姓名'])assert.equal(byName.get(name)?.value,'',name);
+  });
+  const wb=service.createWorkbench({name:'自动带入项目',workTypeId:typeId,owner:'负责人甲',code:'SMART-1'});
+  archive.writeArchiveValues(wb.id,{contract_no:'HT-SMART-1',sign_date:'2026-09-01'});
+  const workResponse=await app.inject({method:'POST',url:`/api/templates/${t.id}/auto-fill`,payload:{workbenchId:wb.id}});assert.equal(workResponse.statusCode,200,workResponse.body);
+  check('选择工作后从真实档案带入，业务日期使用档案值，角色不混用',()=>{
+    const fields=workResponse.json().data.resolved;
+    assert.equal(fields.find((r:{name:string})=>r.name==='项目名称').value,'自动带入项目');assert.equal(fields.find((r:{name:string})=>r.name==='合同编号').value,'HT-SMART-1');
+    assert.equal(fields.find((r:{name:string})=>r.name==='签订日期').value,'2026-09-01');assert.equal(fields.find((r:{name:string})=>r.name==='检查人').value,'');
+  });
+  const badWork=await app.inject({method:'POST',url:`/api/templates/${t.id}/auto-fill`,payload:{workbenchId:999999}});
+  check('拒绝不存在的工作档案',()=>assert.equal(badWork.statusCode,404));
+  const zip=new PizZip();zip.file('[Content_Types].xml','<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>');
+  zip.file('word/document.xml','<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>填表日期： </w:t></w:r><w:r><w:t>年 月 日</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>单位名称</w:t></w:r></w:p></w:tc><w:tc><w:p/></w:tc></w:tr></w:tbl><w:p><w:r><w:t>联系人：___ 电话：固定内容 &amp; 保留</w:t></w:r></w:p></w:body></w:document>');
+  const docPath=join(tmp,'source.docx');writeFileSync(docPath,zip.generate({type:'nodebuffer'}));
+  const analysis=await analyzeTemplateFields(docPath);
+  const docBytes=await applyTemplateFields(docPath,analysis.candidates,analysis.candidates.filter(c=>['填表日期','单位名称','联系人'].includes(c.name)).map(c=>({id:c.id,name:c.name})));
+  const docOut=join(tmp,'converted.docx');writeFileSync(docOut,docBytes);const docText=new PizZip(docBytes).file('word/document.xml')!.asText();
+  check('Word 跨 run 日期、空白表格单元格可以转换并保留样式和正文',()=>{
+    assert.ok(docText.includes('<w:b/>'));assert.ok(docText.includes('固定内容 &amp; 保留'));assert.ok(docText.includes('{单位名称}'));assert.ok(docText.includes('{联系人}'));
+    assert.equal(checkTemplateHealth(docOut).ok,true);
+  });
+  const docScan=await scanTemplate(docOut);
+  check('转换后的 Word 变量可被真实扫描器识别',()=>assert.ok(docScan.variables.some(v=>v.name==='填表日期')));
+  await assert.rejects(()=>applyTemplateFields(docPath,analysis.candidates,[{id:'fake',name:'日期'}]),/不存在/);count++;console.log('✓ 拒绝伪造识别项');
+  check('智能分析和自动带入不创建正式产物或生成记录',()=>{assert.equal(all('SELECT id FROM generation_log').length,0);assert.equal(all('SELECT id FROM artifact').length,0);});
+  check('外键保持完整',()=>assert.deepEqual(all('PRAGMA foreign_key_check'),[]));
+  console.log(`智能模板回归：${count} 项通过`);
+}finally{await app.close();closeDatabase();}

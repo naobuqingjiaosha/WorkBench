@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,readdirSync,symlinkSync} from 'node:fs';
+import {resolve,join,relative} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {isolationEnv} from './isolation-env.mjs';
+mkdirSync(resolve('.tmp'),{recursive:true});
+const root=mkdtempSync(resolve('.tmp/isolation-contract-')), daily=join(root,'simulated-daily'), test=join(root,'test');
+mkdirSync(daily);mkdirSync(test);
+for(const f of ['workbench.db','config.json','original.txt'])writeFileSync(join(daily,f),'SENTINEL '+f);
+const digest=()=>Object.fromEntries(readdirSync(daily).map(f=>[f,createHash('sha256').update(readFileSync(join(daily,f))).digest('hex')]));
+const before=digest(), base=isolationEnv(test), results=[];
+const code="import {bootstrap} from './packages/server/src/core/bootstrap.ts'; bootstrap();";
+function run(name,env,ok=false,source=code){
+ const r=spawnSync(process.execPath,['--import','./scripts/test-preflight.mjs','--input-type=module','-e',source],{env,cwd:resolve('.'),encoding:'utf8',windowsHide:true});
+ assert.equal(r.status===0,ok,name+' '+r.stderr);assert.deepEqual(digest(),before);
+ results.push({name,accepted:ok,exit:r.status,sentinelsUnchanged:true,error:ok?null:r.stderr.split('\n').find(l=>l.startsWith('Error:'))});
+}
+const drop=(...keys)=>{const e={...base};for(const k of keys)delete e[k];return e;};
+run('missing isolation root',drop('WORKBENCH_ISOLATION_ROOT'));
+run('wrong database', {...base,WORKBENCH_DB:join(daily,'workbench.db')});
+run('missing files',drop('WORKBENCH_DATA_DIR'));
+run('missing runtime',drop('WORKBENCH_RUNTIME_DIR'));
+run('early static import before environment assignment',drop('WORKBENCH_ISOLATION_ROOT'),false,code+" process.env.WORKBENCH_ISOLATION_ROOT='too-late';");
+run('child lost configuration',drop('WORKBENCH_DB','WORKBENCH_DATA_DIR','WORKBENCH_RUNTIME_DIR'));
+run('relative directory',{...base,WORKBENCH_DATA_DIR:'files'});
+run('overlapping directories',{...base,WORKBENCH_DATA_DIR:base.WORKBENCH_RUNTIME_DIR});
+const link=join(test,'link');symlinkSync(daily,link,'junction');
+run('junction escape',{...base,WORKBENCH_DATA_DIR:link});
+run('sibling prefix escape',{...base,WORKBENCH_DATA_DIR:test+'-other'});
+run('normal isolated bootstrap',base,true);
+const out=join(root,'results');mkdirSync(out,{recursive:true});
+writeFileSync(join(out,'isolation-contract.json'),JSON.stringify({results,before,after:digest(),fixture:relative(resolve('.'),root)},null,2));
+console.log('PASS '+results.length+' isolation contracts; simulated daily DB/config/files unchanged');

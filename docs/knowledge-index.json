@@ -1,0 +1,4553 @@
+{
+  "schemaVersion": 1,
+  "baselineDate": "2026-10-21",
+  "pathBase": "repository-root",
+  "encoding": "UTF-8",
+  "authority": {
+    "requirements": "Current user requirements and accepted scoped changes; see PRODUCT_REQUIREMENTS",
+    "implementation": "Relevant working-tree or selected release source, explicitly identified",
+    "runtime": "Release pointer, manifest, loadedBuild, actual migration set",
+    "validation": "Version-bound evidence and actual test scope, not existence of code"
+  },
+  "readingOrder": [
+    "AGENTS.md",
+    "GPT_CONTEXT.md",
+    "DEVELOPMENT_PROGRESS.md",
+    "CONTEXT.md",
+    "PRODUCT_REQUIREMENTS.md",
+    "SYSTEM_ARCHITECTURE.md",
+    "docs/README.md"
+  ],
+  "documents": [
+    {
+      "id": "AGENTS",
+      "path": "AGENTS.md",
+      "title": "工作台：AI 接续工作约定",
+      "role": "entry",
+      "status": "current-baseline",
+      "purpose": "仓库执行约定、数据保护与维护责任",
+      "sha256": "2449c70b992898230af75dc8fe5ec96ac947caa23f964adb382aad7d437696ba",
+      "linksTo": [
+        "CONTEXT.md",
+        "GPT_CONTEXT.md",
+        "docs/README.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "CONTEXT",
+      "path": "CONTEXT.md",
+      "title": "工作台业务术语",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "唯一业务术语词典，不承担运行状态",
+      "sha256": "9a1107fbfbb190c1ba7a207a00351e81d731380a1f1ad61aa9abf4dd6334bb2f",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/management/CHANGELOG.md"
+      ],
+      "localLinks": [
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT_PROGRESS",
+      "path": "DEVELOPMENT_PROGRESS.md",
+      "title": "开发进度与当前基线",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前发布、能力分层和验收边界",
+      "sha256": "c14a012df0a12cf46556f9d597b51d1ddefb070581e767c0aceedd5a00cdbd32",
+      "linksTo": [
+        "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+        "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
+          "path": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "path": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "GPT_CONTEXT",
+      "path": "GPT_CONTEXT.md",
+      "title": "AI 项目接续入口",
+      "role": "entry",
+      "status": "current-baseline",
+      "purpose": "AI最小接续上下文及按需阅读路线",
+      "sha256": "166d4e13d8b775cfbfa2fb8e42a25a85d24178a549ad51c523fcfa14b408dd6e",
+      "linksTo": [
+        "AGENTS.md",
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/README.md",
+        "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "AGENTS.md",
+          "path": "AGENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
+          "path": "docs/archive/2026-10-24-before-reliability/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "path": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "PRODUCT_REQUIREMENTS",
+      "path": "PRODUCT_REQUIREMENTS.md",
+      "title": "产品需求与追溯矩阵",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前需求、业务规则、场景及代码验证追溯",
+      "sha256": "80522c9cc7970936eff5133240087736e1892d5a098637a7a90d003aa2052288",
+      "linksTo": [
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/44-月度工时与年度台账发布-2026-10-21.md",
+        "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_CHARTER.md",
+        "docs/management/QUALITY_AND_ACCEPTANCE.md",
+        "docs/management/RISKS_AND_DECISIONS.md",
+        "docs/reference/DATA_AND_API.md",
+        "docs/需求说明.md"
+      ],
+      "localLinks": [
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_CHARTER.md",
+          "path": "docs/management/PROJECT_CHARTER.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+          "path": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/DATA_AND_API.md",
+          "path": "docs/reference/DATA_AND_API.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md#7-长期多设备开发建议待采用",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/RISKS_AND_DECISIONS.md",
+          "path": "docs/management/RISKS_AND_DECISIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/需求说明.md",
+          "path": "docs/需求说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "README",
+      "path": "README.md",
+      "title": "工作台",
+      "role": "entry",
+      "status": "current-baseline",
+      "purpose": "人类阅读入口、当前产品和启动说明",
+      "sha256": "b6726ad52783752c097a911c8cfaf6e7f8d198b0646b7304f8e0c27e8fc679a3",
+      "linksTo": [
+        "AGENTS.md",
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "GPT_CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/45-前台设计限定发布-2026-10-24.md",
+        "docs/README.md",
+        "docs/archive/2026-10-21-before-knowledge/README.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/guides/USER_GUIDE.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_CHARTER.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/reference/DATA_AND_API.md"
+      ],
+      "localLinks": [
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "AGENTS.md",
+          "path": "AGENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_CHARTER.md",
+          "path": "docs/management/PROJECT_CHARTER.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/DATA_AND_API.md",
+          "path": "docs/reference/DATA_AND_API.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/knowledge-index.json",
+          "path": "docs/knowledge-index.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/45-前台设计限定发布-2026-10-24.md",
+          "path": "docs/45-前台设计限定发布-2026-10-24.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "package.json",
+          "path": "package.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-21-before-knowledge/README.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/README.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "SYSTEM_ARCHITECTURE",
+      "path": "SYSTEM_ARCHITECTURE.md",
+      "title": "系统架构",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前结构、关键链路、运行与候选边界",
+      "sha256": "f167d4e0ec756758297a646ce46855e14deffcef47b88b42c8c9fb54b1449f3e",
+      "linksTo": [
+        "CONTEXT.md",
+        "docs/45-前台设计限定发布-2026-10-24.md",
+        "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/RISKS_AND_DECISIONS.md",
+        "docs/reference/DATA_AND_API.md"
+      ],
+      "localLinks": [
+        {
+          "target": "docs/management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/45-前台设计限定发布-2026-10-24.md",
+          "path": "docs/45-前台设计限定发布-2026-10-24.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/reference/DATA_AND_API.md",
+          "path": "docs/reference/DATA_AND_API.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/management/RISKS_AND_DECISIONS.md",
+          "path": "docs/management/RISKS_AND_DECISIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/01-系统设计",
+      "path": "docs/01-系统设计.md",
+      "title": "工作台 · 系统设计说明",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "54031842bfe4d58c528fa19d90a3749cf0d5cc1696e6487b2c5084edf0628c59",
+      "linksTo": [
+        "docs/04-模型选型实测.md"
+      ],
+      "localLinks": [
+        {
+          "target": "04-模型选型实测.md",
+          "path": "docs/04-模型选型实测.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/02-快速上手",
+      "path": "docs/02-快速上手.md",
+      "title": "工作台 · 使用说明",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "c19a1c07b40d477c75bd5fa5dbb308b584dbdac2fa58fca4e303c6176dabb2ef",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/03-模板制作指南",
+      "path": "docs/03-模板制作指南.md",
+      "title": "模板制作指南",
+      "role": "reference",
+      "status": "reference-check-scope",
+      "purpose": "模板制作参考；须核对当前引擎及真实产物，不表示所有模板已验收",
+      "sha256": "60348be0f81b6ece852820cfbb3dc584b6077ca79a88afdb63d2cde8b841f0bb",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/04-模型选型实测",
+      "path": "docs/04-模型选型实测.md",
+      "title": "工作台 · 模型选型实测",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "ed2d241b818af82e11631ec0d49572780af395b710e3f227285b471b0458c892",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/06-系统审计与优化清单",
+      "path": "docs/06-系统审计与优化清单.md",
+      "title": "工作台 · 系统审计与优化清单",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "f635515516281a6d312fff348aba306de744d6dbaae0e43e530ba63502bbbc5d",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/07-修复与验证",
+      "path": "docs/07-修复与验证.md",
+      "title": "修复与验证说明",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "48408479456e6750e959a79dfc1e61fd6f4670928c0caa2ced084b699470f4ee",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/08-现状系统设计",
+      "path": "docs/08-现状系统设计.md",
+      "title": "工作台 · 现状系统设计说明（As-Is）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "4797652cc82c81bb3ab366d67bfe9616b8b32cb1b393a9d72d9fdbb103adfd8c",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/09-目标系统设计",
+      "path": "docs/09-目标系统设计.md",
+      "title": "工作台 · 目标系统设计（应该达到的水平）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "f15e5da0a0fb8cbd1b671ac3ce33b475bd0d49463b49dc97dd797d12fd966b68",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/10-目录绑定方案",
+      "path": "docs/10-目录绑定方案.md",
+      "title": "目录绑定方案（实施契约）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "7a87bd3769e1d1d5cb0054f8ecee145634e7ea9e4983a294f992b9f3a8b52250",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/11-待办与实施计划",
+      "path": "docs/11-待办与实施计划.md",
+      "title": "待办与实施计划（四档 15 项）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "ca7bc881fef49105a7a2042fdf77a5a936ef5fc1a2365930f331dc7b5e71af61",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/12-备份与还原",
+      "path": "docs/12-备份与还原.md",
+      "title": "12 备份与还原",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "b863d4fb49fe6d16defc456a62be1955b29ff592a9987ab155560e2f3927e49a",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/13-跨设备方案评估",
+      "path": "docs/13-跨设备方案评估.md",
+      "title": "跨设备方案评估（B4-15 · 方案评估，未实施，不改代码）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "37588cdfe25af64327e3434691a8974dcaea3d36d9e73232e8a992d052291637",
+      "linksTo": [
+        "docs/10-目录绑定方案.md",
+        "docs/11-待办与实施计划.md",
+        "docs/14-进度快照.md"
+      ],
+      "localLinks": [
+        {
+          "target": "11-待办与实施计划.md",
+          "path": "docs/11-待办与实施计划.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "10-目录绑定方案.md",
+          "path": "docs/10-目录绑定方案.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "14-进度快照.md",
+          "path": "docs/14-进度快照.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/14-进度快照",
+      "path": "docs/14-进度快照.md",
+      "title": "进度快照（批次一进行中）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "eaa3593f6c04ce03aeaa63c1e9522a0abe820df475aee4bf872e151f6a4265b3",
+      "linksTo": [
+        "docs/11-待办与实施计划.md"
+      ],
+      "localLinks": [
+        {
+          "target": "11-待办与实施计划.md",
+          "path": "docs/11-待办与实施计划.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/15-进度续记",
+      "path": "docs/15-进度续记.md",
+      "title": "进度续记（批次二/四推进 + 本会话后半段的修复）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "bd4c2bee97b78bde5472ce7441249fc4738604c089415d508d13b0e60830af90",
+      "linksTo": [
+        "docs/14-进度快照.md"
+      ],
+      "localLinks": [
+        {
+          "target": "14-进度快照.md",
+          "path": "docs/14-进度快照.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/16-代码审查",
+      "path": "docs/16-代码审查.md",
+      "title": "16 · 工作台平台代码审查报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "561988f6a048869970ba633b2c62887c4c87e38477f82f6f5266c36217f7b4d0",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/17-工作台实施与使用说明",
+      "path": "docs/17-工作台实施与使用说明.md",
+      "title": "工作台新增流程使用说明",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "2c120dcc481f4ef6bba9d386ea4a60ad691ccbfe6d0bc2ba428bd21ef63a3e6f",
+      "linksTo": [
+        "docs/20-审查问题修复与回归验证.md"
+      ],
+      "localLinks": [
+        {
+          "target": "20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/18-验证记录与待验收项",
+      "path": "docs/18-验证记录与待验收项.md",
+      "title": "验证记录与待验收项",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "8ac7f87ba09de19a01ee69b325c79f52c69bd81ac6834b89d3b65be6433021f6",
+      "linksTo": [
+        "docs/20-审查问题修复与回归验证.md"
+      ],
+      "localLinks": [
+        {
+          "target": "20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/19-实施后代码审查与计划符合性",
+      "path": "docs/19-实施后代码审查与计划符合性.md",
+      "title": "实施后代码审查与计划符合性",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "e2da28c3037ba02b981d25008f5a71aecd46ec5f9702bd6a9e172bca8eafd297",
+      "linksTo": [
+        "docs/20-审查问题修复与回归验证.md"
+      ],
+      "localLinks": [
+        {
+          "target": "20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/20-审查问题修复与回归验证",
+      "path": "docs/20-审查问题修复与回归验证.md",
+      "title": "审查问题修复与回归验证",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "d55cca1161ae7a302928b595f9b8efb28889bda934aa02f81d7e865b5ba07378",
+      "linksTo": [
+        "docs/19-实施后代码审查与计划符合性.md"
+      ],
+      "localLinks": [
+        {
+          "target": "19-实施后代码审查与计划符合性.md",
+          "path": "docs/19-实施后代码审查与计划符合性.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/21-业务架构优化与场景验证-2026-10-15",
+      "path": "docs/21-业务架构优化与场景验证-2026-10-15.md",
+      "title": "工作台业务架构优化与场景验证",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "a637b8e3ece94e407a3ccad8405a4a9965db76107a86df99b257ace62b5653ab",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/22-第二阶段业务配置与端到端验证-2026-10-15",
+      "path": "docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+      "title": "第二阶段业务配置与端到端验证",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "5c030d978bb933b67e66762940945507c598bca9f96bcbffadb4e0a77ca1eab4",
+      "linksTo": [
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md"
+      ],
+      "localLinks": [
+        {
+          "target": "23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/23-第三轮业务页面与文书体验验收-2026-10-15",
+      "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+      "title": "第三轮：业务页面与文书生成体验",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "85fc623694724db9d7debf75348ee827107558009b43f6f9cb88c00f12d0c4d1",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/24-月度检查简化办理与验收-2026-10-15",
+      "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+      "title": "月度检查简化办理与验收",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "4d7c4088683f70e5ff4a83e6848d3e76fc038e066198587bf4dc06a883bbf408",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/25-工作台业务模板盘点与建设报告-2026-10-16",
+      "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+      "title": "工作台业务模板盘点与建设报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "2e983d4a3f30ded2a721367015bfa2664cfd96b21157920fce198aa75499808b",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/26-工作台模板质量核查与修正报告-2026-10-16",
+      "path": "docs/26-工作台模板质量核查与修正报告-2026-10-16.md",
+      "title": "工作台模板质量核查与修正报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "8a45e380dfddbb356a351952fe3c4b6ddcdaadbf22480fef609e620f8b491a57",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16",
+      "path": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+      "title": "工作台AI业务助手专项优化与验收报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "4e58b5d801f2845f9cfb22d9d8277a61b448b58df584ae025498d7cba87c2ead",
+      "linksTo": [],
+      "localLinks": [
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/",
+          "path": "outputs/phase5-ai-2026-10-16",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/phase5-results.json",
+          "path": "outputs/phase5-ai-2026-10-16/phase5-results.json",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/all-tests.log",
+          "path": "outputs/phase5-ai-2026-10-16/all-tests.log",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/typecheck.log",
+          "path": "outputs/phase5-ai-2026-10-16/typecheck.log",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/build.log",
+          "path": "outputs/phase5-ai-2026-10-16/build.log",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/anonymous-quarter-draft-v1.docx",
+          "path": "outputs/phase5-ai-2026-10-16/anonymous-quarter-draft-v1.docx",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/anonymous-quarter-draft-v2.docx",
+          "path": "outputs/phase5-ai-2026-10-16/anonymous-quarter-draft-v2.docx",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/evidence-snapshot-v1.json",
+          "path": "outputs/phase5-ai-2026-10-16/evidence-snapshot-v1.json",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/evidence-snapshot-v2.json",
+          "path": "outputs/phase5-ai-2026-10-16/evidence-snapshot-v2.json",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/browser-results.json",
+          "path": "outputs/phase5-ai-2026-10-16/browser-results.json",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/browser-evidence.png",
+          "path": "outputs/phase5-ai-2026-10-16/browser-evidence.png",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/browser-word-v2.png",
+          "path": "outputs/phase5-ai-2026-10-16/browser-word-v2.png",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../outputs/phase5-ai-2026-10-16/browser-versions.png",
+          "path": "outputs/phase5-ai-2026-10-16/browser-versions.png",
+          "availability": "local-evidence",
+          "exists": false
+        }
+      ]
+    },
+    {
+      "id": "docs/28-全系统审计问题清单-2026-10-16",
+      "path": "docs/28-全系统审计问题清单-2026-10-16.md",
+      "title": "全系统审计问题清单",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "bf1d81471c8d36712fd296346ed1307e324c153f31fc867b90cd1b599604101c",
+      "linksTo": [
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md"
+      ],
+      "localLinks": [
+        {
+          "target": "29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16",
+      "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+      "title": "工作台全系统审计与稳定化整改报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "e8fa168148fc88fdeecac5cee2c193f448e4b2606294643cc2128f77c44ae922",
+      "linksTo": [
+        "docs/28-全系统审计问题清单-2026-10-16.md"
+      ],
+      "localLinks": [
+        {
+          "target": "28-全系统审计问题清单-2026-10-16.md",
+          "path": "docs/28-全系统审计问题清单-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16",
+      "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+      "title": "审计遗留项收尾与真实模型证据写作验证",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "50c866ef002b4116b8e206b80558957d7c2c1da9ce20645f53b64eeea50cba76",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16",
+      "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+      "title": "测试隔离加固、季度问答修复与发布验收报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "c822dc6c0ab252a8fcfc896bd6334b779ca44da568f7d9661eda62ee1b200ef3",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/32-工作类型分类与选择调整-2026-10-19",
+      "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+      "title": "工作类型分类与选择调整",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "3c606b33c46addacc30ac113ffb67c20dc9b3ad2637d5cbf53650a76f6e9cdbe",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/33-同类产品调研与差距分析-2026-10-20",
+      "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+      "title": "工作台同类产品调研与差距分析",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "648b29c20804310429a23be8388cdd7cc00e9a931f04f06f3c39199006549958",
+      "linksTo": [
+        "CONTEXT.md",
+        "GPT_CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/24-月度检查简化办理与验收-2026-10-15.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/prototypes/workbench-v01/VALIDATION.md"
+      ],
+      "localLinks": [
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/periods.ts",
+          "path": "packages/server/src/domain/periods.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/web/src/ui.tsx",
+          "path": "packages/web/src/ui.tsx",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/web/src/styles.css",
+          "path": "packages/web/src/styles.css",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../package.json",
+          "path": "package.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../scripts/snapshot.mjs",
+          "path": "scripts/snapshot.mjs",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "24-月度检查简化办理与验收-2026-10-15.md",
+          "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "path": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/34-产品开发与验收规则-2026-10-20",
+      "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+      "title": "工作台产品开发与验收规则",
+      "role": "reference",
+      "status": "current-supporting-rules",
+      "purpose": "开发与验收细则；月检按41变更及当前质量计划执行",
+      "sha256": "59a24eaeeda83de15e36665af6d54815d8e93b639def0e2e1858c5095def7886",
+      "linksTo": [
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/management/QUALITY_AND_ACCEPTANCE.md"
+      ],
+      "localLinks": [
+        {
+          "target": "management/QUALITY_AND_ACCEPTANCE.md",
+          "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/35-业务主线与办理规则-2026-10-20",
+      "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+      "title": "工作台业务主线与办理规则",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "ae4db59ef07b23a228104863f7ebda94ce49b108a39d22487f39cd1a3ac2e72f",
+      "linksTo": [
+        "CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/24-月度检查简化办理与验收-2026-10-15.md",
+        "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/需求说明.md"
+      ],
+      "localLinks": [
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "36-工作台产品设计方案-2026-10-21.md#12-工作记录与持久记忆-d-07本版新增",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "需求说明.md",
+          "path": "docs/需求说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "24-月度检查简化办理与验收-2026-10-15.md",
+          "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/integrity-config.ts",
+          "path": "packages/server/src/domain/integrity-config.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/seed.ts",
+          "path": "packages/server/src/domain/seed.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/work-type-navigation.ts",
+          "path": "packages/server/src/domain/work-type-navigation.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/service.ts",
+          "path": "packages/server/src/domain/service.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/periods.ts",
+          "path": "packages/server/src/domain/periods.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/inspections.ts",
+          "path": "packages/server/src/domain/inspections.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/timesheets.ts",
+          "path": "packages/server/src/domain/timesheets.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/dossier.ts",
+          "path": "packages/server/src/domain/dossier.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/work-context.ts",
+          "path": "packages/server/src/domain/work-context.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/business-evidence.ts",
+          "path": "packages/server/src/domain/business-evidence.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/web/src/pages/Periods.tsx",
+          "path": "packages/web/src/pages/Periods.tsx",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/web/src/pages/Workbench.tsx",
+          "path": "packages/web/src/pages/Workbench.tsx",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/36-工作台产品设计方案-2026-10-21",
+      "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+      "title": "工作台产品设计方案",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "7c46eb241b8761b5c39e692fec986718f936308eeb7f2d96e131b5b3eed96b39",
+      "linksTo": [
+        "CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/prototypes/workbench-v01/VALIDATION.md"
+      ],
+      "localLinks": [
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/domain/agent.ts",
+          "path": "packages/server/src/domain/agent.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/server/src/api/routes-agent.ts",
+          "path": "packages/server/src/api/routes-agent.ts",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../packages/web/src/pages/Agent.tsx",
+          "path": "packages/web/src/pages/Agent.tsx",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/37-模板库替换与通用关联-2026-10-21",
+      "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+      "title": "模板库替换与通用关联",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "20b5f18c94d912b087150bc7300fd17dbbfded18463028a95b0866296a8d994f",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/38-工作记录与助手记忆实施-2026-10-21",
+      "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+      "title": "工作记录与助手记忆实施记录",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "f867ae1ebfc3ba8c0fbf7584d4700d96c42f33b5ae2220d4e3777bffe01ef9a3",
+      "linksTo": [],
+      "localLinks": [
+        {
+          "target": "../outputs/work-records-2026-10-21/evidence/records.png",
+          "path": "outputs/work-records-2026-10-21/evidence/records.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/work-records-2026-10-21/evidence/assistant.png",
+          "path": "outputs/work-records-2026-10-21/evidence/assistant.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/work-records-2026-10-21/evidence/day31.png",
+          "path": "outputs/work-records-2026-10-21/evidence/day31.png",
+          "availability": "local-evidence",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/39-三个开源项目深读与可用性收敛-2026-10-21",
+      "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+      "title": "三个开源项目深读与工作台可用性收敛",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "33acf576c55c6b9b9ee2f16be97d66240f105524500b371c1979284eebf02d0d",
+      "linksTo": [
+        "PRODUCT_REQUIREMENTS.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/40-同类工作台与AI协同调研-2026-10-21",
+      "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+      "title": "同类工作台与 AI 协同调研",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "75acf0530fb637fd29707ee7c817edc8dff52d8585bf2f87b296de0e8e188e10",
+      "linksTo": [
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/41-AI辅助材料生成改造任务书-2026-10-21",
+      "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+      "title": "AI 辅助材料生成改造任务书",
+      "role": "reference",
+      "status": "accepted-change-spec",
+      "purpose": "AI材料生成与取消报送的具体需求变更；状态另见43与当前进度",
+      "sha256": "d9f74cc7f15c771a87da98dd4766a1bd682814e7b248dfbea7992e37440f9116",
+      "linksTo": [
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/42-基础修复与月检实测-2026-10-21",
+      "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+      "title": "基础修复与月检实测（2026-10-21）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "ea082eaf49625acdd2d66a99ae3627babf82da61570bd503a86eb9cd9a66fa5c",
+      "linksTo": [
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../outputs/monthly-usability-20261021/",
+          "path": "outputs/monthly-usability-20261021",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/monthly-usability-20261021/evidence.json",
+          "path": "outputs/monthly-usability-20261021/evidence.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/monthly-usability-20261021/release-verification.json",
+          "path": "outputs/monthly-usability-20261021/release-verification.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/monthly-usability-20261021/8787发布后首页.png",
+          "path": "outputs/monthly-usability-20261021/8787发布后首页.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/monthly-usability-20261021/8787发布后月检.png",
+          "path": "outputs/monthly-usability-20261021/8787发布后月检.png",
+          "availability": "local-evidence",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/43-AI辅助材料生成实施与验证-2026-10-21",
+      "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+      "title": "AI辅助材料生成实施与隔离验证",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "bdbc96bc51c4482d1d56a356efc1d8e8040a3156ca66604f1bd78838731bfebb",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../data/releases/inspection-drafts-20261021-r1/RELEASE.json",
+          "path": "data/releases/inspection-drafts-20261021-r1/RELEASE.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../data/backups/before-inspection-drafts-20261021-r1",
+          "path": "data/backups/before-inspection-drafts-20261021-r1",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/scoped-release-regression.log",
+          "path": "outputs/inspection-drafts-2026-10-21/scoped-release-regression.log",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/release-rehearsal.json",
+          "path": "outputs/inspection-drafts-2026-10-21/release-rehearsal.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/release-verification.json",
+          "path": "outputs/inspection-drafts-2026-10-21/release-verification.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/daily-release-page.png",
+          "path": "outputs/inspection-drafts-2026-10-21/daily-release-page.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/regression.log",
+          "path": "outputs/inspection-drafts-2026-10-21/regression.log",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/validation.json",
+          "path": "outputs/inspection-drafts-2026-10-21/validation.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/final-preview.png",
+          "path": "outputs/inspection-drafts-2026-10-21/final-preview.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/matrix.json",
+          "path": "outputs/inspection-drafts-2026-10-21/matrix.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/actual/final-file-checks.json",
+          "path": "outputs/inspection-drafts-2026-10-21/actual/final-file-checks.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../outputs/inspection-drafts-2026-10-21/candidate-manifest.json",
+          "path": "outputs/inspection-drafts-2026-10-21/candidate-manifest.json",
+          "availability": "local-evidence",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/44-月度工时与年度台账发布-2026-10-21",
+      "path": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+      "title": "月度工时与年度台账发布记录",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "a6526d1e4a72d6e0162b109e57466251b4758cfb5ab405045cf2c738a837093f",
+      "linksTo": [
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/guides/USER_GUIDE.md"
+      ],
+      "localLinks": [
+        {
+          "target": "reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/45-前台设计限定发布-2026-10-24",
+      "path": "docs/45-前台设计限定发布-2026-10-24.md",
+      "title": "前台设计 V2 限定发布",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "63ce4d8278b17cad1f585ace6e3e8aabc27534b1a4069bb3ed34c619312cc186",
+      "linksTo": [],
+      "localLinks": [
+        {
+          "target": "reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/README",
+      "path": "docs/README.md",
+      "title": "项目知识与文档总览",
+      "role": "entry",
+      "status": "current-baseline",
+      "purpose": "自动生成的完整文档目录与分类",
+      "sha256": "3376e139e7ddece8935b6f660b873918528996866d9f91dd039e7d377b593cbe",
+      "linksTo": [
+        "AGENTS.md",
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "GPT_CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "README.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/01-系统设计.md",
+        "docs/02-快速上手.md",
+        "docs/03-模板制作指南.md",
+        "docs/04-模型选型实测.md",
+        "docs/06-系统审计与优化清单.md",
+        "docs/07-修复与验证.md",
+        "docs/08-现状系统设计.md",
+        "docs/09-目标系统设计.md",
+        "docs/10-目录绑定方案.md",
+        "docs/11-待办与实施计划.md",
+        "docs/12-备份与还原.md",
+        "docs/13-跨设备方案评估.md",
+        "docs/14-进度快照.md",
+        "docs/15-进度续记.md",
+        "docs/16-代码审查.md",
+        "docs/17-工作台实施与使用说明.md",
+        "docs/18-验证记录与待验收项.md",
+        "docs/19-实施后代码审查与计划符合性.md",
+        "docs/20-审查问题修复与回归验证.md",
+        "docs/21-业务架构优化与场景验证-2026-10-15.md",
+        "docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/24-月度检查简化办理与验收-2026-10-15.md",
+        "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+        "docs/26-工作台模板质量核查与修正报告-2026-10-16.md",
+        "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+        "docs/28-全系统审计问题清单-2026-10-16.md",
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/37-模板库替换与通用关联-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/44-月度工时与年度台账发布-2026-10-21.md",
+        "docs/45-前台设计限定发布-2026-10-24.md",
+        "docs/README.md",
+        "docs/archive/2026-10-21-before-knowledge/34-产品开发与验收规则-2026-10-20.md",
+        "docs/archive/2026-10-21-before-knowledge/CONTEXT.md",
+        "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+        "docs/archive/2026-10-21-before-knowledge/GPT_CONTEXT.md",
+        "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+        "docs/archive/2026-10-21-before-knowledge/README.md",
+        "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+        "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+        "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+        "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+        "docs/collab/README.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+        "docs/guides/USER_GUIDE.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_CHARTER.md",
+        "docs/management/PROJECT_PLAN.md",
+        "docs/management/QUALITY_AND_ACCEPTANCE.md",
+        "docs/management/RISKS_AND_DECISIONS.md",
+        "docs/prototypes/workbench-v01/VALIDATION.md",
+        "docs/reference/DATA_AND_API.md",
+        "docs/reference/DOCUMENTATION_REVIEW.md",
+        "docs/制度识别预览.md",
+        "docs/前端只读审计报告.md",
+        "docs/命名整理报告-工作test.md",
+        "docs/工作台业务架构与流程专项审查报告-2026-10-14.md",
+        "docs/需求说明.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "knowledge-index.json",
+          "path": "docs/knowledge-index.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../AGENTS.md",
+          "path": "AGENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../README.md",
+          "path": "README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/UI_DESIGN_IMPLEMENTATION.md",
+          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "guides/USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_CHARTER.md",
+          "path": "docs/management/PROJECT_CHARTER.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/QUALITY_AND_ACCEPTANCE.md",
+          "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/RISKS_AND_DECISIONS.md",
+          "path": "docs/management/RISKS_AND_DECISIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "reference/DATA_AND_API.md",
+          "path": "docs/reference/DATA_AND_API.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "reference/DOCUMENTATION_REVIEW.md",
+          "path": "docs/reference/DOCUMENTATION_REVIEW.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "03-模板制作指南.md",
+          "path": "docs/03-模板制作指南.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "01-系统设计.md",
+          "path": "docs/01-系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "02-快速上手.md",
+          "path": "docs/02-快速上手.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "04-模型选型实测.md",
+          "path": "docs/04-模型选型实测.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "06-系统审计与优化清单.md",
+          "path": "docs/06-系统审计与优化清单.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "07-修复与验证.md",
+          "path": "docs/07-修复与验证.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "08-现状系统设计.md",
+          "path": "docs/08-现状系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "09-目标系统设计.md",
+          "path": "docs/09-目标系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "10-目录绑定方案.md",
+          "path": "docs/10-目录绑定方案.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "11-待办与实施计划.md",
+          "path": "docs/11-待办与实施计划.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "12-备份与还原.md",
+          "path": "docs/12-备份与还原.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "13-跨设备方案评估.md",
+          "path": "docs/13-跨设备方案评估.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "14-进度快照.md",
+          "path": "docs/14-进度快照.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "15-进度续记.md",
+          "path": "docs/15-进度续记.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "16-代码审查.md",
+          "path": "docs/16-代码审查.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "17-工作台实施与使用说明.md",
+          "path": "docs/17-工作台实施与使用说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "18-验证记录与待验收项.md",
+          "path": "docs/18-验证记录与待验收项.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "19-实施后代码审查与计划符合性.md",
+          "path": "docs/19-实施后代码审查与计划符合性.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "21-业务架构优化与场景验证-2026-10-15.md",
+          "path": "docs/21-业务架构优化与场景验证-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "22-第二阶段业务配置与端到端验证-2026-10-15.md",
+          "path": "docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "24-月度检查简化办理与验收-2026-10-15.md",
+          "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "26-工作台模板质量核查与修正报告-2026-10-16.md",
+          "path": "docs/26-工作台模板质量核查与修正报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "path": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "28-全系统审计问题清单-2026-10-16.md",
+          "path": "docs/28-全系统审计问题清单-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "37-模板库替换与通用关联-2026-10-21.md",
+          "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "44-月度工时与年度台账发布-2026-10-21.md",
+          "path": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "45-前台设计限定发布-2026-10-24.md",
+          "path": "docs/45-前台设计限定发布-2026-10-24.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "制度识别预览.md",
+          "path": "docs/制度识别预览.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "前端只读审计报告.md",
+          "path": "docs/前端只读审计报告.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "命名整理报告-工作test.md",
+          "path": "docs/命名整理报告-工作test.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "工作台业务架构与流程专项审查报告-2026-10-14.md",
+          "path": "docs/工作台业务架构与流程专项审查报告-2026-10-14.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "需求说明.md",
+          "path": "docs/需求说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "path": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "collab/README.md",
+          "path": "docs/collab/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/CONTEXT.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/GPT_CONTEXT.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/README.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+          "path": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "path": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "path": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/34-产品开发与验收规则-2026-10-20",
+      "path": "docs/archive/2026-10-21-before-knowledge/34-产品开发与验收规则-2026-10-20.md",
+      "title": "工作台产品开发与验收规则",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "28e6caa5c0c1f0a5c291c40697794991b715a1113c221a1118495f9159588a1b",
+      "linksTo": [
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/CONTEXT",
+      "path": "docs/archive/2026-10-21-before-knowledge/CONTEXT.md",
+      "title": "工作台业务术语",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "ecd185782ad2890693240dc90005c2963974d1f9d9da462841e750ee3820144a",
+      "linksTo": [
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/README.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS",
+      "path": "docs/archive/2026-10-21-before-knowledge/DEVELOPMENT_PROGRESS.md",
+      "title": "开发进度",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "a63192a77dd6ec0f9fe958f494bff14f146f6c1696610e464d87eac6a703db02",
+      "linksTo": [
+        "CONTEXT.md",
+        "docs/18-验证记录与待验收项.md",
+        "docs/20-审查问题修复与回归验证.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/24-月度检查简化办理与验收-2026-10-15.md",
+        "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+        "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+        "docs/28-全系统审计问题清单-2026-10-16.md",
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/37-模板库替换与通用关联-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/README.md",
+        "docs/prototypes/workbench-v01/VALIDATION.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/37-模板库替换与通用关联-2026-10-21.md",
+          "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/28-全系统审计问题清单-2026-10-16.md",
+          "path": "docs/28-全系统审计问题清单-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "path": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/18-验证记录与待验收项.md",
+          "path": "docs/18-验证记录与待验收项.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/GPT_CONTEXT",
+      "path": "docs/archive/2026-10-21-before-knowledge/GPT_CONTEXT.md",
+      "title": "GPT 项目上下文入口",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "0ed64f4502fa6fa87e21a09294300988044ad07f06e0cd114eae6466eeea2e40",
+      "linksTo": [
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/24-月度检查简化办理与验收-2026-10-15.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/37-模板库替换与通用关联-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/README.md",
+        "docs/prototypes/workbench-v01/VALIDATION.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/37-模板库替换与通用关联-2026-10-21.md",
+          "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/VALIDATION.md",
+          "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "path": "docs/24-月度检查简化办理与验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS",
+      "path": "docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md",
+      "title": "产品需求",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "848f0184abf23543ca0f265f7b4e8cb5f54970e507bd370e8247a9a3b550e934",
+      "linksTo": [
+        "CONTEXT.md",
+        "docs/17-工作台实施与使用说明.md",
+        "docs/18-验证记录与待验收项.md",
+        "docs/20-审查问题修复与回归验证.md",
+        "docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+        "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+        "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+        "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/35-业务主线与办理规则-2026-10-20.md",
+        "docs/36-工作台产品设计方案-2026-10-21.md",
+        "docs/37-模板库替换与通用关联-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/README.md",
+        "docs/需求说明.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "path": "docs/39-三个开源项目深读与可用性收敛-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/37-模板库替换与通用关联-2026-10-21.md",
+          "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/prototypes/workbench-v01/index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/35-业务主线与办理规则-2026-10-20.md",
+          "path": "docs/35-业务主线与办理规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "path": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/需求说明.md",
+          "path": "docs/需求说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/17-工作台实施与使用说明.md",
+          "path": "docs/17-工作台实施与使用说明.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/18-验证记录与待验收项.md",
+          "path": "docs/18-验证记录与待验收项.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/20-审查问题修复与回归验证.md",
+          "path": "docs/20-审查问题修复与回归验证.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+          "path": "docs/22-第二阶段业务配置与端到端验证-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "path": "docs/23-第三轮业务页面与文书体验验收-2026-10-15.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/README",
+      "path": "docs/archive/2026-10-21-before-knowledge/README.md",
+      "title": "工作台",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "c50645b5e9c270592310875f5d723557c2d94d3591ac270301704805c73f8cce",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "GPT_CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/README.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE",
+      "path": "docs/archive/2026-10-21-before-knowledge/SYSTEM_ARCHITECTURE.md",
+      "title": "系统架构",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "95fec867f63911c5ab1698e5f003e5a1905ed2f38254e0b18f062614592e7618",
+      "linksTo": [
+        "docs/01-系统设计.md",
+        "docs/08-现状系统设计.md",
+        "docs/09-目标系统设计.md",
+        "docs/10-目录绑定方案.md",
+        "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+        "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+        "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+        "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+        "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+        "docs/32-工作类型分类与选择调整-2026-10-19.md",
+        "docs/37-模板库替换与通用关联-2026-10-21.md",
+        "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+        "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+        "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+        "docs/42-基础修复与月检实测-2026-10-21.md",
+        "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+        "docs/README.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "path": "docs/43-AI辅助材料生成实施与验证-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/42-基础修复与月检实测-2026-10-21.md",
+          "path": "docs/42-基础修复与月检实测-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "path": "docs/40-同类工作台与AI协同调研-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "path": "docs/41-AI辅助材料生成改造任务书-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "path": "docs/38-工作记录与助手记忆实施-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/37-模板库替换与通用关联-2026-10-21.md",
+          "path": "docs/37-模板库替换与通用关联-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "path": "docs/32-工作类型分类与选择调整-2026-10-19.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "path": "docs/30-审计遗留项收尾与真实模型证据写作验证-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "path": "docs/31-测试隔离加固、季度问答修复与发布验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "path": "docs/29-工作台全系统审计与稳定化整改报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "path": "docs/27-工作台AI业务助手专项优化与验收报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "path": "docs/25-工作台业务模板盘点与建设报告-2026-10-16.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/01-系统设计.md",
+          "path": "docs/01-系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/08-现状系统设计.md",
+          "path": "docs/08-现状系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/09-目标系统设计.md",
+          "path": "docs/09-目标系统设计.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../docs/10-目录绑定方案.md",
+          "path": "docs/10-目录绑定方案.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS",
+      "path": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+      "title": "规范化前原文快照：DEVELOPMENT_PROGRESS.md",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "f8ab60a00c7252d4a048af864a20a268617e8b24f948e01aa2363c1aacb6862e",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT",
+      "path": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+      "title": "规范化前原文快照：GPT_CONTEXT.md",
+      "role": "historical",
+      "status": "superseded-snapshot",
+      "purpose": "整理前原文沿革；不作为当前要求、状态或授权",
+      "sha256": "d49193ad55ebf355e7b69d5cb7079ec676d738147e85c563b835f8045f473c12",
+      "linksTo": [
+        "GPT_CONTEXT.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20",
+      "path": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+      "title": "01 · 彻底删除：外键阻断点补全与\"连带删干净\"",
+      "role": "collaboration",
+      "status": "review-reference",
+      "purpose": "协作审查证据；任务状态统一见PROJECT_PLAN，不自动授权消息或改动",
+      "sha256": "971c61849a690c187d5cbf17abc92b870fc345576b2096b55eb63b500186d237",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/collab/README",
+      "path": "docs/collab/README.md",
+      "title": "协作信箱（Codex ⇄ 评审代理）",
+      "role": "collaboration",
+      "status": "review-reference",
+      "purpose": "协作审查证据；任务状态统一见PROJECT_PLAN，不自动授权消息或改动",
+      "sha256": "c1d089d62039f4ba4d449a07f78d315a43f964d60719afd38e6ae4f7b4e2194a",
+      "linksTo": [
+        "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md"
+      ],
+      "localLinks": [
+        {
+          "target": "01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "path": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/DEVELOPMENT",
+      "path": "docs/guides/DEVELOPMENT.md",
+      "title": "开发与验证指南",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "开发环境、隔离验证、构建和交付",
+      "sha256": "61ad13af076af78f7f9c09c2e85cbefc2f10a1707bb6dc50c4f84807f1177d38",
+      "linksTo": [
+        "PRODUCT_REQUIREMENTS.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/DEVICE_HANDOFF",
+      "path": "docs/guides/DEVICE_HANDOFF.md",
+      "title": "换机开发与接续清单",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "每次任务收尾、换机移交范围、新机验证与现有打包限制",
+      "sha256": "4c3ed2160252481c094e86f47895b3a5515a87b862201e23014cef60ff5f9f23",
+      "linksTo": [
+        "docs/guides/DEVELOPMENT.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/MONTHLY_DEVELOPMENT",
+      "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+      "title": "月度工时与年度台账操作及开发验收",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界",
+      "sha256": "a1a72bc25550f42515043b72f8bd2fa07add4d4138f0f2dbd713f7ec88e16039",
+      "linksTo": [
+        "docs/44-月度工时与年度台账发布-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../44-月度工时与年度台账发布-2026-10-21.md",
+          "path": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/OPERATIONS",
+      "path": "docs/guides/OPERATIONS.md",
+      "title": "运行、备份、恢复与发布手册",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "运行、备份、恢复、发布与排障",
+      "sha256": "4ab545f0fd95c67f4c48a983c145e8a217418a4054b63407252637ba1e99ba24",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/UI_DESIGN_IMPLEMENTATION",
+      "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+      "title": "前台设计 V2 实施与隔离核验",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界",
+      "sha256": "260f1cdb63ad46e9f43fe4207a731a8a7d888c13c5489ccd6b1cfda1166590bb",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/45-前台设计限定发布-2026-10-24.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../45-前台设计限定发布-2026-10-24.md",
+          "path": "docs/45-前台设计限定发布-2026-10-24.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-design-reference-20261024-v2/00-Codex交互实现说明.md",
+          "path": "outputs/ui-design-reference-20261024-v2/00-Codex交互实现说明.md",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/compact-100/results.json",
+          "path": "outputs/ui-implementation-20261024/compact-100/results.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/home-compact/results.json",
+          "path": "outputs/ui-implementation-20261024/home-compact/results.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/home-correction/results.json",
+          "path": "outputs/ui-implementation-20261024/home-correction/results.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/home-correction/reference-bounds.json",
+          "path": "outputs/ui-implementation-20261024/home-correction/reference-bounds.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/home-correction/reference-fixture-1487.png",
+          "path": "outputs/ui-implementation-20261024/home-correction/reference-fixture-1487.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/home-correction/actual-data-1440.png",
+          "path": "outputs/ui-implementation-20261024/home-correction/actual-data-1440.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/browser-interactions.json",
+          "path": "outputs/ui-implementation-20261024/browser-interactions.json",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/screenshots/ai-diff.png",
+          "path": "outputs/ui-implementation-20261024/screenshots/ai-diff.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/screenshots/save-failure.png",
+          "path": "outputs/ui-implementation-20261024/screenshots/save-failure.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/screenshots/sync-results.png",
+          "path": "outputs/ui-implementation-20261024/screenshots/sync-results.png",
+          "availability": "local-evidence",
+          "exists": true
+        },
+        {
+          "target": "../../outputs/ui-implementation-20261024/screenshots/timesheet-focused.png",
+          "path": "outputs/ui-implementation-20261024/screenshots/timesheet-focused.png",
+          "availability": "local-evidence",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/guides/USER_GUIDE",
+      "path": "docs/guides/USER_GUIDE.md",
+      "title": "使用说明",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "当前日常版操作、异常处理及反馈",
+      "sha256": "65fa0a3108a7b1b6fd9353a679d2b667c545d95afc9a03de64c5683f5143d912",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/03-模板制作指南.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/OPERATIONS.md",
+        "docs/management/QUALITY_AND_ACCEPTANCE.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "OPERATIONS.md",
+          "path": "docs/guides/OPERATIONS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../03-模板制作指南.md",
+          "path": "docs/03-模板制作指南.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/QUALITY_AND_ACCEPTANCE.md",
+          "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/CHANGELOG",
+      "path": "docs/management/CHANGELOG.md",
+      "title": "项目变更记录",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "逐任务实际修改、验证、五份文档复核及本地保存和Git交付状态",
+      "sha256": "385510442845206d6e5a20d11505d5e42618baabe69fa27c9da6618395ea8dbf",
+      "linksTo": [
+        "AGENTS.md",
+        "CONTEXT.md",
+        "DEVELOPMENT_PROGRESS.md",
+        "GPT_CONTEXT.md",
+        "PRODUCT_REQUIREMENTS.md",
+        "README.md",
+        "SYSTEM_ARCHITECTURE.md",
+        "docs/README.md",
+        "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+        "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+        "docs/guides/DEVELOPMENT.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/management/CHANGELOG.md",
+        "docs/management/DOCUMENT_CONTROL.md",
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../../工作台审计/PUBLISH_20261024_R1/发布报告.txt",
+          "path": "../工作台审计/PUBLISH_20261024_R1/发布报告.txt",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../../../工作台审计/RETEST_20261024_R2/修复后复测报告.txt",
+          "path": "../工作台审计/RETEST_20261024_R2/修复后复测报告.txt",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../../../工作台审计/FIX_20261024_R1/修复与验证报告.txt",
+          "path": "../工作台审计/FIX_20261024_R1/修复与验证报告.txt",
+          "availability": "local-evidence",
+          "exists": false
+        },
+        {
+          "target": "../../AGENTS.md",
+          "path": "AGENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../GPT_CONTEXT.md",
+          "path": "GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../PRODUCT_REQUIREMENTS.md",
+          "path": "PRODUCT_REQUIREMENTS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../SYSTEM_ARCHITECTURE.md",
+          "path": "SYSTEM_ARCHITECTURE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../README.md",
+          "path": "README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DOCUMENT_CONTROL.md",
+          "path": "docs/management/DOCUMENT_CONTROL.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "path": "docs/archive/2026-10-24-before-closeout/GPT_CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "path": "docs/archive/2026-10-24-before-closeout/DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../scripts/docs-maintenance.mjs",
+          "path": "scripts/docs-maintenance.mjs",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../README.md",
+          "path": "docs/README.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../knowledge-index.json",
+          "path": "docs/knowledge-index.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/DOCUMENT_CONTROL",
+      "path": "docs/management/DOCUMENT_CONTROL.md",
+      "title": "文档治理与AI读取规范",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "知识权威规则、索引契约和维护方法",
+      "sha256": "7b1450700729b8de8ac3f3dd5f74d313dc4bdf918c7ac8326ef693a50a4d2592",
+      "linksTo": [
+        "docs/management/CHANGELOG.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../knowledge-index.json",
+          "path": "docs/knowledge-index.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/PROJECT_CHARTER",
+      "path": "docs/management/PROJECT_CHARTER.md",
+      "title": "项目章程与范围说明",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "目标、范围、交付、责任、资源和阶段出口",
+      "sha256": "ce187079a886acb61d6c3da190ce9b5284745795d2bb7df1bf8b8215e63ccb0d",
+      "linksTo": [
+        "docs/management/PROJECT_PLAN.md"
+      ],
+      "localLinks": [
+        {
+          "target": "PROJECT_PLAN.md",
+          "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/PROJECT_PLAN",
+      "path": "docs/management/PROJECT_PLAN.md",
+      "title": "项目计划与唯一执行队列",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "唯一GOV执行队列、依赖、状态与下一步",
+      "sha256": "b29db295612bd3a0a1611917705897cc9a86c07044536d8ec8eeca907b606fa8",
+      "linksTo": [
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/33-同类产品调研与差距分析-2026-10-20.md",
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/MONTHLY_DEVELOPMENT.md",
+        "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+        "docs/management/CHANGELOG.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../33-同类产品调研与差距分析-2026-10-20.md",
+          "path": "docs/33-同类产品调研与差距分析-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/MONTHLY_DEVELOPMENT.md",
+          "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/UI_DESIGN_IMPLEMENTATION.md",
+          "path": "docs/guides/UI_DESIGN_IMPLEMENTATION.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "CHANGELOG.md",
+          "path": "docs/management/CHANGELOG.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/DEVICE_HANDOFF.md",
+          "path": "docs/guides/DEVICE_HANDOFF.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/QUALITY_AND_ACCEPTANCE",
+      "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+      "title": "质量管理与验收计划",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "质量方法、验收计划和证据要求",
+      "sha256": "dbd41a3cabc96d6631d7c542bdc8de5e61021b20926fb046626657e022d89622",
+      "linksTo": [
+        "docs/34-产品开发与验收规则-2026-10-20.md",
+        "docs/guides/DEVELOPMENT.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../34-产品开发与验收规则-2026-10-20.md",
+          "path": "docs/34-产品开发与验收规则-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../reference/source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../guides/DEVELOPMENT.md",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/management/RISKS_AND_DECISIONS",
+      "path": "docs/management/RISKS_AND_DECISIONS.md",
+      "title": "风险、问题与决策记录",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "风险、问题、业务未定项与已有决策",
+      "sha256": "924c3590cff68f24ef969248342ab64032cc2209f9bbca6261f39ed5ce4df8fa",
+      "linksTo": [
+        "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md"
+      ],
+      "localLinks": [
+        {
+          "target": "../collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "path": "docs/collab/01-彻底删除与业务助手外键清理-2026-10-20.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/prototypes/workbench-v01/VALIDATION",
+      "path": "docs/prototypes/workbench-v01/VALIDATION.md",
+      "title": "原型验证记录",
+      "role": "prototype",
+      "status": "prototype-evidence",
+      "purpose": "历史原型自检；不是日常实现，冲突要求以当前需求为准",
+      "sha256": "fd6f08764af481d64c97369a81d5451ab32ed8c417d4b9ec5a85ff641906e3c2",
+      "linksTo": [
+        "docs/36-工作台产品设计方案-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "index.html",
+          "path": "docs/prototypes/workbench-v01/index.html",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../36-工作台产品设计方案-2026-10-21.md",
+          "path": "docs/36-工作台产品设计方案-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "evidence/home.png",
+          "path": "docs/prototypes/workbench-v01/evidence/home.png",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "evidence/monthly.png",
+          "path": "docs/prototypes/workbench-v01/evidence/monthly.png",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "evidence/work-records-v02.png",
+          "path": "docs/prototypes/workbench-v01/evidence/work-records-v02.png",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/reference/DATA_AND_API",
+      "path": "docs/reference/DATA_AND_API.md",
+      "title": "数据字典、接口约定与定位",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "关键数据字典、API约定及源码定位",
+      "sha256": "ab83f367beb23a486ed250d7342a12729013da115b7860c871a8253ad4d4c09e",
+      "linksTo": [
+        "CONTEXT.md"
+      ],
+      "localLinks": [
+        {
+          "target": "source-inventory.json",
+          "path": "docs/reference/source-inventory.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../CONTEXT.md",
+          "path": "CONTEXT.md",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/reference/DOCUMENTATION_REVIEW",
+      "path": "docs/reference/DOCUMENTATION_REVIEW.md",
+      "title": "项目知识整理与核查记录",
+      "role": "current",
+      "status": "current-baseline",
+      "purpose": "本次文档整理范围与检查证据",
+      "sha256": "2165fc2336c49491aec2982b53f4c6c883be10de2d3968dfb809d80a4af67453",
+      "linksTo": [
+        "docs/44-月度工时与年度台账发布-2026-10-21.md"
+      ],
+      "localLinks": [
+        {
+          "target": "current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../44-月度工时与年度台账发布-2026-10-21.md",
+          "path": "docs/44-月度工时与年度台账发布-2026-10-21.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "current-baseline.json",
+          "path": "docs/reference/current-baseline.json",
+          "availability": "repository",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "docs/制度识别预览",
+      "path": "docs/制度识别预览.md",
+      "title": "制度识别预览（只读，未导入任何内容）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "b34c5da69e13969ea8bb2a542f5ec3ff19c31e7da65346adeaa28e1df73797f2",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/前端只读审计报告",
+      "path": "docs/前端只读审计报告.md",
+      "title": "前端审计报告（只读）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "1161d63e9f4b78cb5f37d839c9c398acca55b9c35bcbdc99ffc8bd8f165dc8da",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/命名整理报告-工作test",
+      "path": "docs/命名整理报告-工作test.md",
+      "title": "命名整理报告 —— 工作test（只读扫描）",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "3bced46b780dbd70f7caed3dbea183785a58e23edc94044fee6e6a98218fc0f4",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/工作台业务架构与流程专项审查报告-2026-10-14",
+      "path": "docs/工作台业务架构与流程专项审查报告-2026-10-14.md",
+      "title": "工作台业务架构与流程专项审查报告",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "b175213ce931426802cd589e8461b9d0936536306448f72f2b2393c01ae6bf0e",
+      "linksTo": [],
+      "localLinks": []
+    },
+    {
+      "id": "docs/需求说明",
+      "path": "docs/需求说明.md",
+      "title": "需求说明 —— 我为什么要做「工作台」平台",
+      "role": "historical",
+      "status": "historical-evidence",
+      "purpose": "原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天",
+      "sha256": "c072737c8ca67e2ace37ff1d77efc8fa542e1ae187138c087b747446b989dfa4",
+      "linksTo": [],
+      "localLinks": []
+    }
+  ],
+  "relatedArtifacts": [
+    "docs/reference/source-inventory.json",
+    "docs/reference/current-baseline.json"
+  ],
+  "excludedContent": [
+    "business database rows",
+    "credentials",
+    "business files",
+    "node_modules",
+    "private external originals"
+  ]
+}

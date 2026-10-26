@@ -1,0 +1,1077 @@
+{
+  "complete": {
+    "pack": {
+      "scope": {
+        "workbenchId": 1,
+        "start": "2026-01-01",
+        "end": "2026-04-01"
+      },
+      "acquiredAt": "",
+      "sources": [
+        {
+          "id": "workbench:1",
+          "table": "workbench",
+          "recordId": 1,
+          "workbenchId": 1,
+          "title": "澄湖组",
+          "status": "active",
+          "locator": "workbench #1",
+          "href": "#/workbench?id=1",
+          "digest": "4ebe6c772d8a23e7a79b362dc00e8bc205c60b4d3d469bd599eb1c71f2a67486",
+          "acquiredAt": "2026-10-17T00:50:58.171Z"
+        },
+        {
+          "id": "work_type:6",
+          "table": "work_type",
+          "recordId": 6,
+          "workbenchId": 1,
+          "title": "季度廉洁学习",
+          "status": "已保存记录",
+          "locator": "work_type #6",
+          "href": "#/workbench?id=1",
+          "digest": "200ca3987fa29b2bbb135e8f74fcfd650ebc71be4fb7d1a26ab7d8d530f74f7a",
+          "acquiredAt": "2026-10-17T00:50:58.171Z"
+        },
+        {
+          "id": "work_period:2",
+          "table": "work_period",
+          "recordId": 2,
+          "workbenchId": 1,
+          "periodId": 2,
+          "title": "澄湖组／2026-Q1",
+          "status": "open",
+          "locator": "work_period #2",
+          "href": "#/workbench?id=1&periodId=2",
+          "digest": "3e8b1638b52eec4b21b207cb9197e5126cf2201f0bbbe2c2487471b0503996b6",
+          "acquiredAt": "2026-10-17T00:50:58.171Z"
+        },
+        {
+          "id": "artifact:3",
+          "table": "artifact",
+          "recordId": 3,
+          "workbenchId": 1,
+          "periodId": 2,
+          "title": "澄湖组场地预约.txt",
+          "status": "待核实资料",
+          "locator": "澄湖组场地预约.txt v1，提取文本第1行",
+          "href": "/api/artifacts/3/file",
+          "digest": "f43e550c36787d9dfc6e6db8951f1e170aca7d7a81730a53f94b78ab7e9bc4cc",
+          "acquiredAt": "2026-10-17T00:50:58.171Z",
+          "fileRel": "工作台/9fd6f91e99568c1c-2026-A-001-澄湖组/_原始资料/澄湖组场地预约.txt",
+          "version": 1,
+          "fileDigest": "f154a5f9a1ba510837cf64011c7e77f3bd43b9b89a73e6ad3a8dc14248a5d01f"
+        },
+        {
+          "id": "artifact:2",
+          "table": "artifact",
+          "recordId": 2,
+          "workbenchId": 1,
+          "periodId": 2,
+          "title": "澄湖组培训核对凭证.txt",
+          "status": "待核实资料",
+          "locator": "澄湖组培训核对凭证.txt v1，提取文本第1行",
+          "href": "/api/artifacts/2/file",
+          "digest": "741aa7485b583f79d7e426ab0917944fcfebe9ae6f7cc3924ce666861787275c",
+          "acquiredAt": "2026-10-17T00:50:58.171Z",
+          "fileRel": "工作台/9fd6f91e99568c1c-2026-A-001-澄湖组/_原始资料/澄湖组培训核对凭证.txt",
+          "version": 1,
+          "fileDigest": "a3abc38d5a52e34950779efd35e4fb3f773f206e60104f42f1cea4674c51e505"
+        },
+        {
+          "id": "artifact:1",
+          "table": "artifact",
+          "recordId": 1,
+          "workbenchId": 1,
+          "periodId": 2,
+          "title": "澄湖组培训实施记录.txt",
+          "status": "待核实资料",
+          "locator": "澄湖组培训实施记录.txt v1，提取文本第1行",
+          "href": "/api/artifacts/1/file",
+          "digest": "a3777802aba75ae099821bc68450c0c4bf6fac8737117727605c4c72ef8be5ea",
+          "acquiredAt": "2026-10-17T00:50:58.171Z",
+          "fileRel": "工作台/9fd6f91e99568c1c-2026-A-001-澄湖组/_原始资料/澄湖组培训实施记录.txt",
+          "version": 1,
+          "fileDigest": "533a83d9d5d4144665b1b9eaa0dae4f31afd747c19d1f5ab3f5a717fa0182686"
+        }
+      ],
+      "facts": [
+        {
+          "id": "F1",
+          "text": "澄湖组（清廉工程／季度廉洁学习）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:1"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F2",
+          "text": "季度廉洁学习／澄湖组／2026-Q1：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:2"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F3",
+          "text": "文件 #3《澄湖组场地预约.txt》（待核实资料；以下是原文摘录，非系统确认结论）：\n提取文本第1行：2026-03-18 场地预约记录：计划于2026-03-25调换值班室桌椅，尚未实施，与本次集中授课无关。",
+          "certainty": "unverified",
+          "sources": [
+            "artifact:3"
+          ],
+          "kind": "document",
+          "bodyText": "2026-03-18 场地预约记录：计划于2026-03-25调换值班室桌椅，尚未实施，与本次集中授课无关。"
+        },
+        {
+          "id": "F4",
+          "text": "文件 #2《澄湖组培训核对凭证.txt》（待核实资料；以下是原文摘录，非系统确认结论）：\n提取文本第1行：2026-03-13 澄湖组培训核对单：逐人核对2026-03-12签到表，18名参训人员签名齐全；对应课程记录载明当日授课90分钟并已完成。此核对仅针对本次培训，不涉及其他季度工作。",
+          "certainty": "unverified",
+          "sources": [
+            "artifact:2"
+          ],
+          "kind": "document",
+          "bodyText": "2026-03-13 澄湖组培训核对单：逐人核对2026-03-12签到表，18名参训人员签名齐全；对应课程记录载明当日授课90分钟并已完成。此核对仅针对本次培训，不涉及其他季度工作。"
+        },
+        {
+          "id": "F5",
+          "text": "文件 #1《澄湖组培训实施记录.txt》（待核实资料；以下是原文摘录，非系统确认结论）：\n提取文本第1行：2026-03-12 澄湖组岗位廉洁培训实施记录：集中授课已按安排完成，参训人员18人，授课时长90分钟。签到表与课程记录已由匿名经办员和复核员核对。",
+          "certainty": "unverified",
+          "sources": [
+            "artifact:1"
+          ],
+          "kind": "document",
+          "bodyText": "2026-03-12 澄湖组岗位廉洁培训实施记录：集中授课已按安排完成，参训人员18人，授课时长90分钟。签到表与课程记录已由匿名经办员和复核员核对。"
+        }
+      ],
+      "gaps": [],
+      "conflicts": [],
+      "files": [],
+      "metrics": {
+        "inspections": 0,
+        "projects": 0,
+        "duplicateRecords": 0,
+        "periods": 1,
+        "completedPeriods": 0
+      },
+      "coverage": {
+        "workbenches": 1,
+        "periods": 1,
+        "candidateFiles": 3,
+        "readFiles": 3,
+        "omittedFacts": 0,
+        "chars": 477,
+        "budget": 24000
+      },
+      "selectionDigest": "",
+      "task": {
+        "mode": "answer",
+        "question": "澄湖组第一季度培训是否已经完成？请说明完成日期和参训人数。",
+        "factIds": [
+          "F2",
+          "F4",
+          "F5"
+        ],
+        "requiredFactIds": [
+          "F4",
+          "F5"
+        ],
+        "conflictIndexes": [],
+        "metrics": [],
+        "businessGaps": [],
+        "sourceNotes": []
+      }
+    },
+    "value": {
+      "paragraphs": [
+        {
+          "id": "p1",
+          "field": "正文",
+          "kind": "fact",
+          "text": "澄湖组第一季度培训已完成。资料记载，2026年3月12日澄湖组岗位廉洁培训集中授课已按安排完成，参训人员18人，授课时长90分钟；2026年3月13日核对单逐人核对2026年3月12日签到表，18名参训人员签名齐全，对应课程记录载明当日授课90分钟并已完成。",
+          "citations": [
+            {
+              "factId": "F5",
+              "quote": "2026-03-12 澄湖组岗位廉洁培训实施记录：集中授课已按安排完成，参训人员18人，授课时长90分钟。"
+            },
+            {
+              "factId": "F4",
+              "quote": "2026-03-13 澄湖组培训核对单：逐人核对2026-03-12签到表，18名参训人员签名齐全；对应课程记录载明当日授课90分钟并已完成。"
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "field": "正文",
+          "kind": "fact",
+          "text": "上述完成日期为2026年3月12日，参训人数为18人。该核对仅针对本次培训，不涉及其他季度工作。",
+          "citations": [
+            {
+              "factId": "F4",
+              "quote": "此核对仅针对本次培训，不涉及其他季度工作。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "conflict": {
+    "pack": {
+      "scope": {
+        "workbenchId": 2,
+        "start": "2026-04-01",
+        "end": "2026-07-01"
+      },
+      "acquiredAt": "",
+      "sources": [
+        {
+          "id": "workbench:2",
+          "table": "workbench",
+          "recordId": 2,
+          "workbenchId": 2,
+          "title": "望岑点位",
+          "status": "active",
+          "locator": "workbench #2",
+          "href": "#/workbench?id=2",
+          "digest": "5c0b9b4563c3ee922741a09dab39d229d491b3143965a75583956c1fb0d9b116",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "work_type:3",
+          "table": "work_type",
+          "recordId": 3,
+          "workbenchId": 2,
+          "title": "月度监督检查与报送",
+          "status": "已保存记录",
+          "locator": "work_type #3",
+          "href": "#/workbench?id=2",
+          "digest": "2b7c680534cc36950c7c2e712bfb1dbf7e3149a3afcd060c340b978703b552e2",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "work_period:6",
+          "table": "work_period",
+          "recordId": 6,
+          "workbenchId": 2,
+          "periodId": 6,
+          "title": "望岑点位／2026-05",
+          "status": "open",
+          "locator": "work_period #6",
+          "href": "#/workbench?id=2&periodId=6",
+          "digest": "c5c84c4d9949ce74d1ae7e132671bb79e3e70b48ffca7f470972948ba3cb8205",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "inspection_record:1",
+          "table": "inspection_record",
+          "recordId": 1,
+          "workbenchId": 2,
+          "periodId": 6,
+          "title": "望岑点位",
+          "status": "已保存记录",
+          "locator": "inspection_record #1",
+          "href": "#/workbench?id=2&periodId=6",
+          "digest": "3e2a5427242f156bf3cfc23c50995ccee3e0de3a63c8177f60aede4377f447c7",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "inspection_record:2",
+          "table": "inspection_record",
+          "recordId": 2,
+          "workbenchId": 2,
+          "periodId": 6,
+          "title": "望岑点位",
+          "status": "已保存记录",
+          "locator": "inspection_record #2",
+          "href": "#/workbench?id=2&periodId=6",
+          "digest": "82257a03fc9d23835a5a5cf38efac83e32bcc2d69feb5bf7961f07c7262a1212",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "work_period:7",
+          "table": "work_period",
+          "recordId": 7,
+          "workbenchId": 2,
+          "periodId": 7,
+          "title": "望岑点位／2026-06",
+          "status": "open",
+          "locator": "work_period #7",
+          "href": "#/workbench?id=2&periodId=7",
+          "digest": "fb490ef014322238f69dfb24cd62b17f7ed3e689f258b0b3e756e34664affdb2",
+          "acquiredAt": "2026-10-17T00:52:01.939Z"
+        },
+        {
+          "id": "artifact:4",
+          "table": "artifact",
+          "recordId": 4,
+          "workbenchId": 2,
+          "periodId": 6,
+          "title": "望岑点位饮水机登记.txt",
+          "status": "待核实资料",
+          "locator": "望岑点位饮水机登记.txt v1，提取文本第1行",
+          "href": "/api/artifacts/4/file",
+          "digest": "24e49b7b930ed7556da7c2b168d9e5b1c26e21d959ec6df56df1343f52574809",
+          "acquiredAt": "2026-10-17T00:52:01.939Z",
+          "fileRel": "工作台/1b111ec285136b4e-2026-A-002-望岑点位/_原始资料/望岑点位饮水机登记.txt",
+          "version": 1,
+          "fileDigest": "4a56c445edbcf496891ece64e1ee2e1868b9e76f1d3858560ad16ddeffa14ee6"
+        }
+      ],
+      "facts": [
+        {
+          "id": "F1",
+          "text": "望岑点位（清廉工程／月度监督检查与报送）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:2"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F2",
+          "text": "月度监督检查与报送／望岑点位／2026-05：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:6"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F3",
+          "text": "已保存检查记录 #1（修订 1）：2026-05-14，项目 望岑点位；监督事项 备用照明检查；内容 断电测试西侧灯具；记录结果 检查方甲记载：西侧灯具仍不亮；整改记录 未收到复查凭证，待复核。不据此推断整改完成或报送。",
+          "certainty": "confirmed",
+          "sources": [
+            "inspection_record:1"
+          ],
+          "kind": "inspection",
+          "bodyText": "2026-05-14，项目 望岑点位；监督事项 备用照明检查；内容 断电测试西侧灯具；记录结果 检查方甲记载：西侧灯具仍不亮；整改记录 未收到复查凭证，待复核。"
+        },
+        {
+          "id": "F4",
+          "text": "已保存检查记录 #2（修订 1）：2026-05-14，项目 望岑点位；监督事项 备用照明检查；内容 断电测试西侧灯具；记录结果 检查方乙记载：西侧灯具可持续点亮；整改记录 填报为现场恢复，未附测试影像。不据此推断整改完成或报送。",
+          "certainty": "confirmed",
+          "sources": [
+            "inspection_record:2"
+          ],
+          "kind": "inspection",
+          "bodyText": "2026-05-14，项目 望岑点位；监督事项 备用照明检查；内容 断电测试西侧灯具；记录结果 检查方乙记载：西侧灯具可持续点亮；整改记录 填报为现场恢复，未附测试影像。"
+        },
+        {
+          "id": "F5",
+          "text": "月度监督检查与报送／望岑点位／2026-06：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:7"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F6",
+          "text": "所选期次已保存检查记录 2 条，涉及项目 1 个；疑似重复 1 条，未自动合并。按独立记录ID计数；同日同内容也可能是不同检查，实际次数及项目名称别名仍需人工核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "inspection_record:1",
+            "inspection_record:2"
+          ],
+          "kind": "metric"
+        },
+        {
+          "id": "F7",
+          "text": "文件 #4《望岑点位饮水机登记.txt》（待核实资料；以下是原文摘录，非系统确认结论）：\n提取文本第1行：2026-05-16 饮水机更换滤芯的预约尚待确认，与备用照明事项无关。",
+          "certainty": "unverified",
+          "sources": [
+            "artifact:4"
+          ],
+          "kind": "document",
+          "bodyText": "2026-05-16 饮水机更换滤芯的预约尚待确认，与备用照明事项无关。"
+        }
+      ],
+      "gaps": [
+        "存在疑似重复检查，保留每条记录并提示核对；未经人工确认不减少记录数，也不把记录数等同已核实的实际活动次数。",
+        "存在来源冲突，未自动采信任一叙述；正式文书需先核清口径。"
+      ],
+      "conflicts": [
+        {
+          "field": "同项目同日同内容检查结果",
+          "candidates": [
+            {
+              "value": "检查方甲记载：西侧灯具仍不亮；未收到复查凭证，待复核",
+              "source": "inspection_record:1"
+            },
+            {
+              "value": "检查方乙记载：西侧灯具可持续点亮；填报为现场恢复，未附测试影像",
+              "source": "inspection_record:2"
+            }
+          ]
+        }
+      ],
+      "files": [],
+      "metrics": {
+        "inspections": 2,
+        "projects": 1,
+        "duplicateRecords": 1,
+        "periods": 2,
+        "completedPeriods": 0
+      },
+      "coverage": {
+        "workbenches": 1,
+        "periods": 2,
+        "candidateFiles": 1,
+        "readFiles": 1,
+        "omittedFacts": 0,
+        "chars": 564,
+        "budget": 24000
+      },
+      "selectionDigest": "",
+      "task": {
+        "mode": "answer",
+        "question": "望岑点位第二季度检查中，备用照明现在能否认定恢复正常？请把两方记载说明白。",
+        "factIds": [
+          "F2",
+          "F3",
+          "F4",
+          "F5"
+        ],
+        "requiredFactIds": [
+          "F3",
+          "F4"
+        ],
+        "conflictIndexes": [
+          0
+        ],
+        "metrics": [],
+        "businessGaps": [],
+        "sourceNotes": []
+      }
+    },
+    "value": {
+      "paragraphs": [
+        {
+          "id": "p1",
+          "field": "正文",
+          "kind": "fact",
+          "text": "不能认定备用照明已恢复正常。2026年5月14日望岑点位备用照明检查中，两方对断电测试西侧灯具的结果记载不一致：检查方甲记载西侧灯具仍不亮，且未收到复查凭证，待复核；检查方乙记载西侧灯具可持续点亮，填报为现场恢复，但未附测试影像。上述分歧尚未解决，现有资料不足以支持恢复正常或整改闭环的结论。",
+          "citations": [
+            {
+              "factId": "F3",
+              "quote": "检查方甲记载：西侧灯具仍不亮；整改记录 未收到复查凭证，待复核"
+            },
+            {
+              "factId": "F4",
+              "quote": "检查方乙记载：西侧灯具可持续点亮；整改记录 填报为现场恢复，未附测试影像"
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "field": "正文",
+          "kind": "recommendation",
+          "text": "建议对西侧备用照明补充一次断电测试复查，形成可核验的测试影像或书面凭证，并明确以复查结果统一两方记载；在复查结论形成前，暂不认定该点位备用照明恢复正常。",
+          "citations": [
+            {
+              "factId": "F3",
+              "quote": "未收到复查凭证，待复核"
+            },
+            {
+              "factId": "F4",
+              "quote": "未附测试影像"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "quarter": {
+    "pack": {
+      "scope": {
+        "domain": "admin",
+        "category": "清廉工程",
+        "start": "2026-07-01",
+        "end": "2026-10-01"
+      },
+      "acquiredAt": "",
+      "sources": [
+        {
+          "id": "workbench:1",
+          "table": "workbench",
+          "recordId": 1,
+          "workbenchId": 1,
+          "title": "澄湖组",
+          "status": "active",
+          "locator": "workbench #1",
+          "href": "#/workbench?id=1",
+          "digest": "4ebe6c772d8a23e7a79b362dc00e8bc205c60b4d3d469bd599eb1c71f2a67486",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_type:6",
+          "table": "work_type",
+          "recordId": 6,
+          "workbenchId": 1,
+          "title": "季度廉洁学习",
+          "status": "已保存记录",
+          "locator": "work_type #6",
+          "href": "#/workbench?id=1",
+          "digest": "200ca3987fa29b2bbb135e8f74fcfd650ebc71be4fb7d1a26ab7d8d530f74f7a",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "workbench:2",
+          "table": "workbench",
+          "recordId": 2,
+          "workbenchId": 2,
+          "title": "望岑点位",
+          "status": "active",
+          "locator": "workbench #2",
+          "href": "#/workbench?id=2",
+          "digest": "5c0b9b4563c3ee922741a09dab39d229d491b3143965a75583956c1fb0d9b116",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_type:3",
+          "table": "work_type",
+          "recordId": 3,
+          "workbenchId": 2,
+          "title": "月度监督检查与报送",
+          "status": "已保存记录",
+          "locator": "work_type #3",
+          "href": "#/workbench?id=2",
+          "digest": "2b7c680534cc36950c7c2e712bfb1dbf7e3149a3afcd060c340b978703b552e2",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "workbench:3",
+          "table": "workbench",
+          "recordId": 3,
+          "workbenchId": 3,
+          "title": "匿名栖原月度监督",
+          "status": "active",
+          "locator": "workbench #3",
+          "href": "#/workbench?id=3",
+          "digest": "b8918e2d01a91fe0a03d2714ab6140ec07cbf15c4dbaf1614ded194a4111bf9f",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "workbench:4",
+          "table": "workbench",
+          "recordId": 4,
+          "workbenchId": 4,
+          "title": "匿名年度谈话",
+          "status": "active",
+          "locator": "workbench #4",
+          "href": "#/workbench?id=4",
+          "digest": "b1cdf9783c8c9588f0fa21ae3d3a308890ba44f1fd221f0686e2cc63d40ae374",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_type:1",
+          "table": "work_type",
+          "recordId": 1,
+          "workbenchId": 4,
+          "title": "谈心谈话及台账",
+          "status": "已保存记录",
+          "locator": "work_type #1",
+          "href": "#/workbench?id=4",
+          "digest": "4104323d34dfd88bfa389a0f3cc61f31474b7209c22cc2c91d0f1d82ed09bcac",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "workbench:5",
+          "table": "workbench",
+          "recordId": 5,
+          "workbenchId": 5,
+          "title": "匿名清廉临时事项",
+          "status": "active",
+          "locator": "workbench #5",
+          "href": "#/workbench?id=5",
+          "digest": "77d6b9e8c1406ee908371215d9a4e9acaedb0f9a67b08d9b3f55e0f69ddf4091",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_type:14",
+          "table": "work_type",
+          "recordId": 14,
+          "workbenchId": 5,
+          "title": "临时工作",
+          "status": "已保存记录",
+          "locator": "work_type #14",
+          "href": "#/workbench?id=5",
+          "digest": "28c71da3f9bcaa5f04e1a9f69a5f0e70409fcd2ca9d14a5b8ba387a7cddc0258",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "workbench:6",
+          "table": "workbench",
+          "recordId": 6,
+          "workbenchId": 6,
+          "title": "匿名季度验收汇报",
+          "status": "active",
+          "locator": "workbench #6",
+          "href": "#/workbench?id=6",
+          "digest": "740557eb7475571cf0918726f05a08fe059335be233fafbad2535543806327c8",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_type:8",
+          "table": "work_type",
+          "recordId": 8,
+          "workbenchId": 6,
+          "title": "季度本领域监督工作推进情况汇报",
+          "status": "已保存记录",
+          "locator": "work_type #8",
+          "href": "#/workbench?id=6",
+          "digest": "13fa24a9b64a122d11d583a35c072ed1caa5858f465ebb27674df964dc59acf3",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:4",
+          "table": "work_period",
+          "recordId": 4,
+          "workbenchId": 1,
+          "periodId": 4,
+          "title": "澄湖组／2026-Q3",
+          "status": "open",
+          "locator": "work_period #4",
+          "href": "#/workbench?id=1&periodId=4",
+          "digest": "efe62a81efc203e3edb53931aeee09728835fbd7554f9f507096128ad4e20de9",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:8",
+          "table": "work_period",
+          "recordId": 8,
+          "workbenchId": 2,
+          "periodId": 8,
+          "title": "望岑点位／2026-07",
+          "status": "open",
+          "locator": "work_period #8",
+          "href": "#/workbench?id=2&periodId=8",
+          "digest": "177b3941313a0445256105579c4aab2835311e34ebf16c18a1f5dfb6adc5d0c2",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:12",
+          "table": "work_period",
+          "recordId": 12,
+          "workbenchId": 3,
+          "periodId": 12,
+          "title": "匿名栖原月度监督／2026-07",
+          "status": "open",
+          "locator": "work_period #12",
+          "href": "#/workbench?id=3&periodId=12",
+          "digest": "94739951fb18e3b664a7d6731fa7c97a3e443d16070eb021393e9d0355b77d55",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:16",
+          "table": "work_period",
+          "recordId": 16,
+          "workbenchId": 6,
+          "periodId": 16,
+          "title": "匿名季度验收汇报／2026-Q3",
+          "status": "open",
+          "locator": "work_period #16",
+          "href": "#/workbench?id=6&periodId=16",
+          "digest": "af59ca59cb4b3fcff86216dc448ee7b6b8ea9b3c3501e21d81ee5bd14ae9dcbf",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:9",
+          "table": "work_period",
+          "recordId": 9,
+          "workbenchId": 2,
+          "periodId": 9,
+          "title": "望岑点位／2026-08",
+          "status": "open",
+          "locator": "work_period #9",
+          "href": "#/workbench?id=2&periodId=9",
+          "digest": "1f146e25fa5ee90dc9d51aace178c428d98582f8195e5b3e0e3a7f855b1f1128",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:13",
+          "table": "work_period",
+          "recordId": 13,
+          "workbenchId": 3,
+          "periodId": 13,
+          "title": "匿名栖原月度监督／2026-08",
+          "status": "open",
+          "locator": "work_period #13",
+          "href": "#/workbench?id=3&periodId=13",
+          "digest": "fa98dda002e8413d4aa0d9245a9ff6e3c34b8e0b3509ddd444057aba7a10c2d4",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "inspection_record:3",
+          "table": "inspection_record",
+          "recordId": 3,
+          "workbenchId": 3,
+          "periodId": 13,
+          "title": "栖原项目",
+          "status": "已保存记录",
+          "locator": "inspection_record #3",
+          "href": "#/workbench?id=3&periodId=13",
+          "digest": "18d2365b76ee021708e2397b450854a9d71ad143ee050041415bfc342a477419",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:10",
+          "table": "work_period",
+          "recordId": 10,
+          "workbenchId": 2,
+          "periodId": 10,
+          "title": "望岑点位／2026-09",
+          "status": "open",
+          "locator": "work_period #10",
+          "href": "#/workbench?id=2&periodId=10",
+          "digest": "f8de45a188ee782a4b33291e138b5c0aca556b7ff5e9fe4010190fd0659ddec2",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "work_period:14",
+          "table": "work_period",
+          "recordId": 14,
+          "workbenchId": 3,
+          "periodId": 14,
+          "title": "匿名栖原月度监督／2026-09",
+          "status": "open",
+          "locator": "work_period #14",
+          "href": "#/workbench?id=3&periodId=14",
+          "digest": "f3f46a627740d445196d704cd5add47a6a12cc599f0cd61a26c1f78e8a0cac27",
+          "acquiredAt": "2026-10-17T00:52:35.051Z"
+        },
+        {
+          "id": "artifact:5",
+          "table": "artifact",
+          "recordId": 5,
+          "workbenchId": 4,
+          "title": "匿名年度谈话台账.txt",
+          "status": "待核实资料",
+          "locator": "匿名年度谈话台账.txt v1，提取文本第2行",
+          "href": "/api/artifacts/5/file",
+          "digest": "e606792c7f4a0d80384aedcbf407bc5ef58f1b15bd09f41374de66bedee75364",
+          "acquiredAt": "2026-10-17T00:52:35.051Z",
+          "fileRel": "工作台/f24b5a940af8eb50-2026-A-004-匿名年度谈话/_原始资料/匿名年度谈话台账.txt",
+          "version": 1,
+          "fileDigest": "6112c1f6f7c3030ff269352b03cded71109b92937c69b9a05a4eb5973bdceba0"
+        }
+      ],
+      "facts": [
+        {
+          "id": "F1",
+          "text": "澄湖组（清廉工程／季度廉洁学习）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:1"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F2",
+          "text": "望岑点位（清廉工程／月度监督检查与报送）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:2"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F3",
+          "text": "匿名栖原月度监督（清廉工程／月度监督检查与报送）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:3"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F4",
+          "text": "匿名年度谈话（清廉工程／谈心谈话及台账）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:4"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F5",
+          "text": "匿名清廉临时事项（临时工作／临时工作）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:5"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F6",
+          "text": "匿名清廉临时事项 人工业务记录（日期按原文筛选，活动发生与完成情况待核实）：2026-09-08 临时交办：汇集栖原合同材料目录，已收到合同正文和交付清单；验收附件尚未补齐，不能认定合同已验收。",
+          "certainty": "unverified",
+          "sources": [
+            "workbench:5"
+          ],
+          "kind": "record",
+          "bodyText": "2026-09-08 临时交办：汇集栖原合同材料目录，已收到合同正文和交付清单；验收附件尚未补齐，不能认定合同已验收。"
+        },
+        {
+          "id": "F7",
+          "text": "匿名季度验收汇报（清廉工程／季度本领域监督工作推进情况汇报）：当前登记状态为在办；业务结束和档案齐全须分别核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "workbench:6"
+          ],
+          "kind": "work"
+        },
+        {
+          "id": "F8",
+          "text": "季度廉洁学习／澄湖组／2026-Q3：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:4"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F9",
+          "text": "月度监督检查与报送／望岑点位／2026-07：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:8"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F10",
+          "text": "月度监督检查与报送／匿名栖原月度监督／2026-07：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:12"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F11",
+          "text": "季度本领域监督工作推进情况汇报／匿名季度验收汇报／2026-Q3：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:16"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F12",
+          "text": "2026-Q3 匿名季度验收汇报人工填报内容（期次未完成）：2026-09-30 采购监督支持资料待补，尚未确认本期是否适用。",
+          "certainty": "unverified",
+          "sources": [
+            "work_period:16"
+          ],
+          "kind": "record",
+          "bodyText": "2026-09-30 采购监督支持资料待补，尚未确认本期是否适用。"
+        },
+        {
+          "id": "F13",
+          "text": "月度监督检查与报送／望岑点位／2026-08：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:9"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F14",
+          "text": "月度监督检查与报送／匿名栖原月度监督／2026-08：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:13"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F15",
+          "text": "已保存检查记录 #3（修订 1）：2026-08-19，项目 栖原项目；监督事项 安全检查；内容 检查东侧防护栏固定件；记录结果 东侧防护栏固定件松动；整改记录 已通知维护组处理，尚待复查。。不据此推断整改完成或报送。",
+          "certainty": "confirmed",
+          "sources": [
+            "inspection_record:3"
+          ],
+          "kind": "inspection",
+          "bodyText": "2026-08-19，项目 栖原项目；监督事项 安全检查；内容 检查东侧防护栏固定件；记录结果 东侧防护栏固定件松动；整改记录 已通知维护组处理，尚待复查。。"
+        },
+        {
+          "id": "F16",
+          "text": "月度监督检查与报送／望岑点位／2026-09：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:10"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F17",
+          "text": "月度监督检查与报送／匿名栖原月度监督／2026-09：待办理；安排日期 未登记；实际报送日期 未登记。安排日期不能证明活动已开展。",
+          "certainty": "confirmed",
+          "sources": [
+            "work_period:14"
+          ],
+          "kind": "period"
+        },
+        {
+          "id": "F18",
+          "text": "所选期次已保存检查记录 1 条，涉及项目 1 个；疑似重复 0 条，未自动合并。按独立记录ID计数；同日同内容也可能是不同检查，实际次数及项目名称别名仍需人工核对。",
+          "certainty": "confirmed",
+          "sources": [
+            "inspection_record:3"
+          ],
+          "kind": "metric"
+        },
+        {
+          "id": "F19",
+          "text": "文件 #5《匿名年度谈话台账.txt》（待核实资料；以下是原文摘录，非系统确认结论）：\n提取文本第2行：2026-07-16 岗位廉洁谈话：围绕礼品收受边界作交流，提出登记提醒；记录未提供参加人数。",
+          "certainty": "unverified",
+          "sources": [
+            "artifact:5"
+          ],
+          "kind": "document",
+          "bodyText": "2026-07-16 岗位廉洁谈话：围绕礼品收受边界作交流，提出登记提醒；记录未提供参加人数。"
+        }
+      ],
+      "gaps": [
+        "文件正文仅提供可定位节选，未宣称阅读全文；请核对未覆盖段落。"
+      ],
+      "conflicts": [],
+      "files": [],
+      "metrics": {
+        "inspections": 1,
+        "projects": 1,
+        "duplicateRecords": 0,
+        "periods": 8,
+        "completedPeriods": 0
+      },
+      "coverage": {
+        "workbenches": 6,
+        "periods": 8,
+        "candidateFiles": 1,
+        "readFiles": 1,
+        "omittedFacts": 0,
+        "chars": 1241,
+        "budget": 24000
+      },
+      "selectionDigest": "",
+      "task": {
+        "mode": "report",
+        "question": "请起草2026年第三季度清廉工程监督工作推进情况汇报，说明检查、谈话、临时事项的实际记载、未解决问题和下阶段建议。",
+        "factIds": [
+          "F6",
+          "F12",
+          "F15",
+          "F19"
+        ],
+        "requiredFactIds": [
+          "F6",
+          "F12",
+          "F15",
+          "F19"
+        ],
+        "conflictIndexes": [],
+        "metrics": [],
+        "businessGaps": [],
+        "sourceNotes": []
+      }
+    },
+    "value": {
+      "paragraphs": [
+        {
+          "id": "p1",
+          "field": "报告导语",
+          "kind": "fact",
+          "text": "2026年第三季度，清廉工程监督工作已记载事项包括：2026年8月19日对栖原项目开展安全检查并发现东侧防护栏固定件松动，已通知维护组处理、尚待复查；2026年7月16日开展岗位廉洁谈话，围绕礼品收受边界作交流并提出登记提醒；2026年9月8日临时交办汇集栖原合同材料目录，已收到合同正文和交付清单，验收附件尚未补齐。",
+          "citations": [
+            {
+              "factId": "F15",
+              "quote": "2026-08-19，项目 栖原项目；监督事项 安全检查；内容 检查东侧防护栏固定件；记录结果 东侧防护栏固定件松动；整改记录 已通知维护组处理，尚待复查。"
+            },
+            {
+              "factId": "F19",
+              "quote": "2026-07-16 岗位廉洁谈话：围绕礼品收受边界作交流，提出登记提醒"
+            },
+            {
+              "factId": "F6",
+              "quote": "2026-09-08 临时交办：汇集栖原合同材料目录，已收到合同正文和交付清单；验收附件尚未补齐，不能认定合同已验收。"
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "field": "安全管理监督情况",
+          "kind": "fact",
+          "text": "记录显示，2026年8月19日对栖原项目开展安全检查，检查内容为东侧防护栏固定件，记录结果为东侧防护栏固定件松动，整改记录为已通知维护组处理、尚待复查。该事项整改是否完成，尚无复查记载支持。",
+          "citations": [
+            {
+              "factId": "F15",
+              "quote": "记录结果 东侧防护栏固定件松动；整改记录 已通知维护组处理，尚待复查。"
+            }
+          ]
+        },
+        {
+          "id": "p3",
+          "field": "合同管理监督情况",
+          "kind": "fact",
+          "text": "资料记载，2026年9月8日临时交办汇集栖原合同材料目录，已收到合同正文和交付清单；验收附件尚未补齐，不能认定合同已验收。",
+          "citations": [
+            {
+              "factId": "F6",
+              "quote": "验收附件尚未补齐，不能认定合同已验收。"
+            }
+          ]
+        },
+        {
+          "id": "p4",
+          "field": "采购全流程监督情况",
+          "kind": "fact",
+          "text": "【待补：本项支持资料，需补充或确认本期是否适用】资料记载，2026年9月30日采购监督支持资料待补，尚未确认本期是否适用。",
+          "citations": [
+            {
+              "factId": "F12",
+              "quote": "2026-09-30 采购监督支持资料待补，尚未确认本期是否适用。"
+            }
+          ]
+        },
+        {
+          "id": "p5",
+          "field": "发现问题及整改情况",
+          "kind": "fact",
+          "text": "本季度已记载问题为：2026年8月19日栖原项目安全检查发现东侧防护栏固定件松动，已通知维护组处理，尚待复查；2026年9月8日临时交办事项中，栖原合同验收附件尚未补齐，不能认定合同已验收。上述两项均未见整改闭环或复查完成的记载。",
+          "citations": [
+            {
+              "factId": "F15",
+              "quote": "整改记录 已通知维护组处理，尚待复查。"
+            },
+            {
+              "factId": "F6",
+              "quote": "验收附件尚未补齐，不能认定合同已验收。"
+            }
+          ]
+        },
+        {
+          "id": "p6",
+          "field": "安全管理监督计划",
+          "kind": "fact",
+          "text": "【待补：本项支持资料，需补充或确认本期是否适用】",
+          "citations": []
+        },
+        {
+          "id": "p7",
+          "field": "合同管理监督计划",
+          "kind": "fact",
+          "text": "【待补：本项支持资料，需补充或确认本期是否适用】",
+          "citations": []
+        },
+        {
+          "id": "p8",
+          "field": "采购全流程监督计划",
+          "kind": "fact",
+          "text": "【待补：本项支持资料，需补充或确认本期是否适用】",
+          "citations": []
+        }
+      ]
+    }
+  }
+}
