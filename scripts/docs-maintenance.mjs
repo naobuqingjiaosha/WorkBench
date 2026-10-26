@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import ts from 'typescript';
+import { isShareableFile } from './repository-policy.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const mode = process.argv[2];
@@ -42,6 +43,7 @@ const purposes = {
   'docs/management/DOCUMENT_CONTROL.md': '知识权威规则、索引契约和维护方法',
   'docs/management/CHANGELOG.md': '逐任务实际修改、验证、五份文档复核及本地保存和Git交付状态',
   'docs/guides/USER_GUIDE.md': '当前日常版操作、异常处理及反馈',
+  'docs/guides/DATA_BOUNDARIES.md': '源码、测试、本机配置与业务资料的上传边界',
   'docs/guides/DEVELOPMENT.md': '开发环境、隔离验证、构建和交付',
   'docs/guides/DEVICE_HANDOFF.md': '每次任务收尾、换机移交范围、新机验证与现有打包限制',
   'docs/guides/MONTHLY_DEVELOPMENT.md': 'GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界',
@@ -60,7 +62,7 @@ function classify(p) {
   if (/^docs\/41-/.test(p)) return { role: 'reference', status: 'accepted-change-spec', purpose: 'AI材料生成与取消报送的具体需求变更；状态另见43与当前进度' };
   return { role: 'historical', status: 'historical-evidence', purpose: '原日期的需求、设计、研究或验证记录；当前要求/状态见根文档，原文当前不代表今天' };
 }
-function docPaths() { return sorted([...roots, ...walk('docs').filter(p => p.endsWith('.md'))]); }
+function docPaths() { return sorted([...roots, ...walk('docs').filter(p => p.endsWith('.md') && isShareableFile(p))]); }
 function title(p) { return read(p).match(/^#\s+(.+)$/m)?.[1]?.trim() || path.basename(p); }
 function localLinks(p) {
   const body = read(p).replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\s*$/gm, '');
@@ -74,9 +76,9 @@ function localLinks(p) {
     const resolved = path.resolve(path.dirname(abs(p)), target);
     const relative = posix(path.relative(root, resolved));
     const outside = relative === '..' || relative.startsWith('../') || path.isAbsolute(relative);
-    const availability = outside || /^(?:data|outputs|work|\.tmp)\//.test(relative) ? 'local-evidence' : 'repository';
+    const availability = outside || !isShareableFile(relative) ? 'local-evidence' : 'repository';
     const willGenerate = mode === 'generate' && ['docs/README.md', 'docs/knowledge-index.json', 'docs/reference/source-inventory.json'].includes(relative);
-    links.push({ target: m[1], path: relative, availability, exists: fs.existsSync(resolved) || willGenerate });
+    links.push({ target: m[1], path: relative, availability, exists: availability === 'local-evidence' ? null : fs.existsSync(resolved) || willGenerate });
   }
   return links;
 }
@@ -90,8 +92,9 @@ function catalog(paths) {
   ];
   let out = '# 项目知识与文档总览\n\n文档ID：KB-INDEX。索引体系初始基线：2026-10-21，不表示本轮生成或运行验证日期。由 scripts/docs-maintenance.mjs 自动生成，请修改对应主文档后重新生成。\n\n';
   out += '第一次接手：先读[AI入口](../GPT_CONTEXT.md)、[当前进度](../DEVELOPMENT_PROGRESS.md)和[业务术语](../CONTEXT.md)，再按任务查需求、架构、计划或手册。原始报告中的“当前”仅代表其原日期。\n\n';
-  out += '机器入口：[文档索引](knowledge-index.json)、[静态源码/API/迁移索引](reference/source-inventory.json)、[有日期的运行核查快照](reference/current-baseline.json)。索引不是执行授权，源码存在不等于已经发布。\n\n';
+  out += '机器入口：[文档索引](knowledge-index.json)、[静态源码/API/迁移索引](reference/source-inventory.json)。索引不是执行授权，源码存在不等于已经发布。\n\n';
   for (const [name, items] of groups) {
+    if (!items.length) continue;
     out += `## ${name}\n\n| 文档 | 用途与边界 |\n|---|---|\n`;
     for (const p of items) {
       const name = p === 'docs/README.md' ? '项目知识与文档总览' : title(p);
@@ -101,7 +104,7 @@ function catalog(paths) {
     out += '\n';
   }
   out += '## 维护与移交\n\n运行 `node scripts/docs-maintenance.mjs generate` 刷新目录和索引，再运行 `node scripts/docs-maintenance.mjs check`。脚本不启动应用、不读取业务行、不修改日常数据。详细约定见[文档治理](management/DOCUMENT_CONTROL.md)。\n\n';
-  out += 'data、outputs和旧临时目录通常不随Git分发；本机证据缺失必须如实说明，不能当作代码或验收已通过。完整移交还需对应源码、测试及必要的脱敏证据。\n';
+  out += 'data、outputs和旧临时目录通常不随Git分发；本机证据缺失必须如实说明，不能当作代码或验收已通过。测试用例、历史报告与运行快照仅保留本机，不进入共享索引；关联链接在新设备可能不可用。\n';
   return out;
 }
 function sourceInventory() {
@@ -110,7 +113,7 @@ function sourceInventory() {
     ...walk('scripts').filter(p => /\.(?:mjs|js|ts|ps1)$/.test(p)),
     'package.json', 'package-lock.json', 'tsconfig.json', 'packages/server/package.json',
     'packages/web/package.json', 'packages/web/tsconfig.json', 'packages/web/vite.config.ts',
-  ])]);
+  ])].filter(isShareableFile));
   const routes = [], registrations = [], unresolvedRouteDeclarations = [], migrations = [];
   for (const p of files.filter(p => p.startsWith('packages/server/src/') && p.endsWith('.ts'))) {
     const source = ts.createSourceFile(p, read(p), ts.ScriptTarget.Latest, true);
@@ -162,8 +165,8 @@ const documents = paths.map(p => {
 const index = { schemaVersion: 1, baselineDate: '2026-10-21', pathBase: 'repository-root', encoding: 'UTF-8',
   authority: { requirements: 'Current user requirements and accepted scoped changes; see PRODUCT_REQUIREMENTS', implementation: 'Relevant working-tree or selected release source, explicitly identified', runtime: 'Release pointer, manifest, loadedBuild, actual migration set', validation: 'Version-bound evidence and actual test scope, not existence of code' },
   readingOrder, documents,
-  relatedArtifacts: ['docs/reference/source-inventory.json', 'docs/reference/current-baseline.json'],
-  excludedContent: ['business database rows', 'credentials', 'business files', 'node_modules', 'private external originals'] };
+  relatedArtifacts: ['docs/reference/source-inventory.json'],
+  excludedContent: ['business database rows', 'credentials', 'business files', 'node_modules', 'private external originals', 'local tests and fixtures', 'historical reports and runtime snapshots'] };
 if (mode === 'generate') {
   fs.writeFileSync(abs('docs/knowledge-index.json'), json(index));
   console.log(JSON.stringify({ mode, documents: documents.length, sourceFiles: source.files.length, routes: source.routes.length, migrations: source.migrations.length }));
@@ -178,7 +181,7 @@ if (mode === 'generate') {
     if (d.role === 'current' && d.path !== 'CONTEXT.md' && !read(d.path).includes('文档ID：')) errors.push(`缺少文档元数据：${d.path}`);
     const fences = read(d.path).split(/\r?\n/).filter(l => /^\s*(```|~~~)/.test(l)).length;
     if (fences % 2) errors.push(`代码围栏不配对：${d.path}`);
-    for (const l of d.localLinks.filter(l => !l.exists)) (l.availability === 'repository' ? errors : warnings).push(`${d.path} → ${l.path}`);
+    for (const l of d.localLinks.filter(l => l.exists === false)) (l.availability === 'repository' ? errors : warnings).push(`${d.path} → ${l.path}`);
   }
   for (const p of readingOrder) if (!paths.includes(p)) errors.push(`阅读入口缺失：${p}`);
   console.log(JSON.stringify({ mode, ok: errors.length === 0, documents: documents.length, localLinks: documents.reduce((n,d) => n+d.localLinks.length,0), sourceFiles: source.files.length, routeDeclarations: source.routes.length, migrations: source.migrations.length, errors, missingLocalEvidence: warnings, limitations: 'Validates file targets and static freshness; not heading anchors, external URLs, runtime routes or application behavior' }, null, 2));

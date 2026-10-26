@@ -34,7 +34,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameS
 import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { DatabaseSync, backup } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
-import { DB_FILE, DATA_ROOT, INSTALL_ROOT, getSetting } from './config.ts';
+import { DB_FILE, DATA_ROOT, backupDirectoryConfig, readRuntimeConfig, getSetting } from './config.ts';
 import { closeDatabase, getDb, initDatabase } from '../db/index.ts';
 import { notDeleted } from './trash.ts';
 import { ensureDir, dateOnly, isoNow, stamp, toPosix } from './paths.ts';
@@ -102,21 +102,8 @@ export interface BackupConfig {
   origin: { auto: string; hour: string; dir: string; keepDaily: string; keepWeekly: string; weeklyDay: string };
 }
 
-/**
- * 读项目根的 workbench.config.json。
- * **每次都重新读**：用户改完配置不用重启（定时器下一轮就读到新值）。
- * config.ts 只挑它认识的键，这里自己读一份，免得为了加备份配置去动那个文件。
- */
-function readFileConfig(): Record<string, unknown> {
-  const file = join(INSTALL_ROOT, 'workbench.config.json');
-  if (!existsSync(file)) return {};
-  try {
-    return JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
-  } catch (e) {
-    console.warn(`[备份] workbench.config.json 读不动，按默认值处理：${(e as Error).message}`);
-    return {};
-  }
-}
+/** Re-read only this environment's configuration; malformed config fails closed. */
+function readFileConfig() { return readRuntimeConfig(); }
 
 function num(v: unknown, def: number, min: number, max: number): number | undefined {
   if (v === undefined || v === null || v === '') return undefined;
@@ -173,18 +160,18 @@ export function loadBackupConfig(): BackupConfig {
 
   const auto = pick('auto', 'WORKBENCH_BACKUP_AUTO');
   const hour = pick('hour', 'WORKBENCH_BACKUP_HOUR');
-  const dir = pick('dir', 'WORKBENCH_BACKUP_DIR');
+  const dir = backupDirectoryConfig({ backup: file });
   const keepDaily = pick('keepDaily', 'WORKBENCH_BACKUP_KEEP_DAILY');
   const keepWeekly = pick('keepWeekly', 'WORKBENCH_BACKUP_KEEP_WEEKLY');
   const weeklyDay = pick('weeklyDay', 'WORKBENCH_BACKUP_WEEKLY_DAY');
 
-  const dirRaw = String(dir.value ?? DEFAULT_CFG.dir);
+
   return {
     auto: bool(auto.value) ?? DEFAULT_CFG.auto,
     hour: num(hour.value, DEFAULT_CFG.hour, 0, 23) ?? DEFAULT_CFG.hour,
-    // 相对路径按安装根解析（与 config.ts 里 dataRoot 同一口径），绝对路径原样用
-    dir: resolve(INSTALL_ROOT, dirRaw),
-    dirRaw: toPosix(dirRaw),
+    // 相对路径按当前环境配置基准目录解析（与 config.ts 里 dataRoot 同一口径），绝对路径原样用
+    dir: dir.dir,
+    dirRaw: dir.dirRaw,
     keepDaily: num(keepDaily.value, DEFAULT_CFG.keepDaily, 1, 365) ?? DEFAULT_CFG.keepDaily,
     keepWeekly: num(keepWeekly.value, DEFAULT_CFG.keepWeekly, 0, 365) ?? DEFAULT_CFG.keepWeekly,
     weeklyDay: num(weeklyDay.value, DEFAULT_CFG.weeklyDay, 0, 6) ?? DEFAULT_CFG.weeklyDay,

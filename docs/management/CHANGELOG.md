@@ -4,6 +4,69 @@
 
 记录格式以[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)为准，最新任务在前。同一任务的收尾修正更新同一条记录；未完成事项关联原GOV，不在本文件另建待办。此前实施和发布证据继续引用原报告，不补造历史逐次操作记录。
 
+## 2026-10-26｜GOV-11｜运行架构分离源码、配置、数据与测试
+
+**原因与范围：** 用户明确不能仅做本地/Git隔离，需要代码设计本身体现边界。本轮基于前轮未提交修改继续开发；原154项取消跟踪删除保持在索引中，不重新暂存其他文件，不改远端历史。
+
+**实际变更：**
+- 新增core/runtime-layout.ts：统一daily/development/test、环境配置与路径；新安装默认把配置/files/runtime/backups放在源码之外。只解析不初始化数据库；错误配置、非绝对环境路径、链接越界及资源目录重叠拒绝启动。旧安装仅通过daily兼容识别保留原布局。
+- core/config、backup、ocr、domain/service及升级CLI使用统一布局；备份执行与文件删除保护共用backupDirectoryConfig。start按当前环境定位发布指针，打开已有服务前核对DB；pack默认不读取本机配置，显式私有备份才解析实际环境。
+- 新增dev-server及调整根/服务包命令：开发、初始化、预置、重置使用独立开发环境；月度预览也放在源码外。开发与测试入口去除继承的日常路径和常见凭证。测试不再读取根配置或复制日常OCR/前端，OCR测试夹具只读本机测试目录。
+- Vite默认18889并核对health的development与预期DB，错误环境的API及文件请求返回503；health/system提供当前环境/配置位置，设置页显示本机配置位置。应用tsconfig只包含源码，本机tsconfig.test.json及新增runtime-layout测试均不上传。
+- 修正应用运行依赖：旧版Excel导入的通用PowerShell转换工具由scripts移入core源码并改为模块相对定位，源码包明确包含；原本机脚本仍保留，避免源码交付漏掉运行工具。转换脚本内容摘要与原件一致，PowerShell语法解析通过；最终247文件源码包已核对包含此运行资产。未执行真实Office转换验收。
+- 更新共享脚本范围与通用配置样例（files/backups），保留原仓库防护与所有本机原件。README、DATA_BOUNDARIES、开发/运维/换机说明及AGENTS同步当前行为。
+
+**五份文档逐一复核：** GPT_CONTEXT更新本轮接续与兼容边界；CONTEXT核对无业务术语变化；PRODUCT_REQUIREMENTS补充用户确认的运行分离约束；SYSTEM_ARCHITECTURE记录纯路径解析层与调用关系；DEVELOPMENT_PROGRESS记录已实现、验证及未发布状态。队列仍为GOV-11。
+
+**验证：** 14组新增运行环境测试通过，包含在两个临时独立环境中实际启动后端、校验配置/DB路径，以及启动真实Vite验证错误后端请求被阻止、正确后端允许转发；11组原有隔离契约、13组仓库边界、67项单元和8组可靠性回归通过。应用及本机测试类型检查通过。前端构建与源码包检查通过；导出包不含本机配置、测试及夹具，解包后借用已安装依赖完成前后端类型检查和前端构建（未执行全新联网npm ci）。22份文档/203个引用/215份源码的索引检查及差异格式检查通过；154项前轮保留原件SHA256仍一致。未执行完整业务/Office/真实模型验收；未触碰日常数据进行测试。
+
+**交付与未完成：** 本地保存；本轮未新增暂存、commit、push或发布，原154项索引删除继续保留。现有安装解析仍为legacy，运行数据/配置未搬迁，旧发布包未替换。实际迁移、日常发布、远端敏感历史清理及另一台电脑验证尚未执行。建议提交说明：refactor(runtime): 分离源码与日常开发测试环境。
+
+## 2026-10-26｜GOV-11｜源码与本机测试、资料及配置隔离
+
+**目标及用户决定：** 用户要求以后只上传代码，真实数据和配置隔离；经询问明确测试用例及完全虚构夹具也只保留本机、不上传。通用运行器与构建规则属于开发工具，保留共享；本轮不改写远端历史、不发布。
+
+**实施与文件清单：**
+
+- .gitignore改为根目录默认拒绝加明确允许范围，补本机配置、测试、历史证据及私有文件类型；新增scripts/repository-policy.mjs共享策略、check-repository.mjs实际blob检查、install-git-hooks.mjs安装器，以及.githooks/pre-commit、pre-push和.gitattributes。package.json增加repo检查/钩子、prepare和本机test:repository命令，未新增依赖，锁文件不变。
+- 钩子已通过本地core.hooksPath启用。pre-commit核对实际暂存blob，pre-push检查全部待发送提交；强行暂存私有路径、源码凭证、链接与历史中间泄露会失败。只报告路径和类型，不回显敏感值。规则检查不等于完整语义定密，安装于客户端，不是GitHub端强制规则。
+- 新增workbench.config.example.json，仅含通用相对路径与默认值；原workbench.config.json仅取消跟踪，字节未变。packages/server/src/domain/archive.ts及core/kb-extract.ts的真实单位示例/注释替换为虚构名称，无业务逻辑更改。
+- scripts/pack.mjs默认程序包复用路径/内容检查，不再展开真实cfg，排除测试、历史资料和运行配置，只带通用样例；显式with-runtime-state仍为含资料的私有备份。scripts/docs-maintenance.mjs只索引共享文档及源码，本机证据链接标local-evidence且不查询存在性；不再收集测试、历史报告或运行快照的内容和摘要。
+- 新增docs/guides/DATA_BOUNDARIES.md；README、AGENTS、DEVELOPMENT/DEVICE_HANDOFF指南与DOCUMENT_CONTROL说明边界及新克隆无用例。五份根文档逐一复核：GPT_CONTEXT/DEVELOPMENT_PROGRESS更新交付；CONTEXT术语不变；PRODUCT_REQUIREMENTS新增用户工程交付约束；SYSTEM_ARCHITECTURE记录策略/钩子/打包/索引结构。PROJECT_PLAN仅接续GOV-11，本记录与自动索引同步。
+
+**取消跟踪及本机保留：** 对154项明确私有/本机文件执行git rm --cached，未删除本地文件。包括packages/server/test下35文件、scripts下33个历史或场景验证脚本、docs下73个历史报告/证据/样例、work下10文件、2个样例生成CLI和根运行配置1文件。操作前后154项SHA-256全部一致；逐文件清单与摘要保存在忽略目录work/repository-isolation-20261026/untracked-local-files.json。新本机测试repository-boundary.mjs也不上传。原有审计任务的9份未提交文档保留，未重置工作区。
+
+**验证：** npm run test:repository的13组本机边界测试通过：正常源码、误暂存、实际索引值、个人路径脱敏日志、未知文件类型、新增提交、泄露中间提交、已存在远端历史后的删除提交、新空远端旧历史、删除引用、Git忽略一致性及凭证规则。npm run typecheck通过；源码程序包244文件均为允许路径，未含测试用例/运行配置，解包后前后端类型检查和Vite构建通过。源码包不携带node_modules，解包验证借用本机已安装依赖，未执行全新联网npm ci。未运行完整业务回归、真实模型或Office验证，未接触正式数据库。文档generate/check通过：22份共享文档、198个本地引用、212份共享源码，0错误；私有引用存在性不再检查。工作区/暂存边界检查和差异格式检查通过；最终154项本机原件摘要仍一致，索引无私有路径，154项均命中忽略规则。
+
+**交付与后续：** 文件本地保存；154项取消跟踪的删除已在索引暂存，这是实现既有文件不再上传所需的限定操作，未暂存其他修改，未commit/push/历史改写。提交时需要将策略、样例和文档一并审查；当前远端3603923及旧提交中的资料仍存在，后续单独授权历史清理。建议提交说明：chore(repo): 隔离源码与本机测试数据配置。默认程序包验证产物位于.tmp，不上传。
+
+## 2026-10-26｜GOV-11｜已推送版本敏感资料核查
+
+**目标与范围：** 用户要求检查这版代码是否把保密文件传上GitHub。本次先fetch，确认本地main与origin/main均为360392383e69351709b8dd206713c4508026502e，开始工作区干净。检查当前390个文件、4个可达提交及404个唯一文件版本（包含14个历史额外版本）。GitHub连接器核实当前仓库private；不据此推断从未公开、无人下载或没有其他协作者。
+
+**已上传且应单独处理的内容（仅记录路径和类别，不复制原文）：**
+
+| 文件/目录 | 核实内容 | 建议 |
+|---|---|---|
+| work/cleanup-20261021/db-audit.json（1055行起） | 2条workbench业务记录，包括名称、状态、日期、目录及规则快照；不是仅表结构 | 从源码交付范围排除，保留本机原件并检查历史 |
+| work/cleanup-20261021/files-before.json | 155项含中文名称的业务文件相对路径、大小和SHA-256；没有文件正文 | 排除本机文件清单及清理证据 |
+| docs/制度识别预览.md（92行起有公司名称条目） | 制度/会议等扫描目录与文件名，407行含公司全称；不等于上传完整制度正文 | 移出源码或脱敏成匿名示例，保留本机原件 |
+| docs/命名整理报告-工作test.md | 本机资料目录、文件名称及命名整理清单 | 与开发说明分离或脱敏 |
+| workbench.config.json、scripts/archive/_zhidu-config.json | 本机资料/备份/扫描路径；未发现密钥字段 | 保留通用配置样例，具体本机配置另管 |
+| docs/collab/_acl-reports/ | 路径、ACL/账户SID等机器权限元数据及辅助脚本 | 本机审计产物不随源码交付 |
+
+上述重点文件均可追溯到fd0190e初始提交，之后的3603923合并与推送包含了该历史。历史文档及部分辅助脚本还出现其他本机路径和业务上下文，需要按用途审查；不把所有路径命中都等同凭证泄露。本次没有判断资料的法定密级。
+
+**未发现与误报核验：** 当前树未跟踪data/、outputs/、.tmp/、node_modules/，也未发现原始.db/.sqlite、Word/Excel/PDF、私钥文件。对文本与历史版本扫描常见提供商token、私钥头、凭证赋值、带凭证URL、手机号/身份证和本机路径；未发现可确认的明文API密钥或私钥。2处凭证候选位于local-model测试中，为假token及user:secret拒绝测试；3处手机号形状均为SHA-256片段；3处邮箱位于第三方glob弃用提示。3张原型PNG人工查看为示例界面；含NUL的git-before.txt另按UTF-8检查为Git状态清单，未发现密钥模式。db-before.json只有表计数及摘要，不误报为完整数据库行导出。
+
+**方法与限制：** 以实际远端提交对象为依据，不仅检查.gitignore。检测使用本地规则及人工复核，不请求验证任何候选凭证，不向外发送源文件；外部调用仅为原Git远端fetch、GitHub仓库元数据及GitHub官方历史清理文档。规则扫描并非穷尽所有任意密码/业务敏感信息；未检查其他设备未上传文件、服务器日志、协作者访问或分叉缓存。未运行应用、模型或Office测试。
+
+**本次文件和五份文档复核：** GPT_CONTEXT、DEVELOPMENT_PROGRESS记录范围、风险与后续；CONTEXT术语无变化，PRODUCT_REQUIREMENTS需求无新增，SYSTEM_ARCHITECTURE架构无变化，分别更新复核信息；PROJECT_PLAN仅更新原GOV-11；本CHANGELOG保存脱敏发现。docs/README.md及两份索引按生成器刷新；临时扫描元数据保存在被忽略的.tmp/privacy-audit，不含命中原文。
+
+**文档验证：** generate/check及git diff --check通过：83份文档、510个本地链接、0项错误；16项既有历史证据缺失保留。应用源码、原审计资料、依赖、配置及.gitignore无本轮差异。
+
+**后续与交付：** 目前是核查完成、清理未实施。未改.gitignore、原资料、Git历史、仓库可见性或访问权限；未暂存/提交/推送/发布，业务数据未变。已跟踪文件仅加入.gitignore不会移出版本；只删除最新文件也不能清除旧提交，应先保留本机原件、确定脱敏及历史清理清单，再按用户授权实施。参考GitHub官方removing-sensitive-data-from-a-repository流程。建议本次记录提交说明：docs(audit): 记录已上传资料范围与清理事项。
+
 ## 2026-10-26｜GOV-11｜README改为标准软件开发说明
 
 **目标与依据：** 用户要求本地README按正常软件开发文档编写。原README以AI接续导航、目录清理及旧设备发布快照为主，首次安装与开发命令不完整；本轮改为面向使用者和开发者的项目首页。

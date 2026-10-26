@@ -12,10 +12,10 @@
 import * as zlib from 'node:zlib';
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RUNTIME_ROOT, getSetting } from './config.ts';
+import { RUNTIME_LAYOUT, RUNTIME_ROOT, getSetting } from './config.ts';
 import { extname } from 'node:path';
 
-export const TESSDATA_DIR = process.env.WORKBENCH_TESSDATA_DIR || join(RUNTIME_ROOT, 'tessdata');
+export const TESSDATA_DIR = RUNTIME_LAYOUT.tessdataRoot;
 
 /**
  * 语言包下载源（按顺序尝试）。

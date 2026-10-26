@@ -2,6 +2,8 @@
 
 文档ID：GUIDE-DEVELOPMENT。版本：1.1。更新：2026-10-24。适用：本仓库开发工作区；不会自动授权日常发布。
 
+2026-10-26边界更新：仅共享源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例及历史验证产物均保留本机、不上传。旧文中要求随Git携带测试或运行快照的表述由本条替代，具体见[源码与资料边界](DATA_BOUNDARIES.md)。
+
 ## 1. 开工检查
 
 读AGENTS、GPT_CONTEXT、当前需求及对应GOV任务；检查Git状态和已有变更。当前大量文件有其他任务修改，禁止重置或把全部差异当作自己的成果。
@@ -49,11 +51,9 @@ Vite会清理指定输出目录，因此必须选择本次专属目录。不要�
 
 ## 5. 隔离页面开发
 
-`npm run dev` 和 `npm run server` 默认可指向日常数据。Vite开发代理固定指向8787，单改PORT不能把前端自动切到测试后端。不要直接用默认开发页面录入测试业务。
+`npm run dev` 与 `npm run server` 自动使用独立开发根，后端端口默认18889；Vite的5273代理使用同一个WORKBENCH_DEV_PORT，并核对后端development身份及数据库路径。开发根在源码之外，使用WORKBENCH_DEV_HOME可调整；不会读取项目旧配置或日常数据库。运行`node scripts/dev-server.mjs --show-paths`可只读确认位置。
 
-需要浏览器验证时，参考test-isolated和isolation-env实现独立启动器：在工作区 `.tmp/<专属名称>` 建立本次目录，使用isolationEnv生成完整环境，在启动子进程前加载test-preflight；选择确认空闲端口，并把暂存前端复制到该隔离根的web目录。通过该测试后端直接提供构建后的前端，可避免开发代理误连日常。
-
-必须核对健康接口的dbFile、dataRoot、端口和loadedBuild均为本次环境，再写入样例。旧18879/18881与旧.tmp目录可能已清理，不当作可用测试服务。需要热更新时另明确修改仅用于本次环境的代理目标，不把临时配置混入日常发布。
+需要构建后预览时使用`npm run dev:monthly -- --build`，复用独立开发根下monthly环境。一次性测试仍使用test-isolated的临时根，不能把持久开发环境当作可自动删除的测试目录。测试用例及夹具只留本机；应用类型检查与本机typecheck:tests分开。详见[运行与资料边界](DATA_BOUNDARIES.md)。
 
 ## 6. 数据和迁移
 

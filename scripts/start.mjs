@@ -5,6 +5,8 @@
  *   node scripts/start.mjs --port 8800
  *   node scripts/start.mjs --auto    端口被占用时自动往后找一个
  */
+import { loadRuntimeLayout } from '../packages/server/src/core/runtime-layout.ts';
+import { assertTestIsolation } from '../packages/server/src/core/test-isolation.ts';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { readFileSync, existsSync, mkdirSync, appendFileSync, openSync, closeSync } from 'node:fs';
@@ -19,40 +21,36 @@ function argValue(name) {
   return i >= 0 ? args[i + 1] : undefined;
 }
 
-const cfgFile = join(ROOT, 'workbench.config.json');
-let cfg = {};
-if (existsSync(cfgFile)) {
-  try {
-    cfg = JSON.parse(readFileSync(cfgFile, 'utf8'));
-  } catch {
-    console.warn('workbench.config.json 解析失败，使用默认配置');
-  }
-}
+assertTestIsolation();
+const layout = loadRuntimeLayout(ROOT);
+const cfg = layout.config;
+if (layout.legacy) console.log('沿用已有安装的数据与配置；迁移到独立数据目录需另行执行。');
 
 // A reviewed release can run against the daily data without publishing unrelated
 // edits still present in the development checkout. All launch shortcuts use this.
 let serverEntry = join(ROOT, 'packages', 'server', 'src', 'index.ts');
 let releaseEnv = {};
-const releasePointer = join(ROOT, 'data', 'runtime', 'current-release.json');
-if (!process.env.WORKBENCH_ISOLATION_ROOT && process.env.WORKBENCH_TEST_MODE !== '1' && existsSync(releasePointer)) {
+const releasePointer = join(layout.runtimeRoot, 'current-release.json');
+if (layout.profile === 'daily' && existsSync(releasePointer)) {
   const release = JSON.parse(readFileSync(releasePointer, 'utf8'));
-  const releaseRoot = resolve(ROOT, release.path);
-  const within = relative(join(ROOT, 'data', 'releases'), releaseRoot);
-  if (!within || within.startsWith('..') || isAbsolute(within)) throw Error('发布目录超出 data/releases');
+  const releaseRoot = resolve(layout.legacy ? ROOT : layout.home, release.path);
+  const within = relative(layout.releaseRoot, releaseRoot);
+  if (!within || within.startsWith('..') || isAbsolute(within)) throw Error('发布目录超出当前环境 releases');
   serverEntry = join(releaseRoot, 'packages', 'server', 'src', 'index.ts');
   if (!existsSync(serverEntry) || !existsSync(join(releaseRoot, 'RELEASE.json'))) throw Error('发布包不完整，拒绝回退到未发布源码');
   releaseEnv = {
-    WORKBENCH_DB: process.env.WORKBENCH_DB || join(ROOT, 'data/runtime/workbench.db'),
-    WORKBENCH_RUNTIME_DIR: process.env.WORKBENCH_RUNTIME_DIR || join(ROOT, 'data/runtime'),
-    WORKBENCH_DATA_DIR: process.env.WORKBENCH_DATA_DIR || resolve(ROOT, cfg.dataRoot || 'data/files'),
-    WORKBENCH_WEB_DIST: process.env.WORKBENCH_WEB_DIST || join(ROOT, 'packages/web/dist'),
-    WORKBENCH_BACKUP_DIR: process.env.WORKBENCH_BACKUP_DIR || resolve(ROOT, cfg.backup?.dir || 'data/backups'),
-    WORKBENCH_TESSDATA_DIR: process.env.WORKBENCH_TESSDATA_DIR || join(ROOT, 'data/runtime/tessdata'),
+    WORKBENCH_DB: layout.dbFile,
+    WORKBENCH_RUNTIME_DIR: layout.runtimeRoot,
+    WORKBENCH_DATA_DIR: layout.dataRoot,
+    WORKBENCH_WEB_DIST: layout.webDist,
+    WORKBENCH_BACKUP_DIR: layout.backupRoot,
+    WORKBENCH_TESSDATA_DIR: layout.tessdataRoot,
+    ...(layout.legacy ? {} : { WORKBENCH_HOME: layout.home }),
   };
 }
 
-const host = argValue('--host') ?? cfg.host ?? '127.0.0.1';
-const startPort = Number(argValue('--port') ?? process.env.PORT ?? cfg.port ?? 8787);
+const host = argValue('--host') ?? layout.host;
+const startPort = Number(argValue('--port') ?? layout.port);
 const auto = args.includes('--auto');
 const openBrowser = args.includes('--open');
 
@@ -93,13 +91,13 @@ if (openBrowser) {
   try {
     const response = await fetch(`${browserUrl(startPort)}/api/health`, { signal: AbortSignal.timeout(3000) });
     const health = await response.json();
-    if (response.ok && health.ok === true && health.data?.status === 'ok') {
+    if (response.ok && health.ok === true && health.data?.status === 'ok' && health.data?.dbFile && resolve(health.data.dbFile).toLowerCase() === layout.dbFile.toLowerCase()) {
       console.log(`工作台已在运行，正在打开 ${browserUrl(startPort)}`);
       await openPage(startPort);
       process.exit(0);
     }
   } catch { /* 服务未运行，继续正常启动。 */ }
-  if (!existsSync(join(process.env.WORKBENCH_WEB_DIST || releaseEnv.WORKBENCH_WEB_DIST || join(ROOT, 'packages', 'web', 'dist'),'index.html'))) {
+  if (!existsSync(join(layout.webDist,'index.html'))) {
     console.error('前端界面未构建，请在工作台目录运行 npm run build。');
     process.exit(1);
   }
@@ -140,7 +138,7 @@ if (!(await isFree(port))) {
   console.log(`端口 ${startPort} 被占用，改用 ${port}`);
 }
 
-const runtimeRoot=process.env.WORKBENCH_RUNTIME_DIR||releaseEnv.WORKBENCH_RUNTIME_DIR||join(ROOT,'data/runtime');
+const runtimeRoot=layout.runtimeRoot;
 const logDir=join(runtimeRoot,'logs');mkdirSync(logDir,{recursive:true});
 const logPath=join(logDir,`service-${new Date().toISOString().replace(/[:.]/g,'-')}-${process.pid}.log`);
 let logFailed=false;
@@ -164,7 +162,7 @@ if(args.includes('--background')){
     try{
       const response=await fetch(`${browserUrl(port)}/api/health`,{signal:AbortSignal.timeout(2000)});
       const health=await response.json();
-      if(response.ok&&health.ok===true&&health.data?.status==='ok'){
+      if(response.ok&&health.ok===true&&health.data?.status==='ok'&&health.data?.dbFile&&resolve(health.data.dbFile).toLowerCase()===layout.dbFile.toLowerCase()){
         console.log(`工作台已在后台运行：${browserUrl(port)}（启动进程 ${worker.pid}）`);
         if(openBrowser)await openPage(port);
         process.exit(0);
@@ -198,7 +196,7 @@ if (openBrowser) {
       try {
         const response = await fetch(`${browserUrl(port)}/api/health`, { signal: AbortSignal.timeout(2000) });
         const health = await response.json();
-        if (response.ok && health.ok === true && health.data?.status === 'ok') {
+        if (response.ok && health.ok === true && health.data?.status === 'ok' && health.data?.dbFile && resolve(health.data.dbFile).toLowerCase() === layout.dbFile.toLowerCase()) {
           await openPage(port);
           return;
         }

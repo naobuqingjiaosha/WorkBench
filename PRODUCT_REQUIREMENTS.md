@@ -1,8 +1,8 @@
 # 产品需求与追溯矩阵
 
-文档ID：KB-REQUIREMENTS。版本：1.2。更新：2026-10-26。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
+文档ID：KB-REQUIREMENTS。版本：1.4。更新：2026-10-26。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
 
-本轮复核（2026-10-26）：README按已有功能说明安装与开发，业务需求、验收条件无新增。见[变更记录](docs/management/CHANGELOG.md)。
+本轮复核（2026-10-26）：用户明确隔离必须落实到代码设计：源码与可写运行资源分离，开发及测试不能默认继承日常配置；数据、本机配置、测试用例及夹具不上传，业务功能要求不变。见[变更记录](docs/management/CHANGELOG.md)。
 
 ## 1. 目标与范围
 
@@ -99,3 +99,11 @@ PR-15补充确认：工时须为整数，不应使用小数。用户同时要求
 类型重叠、收起/归档、阶段粒度、真实截止与季度参考范围等仍按[风险与决策](docs/management/RISKS_AND_DECISIONS.md)登记。变更过程遵循[文档治理](docs/management/DOCUMENT_CONTROL.md)和[质量验收](docs/management/QUALITY_AND_ACCEPTANCE.md)。
 
 原始需求及阶段版本见[原始需求](docs/需求说明.md)、[整理前需求全文](docs/archive/2026-10-21-before-knowledge/PRODUCT_REQUIREMENTS.md)。本次整理没有扩大功能承诺。
+
+## 源码交付与本机资料隔离
+
+用户2026-10-26确认：Git只交付应用源码、依赖与构建规则、通用工具、开发文档及无真实值的配置样例；测试用例和虚构夹具也仅保留本机。运行数据、真实资料、个人配置、历史扫描和验收产物不得随源码上传。取消跟踪必须保留本地文件，不自动改写已上传历史。提交前检查实际暂存文件，推送前检查新增提交历史；详细规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)。
+
+### 运行环境分离约束（2026-10-26）
+
+新安装默认数据及私有配置独立于源码；统一解析daily/development/test，配置错误不能静默回退。开发界面核对后端身份，测试不读取日常配置或自动复制日常资源。应用构建不依赖本机测试用例；测试代码及夹具不上传。现有数据布局兼容保留，实际迁移和发布须单独处理。实现见runtime-layout、dev-server及Vite代理；本机验证见runtime-layout.mjs，未等同完整业务验收。

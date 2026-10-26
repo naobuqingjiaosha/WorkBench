@@ -4,7 +4,7 @@ import { existsSync, statSync } from 'node:fs';
 import { isAbsolute, resolve as resolvePath } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { all, get, run } from '../db/index.ts';
-import { DATA_ROOT, DIRS, DEFAULT_SETTINGS, WEB_DIST, listSettings, markWorkTypeDeleted, setSetting, unmarkWorkTypeDeleted } from '../core/config.ts';
+import { DATA_ROOT, DIRS, CONFIG_FILE, RUNTIME_LAYOUT, DEFAULT_SETTINGS, WEB_DIST, listSettings, markWorkTypeDeleted, setSetting, unmarkWorkTypeDeleted } from '../core/config.ts';
 import { getBoundRoots, isInsideRoot } from '../core/paths.ts';
 import { PURPOSES, getProfile, listProfiles, listProviders, maskProvider } from '../ai/providers.ts';
 import { aiReadiness } from '../ai/gateway.ts';
@@ -64,6 +64,7 @@ export function registerCoreRoutes(app: FastifyInstance): void {
   app.get('/api/health', async (_req, reply) =>
     ok(reply, {
       status: 'ok',
+      runtimeProfile: RUNTIME_LAYOUT.profile,
         loadedBuild,
       dataRoot: DATA_ROOT,
       dbFile: getDbPath(),
@@ -77,6 +78,8 @@ export function registerCoreRoutes(app: FastifyInstance): void {
       dataRoot: DATA_ROOT,
       dbFile: getDbPath(),
       dirs: DIRS,
+      configFile: CONFIG_FILE,
+      runtimeProfile: RUNTIME_LAYOUT.profile,
       node: process.version,
       platform: process.platform,
       settings: listSettings().map((s) => ({ ...s, value: s.scope === 'secret' ? '******' : s.value })),

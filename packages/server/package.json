@@ -5,10 +5,10 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
-    "init-db": "tsx src/cli/init-db.ts",
-    "seed": "tsx src/cli/seed.ts"
+    "dev": "node ../../scripts/dev-server.mjs --watch",
+    "start": "node ../../scripts/start.mjs",
+    "init-db": "node ../../scripts/dev-server.mjs --cli init-db",
+    "seed": "node ../../scripts/dev-server.mjs --cli seed"
   },
   "dependencies": {
     "@fastify/multipart": "^9.2.1",

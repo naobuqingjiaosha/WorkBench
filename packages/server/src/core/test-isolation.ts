@@ -1,13 +1,13 @@
 import { tmpdir } from 'node:os';
 import { basename, dirname } from 'node:path';
 // No imports of config/db/business modules: this must run before their evaluation.
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { resolve, join, isAbsolute } from 'node:path';
 import { inside, assertNoPathLinks } from './path-boundary.ts';
 const install = resolve(import.meta.dirname, '../../../..');
 const keys = ['WORKBENCH_DB', 'WORKBENCH_DATA_DIR', 'WORKBENCH_RUNTIME_DIR', 'WORKBENCH_WEB_DIST', 'WORKBENCH_BACKUP_DIR', 'WORKBENCH_TESSDATA_DIR'] as const;
 export function isIsolated(): boolean {
-  return !!process.env.WORKBENCH_ISOLATION_ROOT || process.env.WORKBENCH_TEST_MODE === '1' || /[\\/]test[\\/]/.test(process.argv[1] || '') || process.env.NODE_ENV === 'test';
+  return !!process.env.WORKBENCH_ISOLATION_ROOT || process.env.WORKBENCH_TEST_MODE === '1' || /[\\/]test[\\/]/.test(process.argv[1] || '') || process.env.NODE_ENV === 'test' || process.env.WORKBENCH_PROFILE === 'test';
 }
 export function assertTestIsolation(required = false): void {
   if (!required && !isIsolated()) return;
@@ -18,9 +18,7 @@ export function assertTestIsolation(required = false): void {
   const base = join(install, '.tmp');
   const tempOwned = resolve(dirname(root)).toLowerCase() === resolve(tmpdir()).toLowerCase() && /^workbench-isolated-[a-zA-Z0-9]+$/.test(basename(root)) && existsSync(join(root, '.workbench-test-root'));
   if ((!inside(base, root) || resolve(base).toLowerCase() === resolve(root).toLowerCase()) && !tempOwned) throw Error('测试隔离根必须是确认的独立临时目录');
-  const cfgFile = join(install, 'workbench.config.json');
-  const cfg = existsSync(cfgFile) ? JSON.parse(readFileSync(cfgFile, 'utf8')) : {};
-  const daily = [join(install, 'data'), join(install, 'packages/web/dist'), resolve(install, cfg.dataRoot || 'data/files'), resolve(install, cfg.backup?.dir || 'data/backups')];
+  const daily = [join(install, 'data'), join(install, 'packages/web/dist')];
   if (daily.some(p => inside(p, root) || inside(root, p))) throw Error('测试隔离目录与日常目录重叠');
   for (const key of keys) {
     const p = process.env[key];

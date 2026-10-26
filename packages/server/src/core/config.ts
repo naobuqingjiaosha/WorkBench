@@ -5,10 +5,12 @@ import { assertTestIsolation, isIsolated } from './test-isolation.ts';
  * - 读写 app_setting 键值配置
  * - 目录初始化（首次启动即建好全部规范目录）
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadRuntimeLayout, readLocalConfig, assertRuntimeWrite } from './runtime-layout.ts';
 import { all, get, run } from '../db/index.ts';
+import { inside } from './path-boundary.ts';
 import { ensureDir, toPosix } from './paths.ts';
 
 /* ------------------------------- 安装路径 ------------------------------- */
@@ -16,34 +18,41 @@ import { ensureDir, toPosix } from './paths.ts';
 const here = dirname(fileURLToPath(import.meta.url)); // packages/server/src/core
 export const INSTALL_ROOT = resolve(here, '..', '..', '..', '..'); // 工作台根目录
 
-function readRootConfig(): { dataRoot?: string; port?: number; host?: string } {
-  const file = join(INSTALL_ROOT, 'workbench.config.json');
-  if (!existsSync(file)) return {};
-  try {
-    return JSON.parse(readFileSync(file, 'utf8')) as { dataRoot?: string; port?: number; host?: string };
-  } catch {
-    return {};
-  }
-}
-
 assertTestIsolation();
-const fileCfg = readRootConfig();
-
-/** 数据根目录：默认在安装目录下，可改到 OneDrive 等同步盘 */
-export const DATA_ROOT = resolve(
-  process.env.WORKBENCH_DATA_DIR ||
-    (fileCfg.dataRoot ? resolve(INSTALL_ROOT, fileCfg.dataRoot) : undefined) ||
-    join(INSTALL_ROOT, 'data', 'files'),
-);
-
-export const RUNTIME_ROOT = resolve(process.env.WORKBENCH_RUNTIME_DIR ||
-  (process.env.WORKBENCH_DB ? dirname(resolve(process.env.WORKBENCH_DB)) : join(INSTALL_ROOT, 'data', 'runtime')));
-export const DB_FILE = resolve(process.env.WORKBENCH_DB || join(RUNTIME_ROOT, 'workbench.db'));
+export const RUNTIME_LAYOUT = loadRuntimeLayout(INSTALL_ROOT);
+export const CONFIG_FILE = RUNTIME_LAYOUT.configFile;
+export const CONFIG_BASE = RUNTIME_LAYOUT.configBase;
+export const DATA_ROOT = RUNTIME_LAYOUT.dataRoot;
+export const RUNTIME_ROOT = RUNTIME_LAYOUT.runtimeRoot;
+export const DB_FILE = RUNTIME_LAYOUT.dbFile;
+export const BACKUP_ROOT = RUNTIME_LAYOUT.backupRoot;
 export const LOG_DIR = resolve(RUNTIME_ROOT, 'logs');
-export const WEB_DIST = resolve(process.env.WORKBENCH_WEB_DIST || resolve(INSTALL_ROOT, 'packages', 'web', 'dist'));
+export const WEB_DIST = RUNTIME_LAYOUT.webDist;
+export const SERVER_PORT = RUNTIME_LAYOUT.port;
+export const SERVER_HOST = RUNTIME_LAYOUT.host;
+export function readRuntimeConfig() { return readLocalConfig(CONFIG_FILE); }
 
-export const SERVER_PORT = Number(process.env.PORT || fileCfg.port || 8787);
-export const SERVER_HOST = process.env.HOST || fileCfg.host || '127.0.0.1';
+/** One path-selection contract for backup execution and file deletion protection. */
+export function backupDirectoryConfig(file = readRuntimeConfig()): { dir: string; dirRaw: string; origin: string } {
+  let value: unknown = process.env.WORKBENCH_BACKUP_DIR;
+  let origin = '环境变量 WORKBENCH_BACKUP_DIR';
+  if (!value) {
+    origin = '界面设置';
+    for (const key of ['backup.dir', 'dir']) {
+      try { value = getSetting<unknown>(key, undefined); } catch { value = undefined; }
+      if (value !== undefined && value !== null) break;
+    }
+  }
+  if (value === undefined || value === null || value === '') {
+    value = file.backup?.dir;
+    origin = value ? 'workbench.config.json' : '默认值';
+  }
+  const dirRaw = String(value ?? RUNTIME_LAYOUT.defaultBackupRoot);
+  const dir = resolve(CONFIG_BASE, dirRaw);
+  assertRuntimeWrite(RUNTIME_LAYOUT, dir);
+  if ([DATA_ROOT, RUNTIME_ROOT].some(p => inside(p, dir) || inside(dir, p))) throw Error('备份目录不能与业务文件或运行目录重叠');
+  return { dir, dirRaw: toPosix(dirRaw), origin };
+}
 
 /* ------------------------------- 目录规范 ------------------------------- */
 
@@ -293,16 +302,17 @@ export const DEFAULT_SETTINGS: {
   // 留空值时 `pick()` 会自然落到下一档，优先级与文档一致。
   { key: 'backup.auto', value: null, type: 'boolean', label: '自动备份', description: '每天到点后自动做一份数据库备份；留空 = 用 workbench.config.json 的 backup.auto' },
   { key: 'backup.hour', value: null, type: 'number', label: '备份时间（0-23 点）', description: '每天这个整点之后第一次运行时就补一份；留空 = 用 workbench.config.json 的 backup.hour' },
-  { key: 'backup.dir', value: null, label: '备份目录', description: '默认 data/backups（相对项目根）；留空 = 用 workbench.config.json 的 backup.dir' },
+  { key: 'backup.dir', value: null, label: '备份目录', description: '默认当前环境 backups（相对配置基准目录）；留空 = 用 workbench.config.json 的 backup.dir' },
   { key: 'backup.keepDaily', value: null, type: 'number', label: '保留日备份数', description: '超出按时间删最旧的；留空 = 用 workbench.config.json 的 backup.keepDaily' },
   { key: 'backup.keepWeekly', value: null, type: 'number', label: '保留周备份数', description: '周备优先保留；留空 = 用 workbench.config.json 的 backup.keepWeekly' },
   { key: 'backup.weeklyDay', value: null, type: 'number', label: '周备的周界（0=周日）', description: '星期几算新的一周；留空 = 用 workbench.config.json 的 backup.weeklyDay' },
 ];
 
-/** 把根目录信息写到 workbench.config.json，方便用户自己改 */
+/** 首次启动仅在当前环境的私有配置位置写入默认值。 */
 export function writeRootConfigIfMissing(): void {
   if (isIsolated()) return;
-  const file = join(INSTALL_ROOT, 'workbench.config.json');
+  const file = CONFIG_FILE;
+  if (!file) return;
   if (existsSync(file)) return;
   const cfg = {
     _说明: '改完需要重启工作台。dataRoot 填绝对路径，可以指向 OneDrive/坚果云同步目录。',
@@ -310,7 +320,8 @@ export function writeRootConfigIfMissing(): void {
     port: SERVER_PORT,
     host: SERVER_HOST,
   };
-  writeFileSync(file, JSON.stringify(cfg, null, 2), 'utf8');
+  ensureDir(dirname(file));
+  writeFileSync(file, JSON.stringify(cfg, null, 2), { encoding: 'utf8', flag: 'wx' });
 }
 
 export function applyDefaultSettings(): void {

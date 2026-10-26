@@ -40,6 +40,7 @@ export default function SettingsPage() {
   const system = useApi<{
     dataRoot: string;
     dbFile: string;
+    configFile: string | null;
     node: string;
     platform: string;
     settings: { key: string; value: string | null }[];
@@ -239,6 +240,8 @@ export default function SettingsPage() {
             <dd className="mono">{system.data?.dataRoot}</dd>
             <dt>数据库</dt>
             <dd className="mono">{system.data?.dbFile}</dd>
+            <dt>本机配置</dt>
+            <dd className="mono">{system.data?.configFile || "当前环境不加载本机配置"}</dd>
             <dt>运行环境</dt>
             <dd>
               Node {system.data?.node} / {system.data?.platform}
@@ -246,7 +249,7 @@ export default function SettingsPage() {
           </dl>
         )}
         <div className="notice mt12 small">
-          想换数据目录（比如放到 OneDrive 同步）？编辑项目根目录的 <code>workbench.config.json</code>，把 <code>dataRoot</code>{' '}
+          想换数据目录（比如放到 OneDrive 同步）？编辑当前环境的本机 <code>workbench.config.json</code>（位置见上方），把 <code>dataRoot</code>{' '}
           改成新路径，然后把原来的整个文件夹复制过去，重启程序即可。
         </div>
       </Card>

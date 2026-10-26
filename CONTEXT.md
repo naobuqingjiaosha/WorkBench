@@ -2,7 +2,7 @@
 
 文档ID：KB-CONTEXT。版本：1.0。更新：2026-10-26。性质：业务术语词典。
 
-本轮复核（2026-10-26）：README结构调整不改变业务术语，对象及事实边界保持不变。见[变更记录](docs/management/CHANGELOG.md)。
+本轮复核（2026-10-26）：运行环境与路径分离属于工程结构变化，未改变业务术语；测试用例及夹具按用户要求仅保留本机。见[变更记录](docs/management/CHANGELOG.md)。
 
 本文只定义业务术语。当前需求、实现与发布状态分别见[产品需求](PRODUCT_REQUIREMENTS.md)、[系统架构](SYSTEM_ARCHITECTURE.md)和[开发进度](DEVELOPMENT_PROGRESS.md)。
 

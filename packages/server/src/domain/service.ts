@@ -11,7 +11,7 @@ import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFil
 import { basename, extname, isAbsolute, join, relative, resolve as resolvePath } from 'node:path';
 import { checklistSatisfied, syncEvidence,evidenceCount } from '../core/checklist.ts';
 import { all, get, run, tx } from '../db/index.ts';
-import { DATA_ROOT, DIRS, INSTALL_ROOT, getSetting } from '../core/config.ts';
+import { DATA_ROOT, DIRS, backupDirectoryConfig, getSetting } from '../core/config.ts';
 import {
   assertNotPlatformProtected, dateOnly, ensureDir, externalRootId, getBoundRoots, isDirWritable, isInsideRoot,
   isPlatformProtected, listRootGrants, resolveInside, safeName, setExtraProtectedRoots, setRootGrants, toPosix,
@@ -479,33 +479,8 @@ function readOnlySourceDeclarations(): string[] {
   return parts.map((s) => s.trim()).filter(Boolean);
 }
 
-/**
- * 备份目录（`backup.dir`）绝对路径 —— 与 `core/backup.ts` 的取值链一致
- * （环境变量 > app_setting > workbench.config.json > 内置默认 `data/backups`），
- * 但**故意不 import backup.ts**：那个模块只依赖 config/db/trash，从这里 import 会绕成
- * 一层没必要的耦合，而这里只差"算一个路径"。算不出就返回 null（那就不额外保护）。
- */
-function backupDirAbs(): string | null {
-  const env = (process.env.WORKBENCH_BACKUP_DIR ?? '').trim();
-  if (env) return resolvePath(env);
-  let setting = '';
-  try {
-    setting = String(getSetting<unknown>('backup.dir', '') ?? '').trim();
-  } catch {
-    setting = '';
-  }
-  if (setting) return resolvePath(isAbsolute(setting) ? setting : join(INSTALL_ROOT, setting));
-  try {
-    const cfg = JSON.parse(readFileSync(join(INSTALL_ROOT, 'workbench.config.json'), 'utf8')) as {
-      backup?: { dir?: string };
-    };
-    const dir = (cfg.backup?.dir ?? '').trim();
-    if (dir) return resolvePath(isAbsolute(dir) ? dir : join(INSTALL_ROOT, dir));
-  } catch {
-    /* 没有配置文件 / 解析失败：用内置默认 */
-  }
-  return join(INSTALL_ROOT, 'data', 'backups');
-}
+/** Use the same resolved backup path as the backup service to protect its files. */
+function backupDirAbs(): string { return backupDirectoryConfig().dir; }
 
 /**
  * 记录里出现过的**历史来源根**（`artifact.root_id = ext:<路径>`）。

@@ -1,0 +1,13 @@
+{
+  "host": "127.0.0.1",
+  "port": 8787,
+  "dataRoot": "files",
+  "backup": {
+    "auto": true,
+    "hour": 3,
+    "dir": "backups",
+    "keepDaily": 7,
+    "keepWeekly": 4,
+    "weeklyDay": 1
+  }
+}

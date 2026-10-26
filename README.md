@@ -49,21 +49,15 @@ npm --version
 npm ci
 ```
 
-`npm ci` 按锁文件安装整个 workspace 的依赖，无需分别进入前后端目录安装。
+`npm ci` 按锁文件安装整个 workspace 的依赖，并通过 prepare 安装本地提交/推送检查；无需分别进入前后端目录安装。
 
 ### 2. 检查本机配置
 
-编辑根目录的 `workbench.config.json`，确认监听地址、端口和资料目录适用于当前电脑。以下是关键字段示例，已有其他配置项按需保留：
+新安装默认把本机配置和数据放在源码之外：Windows 为 `%LOCALAPPDATA%/WorkBench/daily`，首次启动自动创建。可以用 `WORKBENCH_HOME` 指定另一个独立的绝对目录；不需要把真实配置复制到项目根目录。
 
-```json
-{
-  "host": "127.0.0.1",
-  "port": 8787,
-  "dataRoot": "data/files"
-}
-```
+`workbench.config.example.json` 仅提供配置格式。需要预先配置时，将它复制到独立数据根的 `workbench.config.json`，且不要覆盖已有文件。相对路径以该环境的数据根为基准，例如 `dataRoot: "files"` 和 `backup.dir: "backups"`。`WORKBENCH_CONFIG_FILE` 可显式指定已有配置文件，仍以环境数据根解析其中相对路径；格式错误会停止启动。
 
-相对资料路径以项目根目录为基准。换机后应重新检查原配置中的绝对路径；已有数据时，修改 `dataRoot` 不会自动搬迁原资料。
+已有安装仍兼容项目根配置及 `data/runtime`，启动时会提示沿用旧布局，不自动迁移资料。修改数据根不会搬迁数据。详见[运行边界](docs/guides/DATA_BOUNDARIES.md)。
 
 ### 3. 构建并启动
 
@@ -84,7 +78,7 @@ npm start
 npm start
 ```
 
-`npm start` 会读取 `data/runtime/current-release.json`：存在有效指针时启动所选发布包；没有指针时启动开发工作区源码。发布包与当前源码可能不同，拉取代码或构建前端不等于完成发布。已有发布指针但包不完整时，启动器会报错，不会自动回退到源码。
+`npm start` 会读取当前环境的 `runtime/current-release.json`（旧布局为 `data/runtime/current-release.json`）：存在有效指针时启动所选发布包；没有指针时启动开发工作区源码。发布包与当前源码可能不同，拉取代码或构建前端不等于完成发布。已有发布指针但包不完整时，启动器会报错，不会自动回退到源码。
 
 备份、恢复和发布步骤见[运维手册](docs/guides/OPERATIONS.md)。
 
@@ -98,7 +92,9 @@ npm start
 npm run dev
 ```
 
-Vite 使用 `http://127.0.0.1:5273`，并将 `/api`、`/files` 代理到 `http://127.0.0.1:8787`。此命令直接运行工作区源码；默认配置不会自动隔离日常数据，不能将日常实例作为测试后端。仅修改后端端口也不会同步修改 Vite 代理。
+Vite 使用 `http://127.0.0.1:5273`，开发后端使用 `18889`。`npm run dev`、`npm run server` 自动选择源码之外的独立开发根，并清除继承的日常路径及常见模型凭证变量；不读取日常配置。代理每次转发前核对后端环境及数据库身份，不匹配时返回503。
+
+开发根默认是 `%LOCALAPPDATA%/WorkBench/development/<源码目录摘要>`。使用 `WORKBENCH_DEV_HOME` 或 `WORKBENCH_DEV_PORT` 自定义，前后端从同一命令环境读取。`node scripts/dev-server.mjs --show-paths` 只显示解析结果，不创建数据库。数据库初始化、预置及重置等开发命令也使用此环境。
 
 ### 隔离页面预览
 
@@ -108,7 +104,7 @@ Vite 使用 `http://127.0.0.1:5273`，并将 `/api`、`/files` 代理到 `http:/
 npm run dev:monthly -- --build
 ```
 
-该入口默认使用 `http://127.0.0.1:18889`，数据位于 `.tmp/monthly-development`，前端暂存构建位于 `outputs/monthly-development-web`；不修改日常发布指针。重复运行会复用这个隔离目录，构建不带热更新，也不会自动导入真实资料。
+该入口默认使用 `http://127.0.0.1:18889`，数据位于独立开发根的 `monthly` 子目录，前端暂存构建位于该目录的 `web-build`；不修改日常发布指针。重复运行会复用这个隔离目录，构建不带热更新，也不会自动导入真实资料。
 
 如只需验证前端构建，可在 PowerShell 中指定新的输出目录：
 
@@ -121,10 +117,17 @@ npm --workspace @workbench/web run build -- --outDir $stageOut
 
 ## 检查与测试
 
+按本项目约定，测试用例和夹具仅保留本机，不随Git上传；应用类型检查只检查生产源码，测试有独立编译入口。下表业务测试命令需要本机已具备用例；新克隆可先运行类型检查和源码边界检查。
+
 在项目根目录执行，按改动范围选择：
 
 | 命令 | 用途 |
 |---|---|
+| `npm run repo:check` | 检查待共享文件范围与常见凭证模式 |
+| `npm run repo:check:staged` | 检查实际Git暂存内容 |
+| `npm run test:runtime-layout` | 本机运行环境、启动及开发代理边界测试 |
+| `npm run typecheck:tests` | 本机测试类型检查，依赖不上传的tsconfig.test.json |
+| `npm run test:repository` | 本机提交/推送边界测试（用例不上传） |
 | `npm run typecheck` | 前后端 TypeScript 类型检查 |
 | `npm run test:isolation` | 测试环境隔离约束检查 |
 | `npm run test:unit` | 基础单元测试 |
@@ -152,24 +155,26 @@ packages/
       core/         配置、文件、检索等基础能力
       db/           数据库与迁移
       domain/       业务逻辑
-    test/           后端与业务测试
+    test/           本机测试用例与夹具（不上传）
   web/
     src/            页面、组件和样式
     dist/           前端构建产物
 scripts/            启动、隔离测试、构建辅助和维护脚本
 docs/               开发指南、需求、架构及历史记录
-data/               本机数据库、业务文件、备份和发布包
+data/               旧布局兼容目录（不上传）；新布局在源码外
 outputs/            本机构建与验证产物
-workbench.config.json  本机启动和目录配置
+workbench.config.example.json  可共享的通用配置样例
+workbench.config.json          旧布局本机配置；新布局在环境根（均不上传）
 ```
 
-`data/`、`outputs/`、`.tmp/`、`node_modules/` 和构建产物由 `.gitignore` 排除。克隆仓库不会复制业务资料、运行包或本机依赖；完整恢复需要同时保留数据库及配套业务文件。
+`data/`、`outputs/`、`.tmp/`、`work/`、测试用例、本机配置、历史扫描报告、依赖目录和构建产物均不上传。提交与推送钩子按允许范围检查实际文件及新增历史；详见[源码与资料边界](docs/guides/DATA_BOUNDARIES.md)。克隆仓库不会复制业务资料、运行包或本机依赖；完整恢复需要同时保留数据库及配套业务文件。
 
 ## 开发文档
 
 | 文档 | 内容 |
 |---|---|
 | [使用说明](docs/guides/USER_GUIDE.md) | 日常操作 |
+| [源码与资料边界](docs/guides/DATA_BOUNDARIES.md) | 上传范围、本机测试和配置隔离 |
 | [开发指南](docs/guides/DEVELOPMENT.md) | 环境、隔离验证和开发流程 |
 | [系统架构](SYSTEM_ARCHITECTURE.md) | 模块职责与关键链路 |
 | [产品需求](PRODUCT_REQUIREMENTS.md)、[业务术语](CONTEXT.md) | 功能范围及业务对象定义 |

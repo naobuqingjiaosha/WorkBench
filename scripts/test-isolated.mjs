@@ -8,12 +8,13 @@ import {join,resolve,relative} from 'node:path';
 import {spawn} from 'node:child_process';
 import {createServer} from 'node:net';
 import {randomBytes} from 'node:crypto';
-const ROOT=resolve(import.meta.dirname,'..');mkdirSync(join(ROOT,'.tmp'),{recursive:true});
+const ROOT=resolve(import.meta.dirname,'..');
 const tmp=mkdtempSync(join(tmpdir(),'workbench-isolated-'));writeFileSync(join(tmp,'.workbench-test-root'),'isolated test');
 const net=createServer();await new Promise(r=>net.listen(0,'127.0.0.1',r));const port=net.address().port;await new Promise(r=>net.close(r));
 const env=isolationEnv(tmp,{NODE_OPTIONS:(process.env.NODE_OPTIONS||'')+' --import='+JSON.stringify(pathToFileURL(join(ROOT,'scripts/test-preflight.mjs')).href),WORKBENCH_SESSION_TOKEN:randomBytes(32).toString('hex'),PORT:String(port),HOST:'127.0.0.1',BASE:'http://127.0.0.1:'+port});
-const lang=join(ROOT,'data/runtime/tessdata');if(existsSync(lang)){cpSync(lang,env.WORKBENCH_TESSDATA_DIR,{recursive:true});}
-if(existsSync(join(ROOT,'packages/web/dist')))cpSync(join(ROOT,'packages/web/dist'),env.WORKBENCH_WEB_DIST,{recursive:true});
+// Optional OCR resources belong to local test fixtures, never to the daily runtime.
+const lang=join(ROOT,'packages/server/test/fixtures/tessdata');
+if(existsSync(lang)){assertNoPathLinks(lang);cpSync(lang,env.WORKBENCH_TESSDATA_DIR,{recursive:true});}
 let server;let logs='';
 try {
  if(process.argv[2]==='--unit'){

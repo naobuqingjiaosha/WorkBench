@@ -2,13 +2,13 @@
 import {DatabaseSync,backup} from 'node:sqlite';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
-import {DB_FILE,INSTALL_ROOT} from '../core/config.ts';
+import {DB_FILE,RUNTIME_ROOT,BACKUP_ROOT} from '../core/config.ts';
 import {isInsideRoot} from '../core/paths.ts';
 import {initDatabase,closeDatabase,all,get} from '../db/index.ts';
 import {seedWorkTypesAndPositions} from '../domain/seed.ts';
 
-const runtime=resolve(INSTALL_ROOT,'data','runtime');
-if(!isInsideRoot(runtime,DB_FILE))throw new Error('此升级命令仅用于项目内 data/runtime 数据库；隔离测试请使用测试入口');
+const runtime=RUNTIME_ROOT;
+if(!isInsideRoot(runtime,DB_FILE))throw new Error('此升级命令仅用于当前环境的 runtime 数据库；隔离测试请使用测试入口');
 const lock=join(dirname(DB_FILE),'server.lock');
 if(existsSync(lock)){
  const pid=Number(readFileSync(lock,'utf8').trim());
@@ -19,7 +19,7 @@ if(existsSync(lock)){
 }
 let backupPath:string|null=null;
 if(existsSync(DB_FILE)){
- const dir=join(INSTALL_ROOT,'data','backups');mkdirSync(dir,{recursive:true});
+ const dir=BACKUP_ROOT;mkdirSync(dir,{recursive:true});
  backupPath=join(dir,`business-before-${new Date().toISOString().replace(/[:.]/g,'-')}.db`);
  const source=new DatabaseSync(DB_FILE,{readOnly:true});
  try{await backup(source,backupPath);}finally{source.close();}
