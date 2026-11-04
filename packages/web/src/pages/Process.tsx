@@ -1,3 +1,4 @@
+import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {LoadError} from '../components/DesignSystem';
 import { WorkTypeEditor } from '../components/WorkTypeEditor';
 import {useUnsavedClose} from '../components/useUnsavedClose';
@@ -13,7 +14,6 @@ import {
   type PositionDocBinding,
   type PositionDocCandidate,
   type PositionRule,
-  type Workbench,
   type WorkType,
 } from '../api';
 import { Button, Card, Empty, Field, Input, Loading, Modal, Select, Tag, Textarea, useAction, useToast } from '../ui';
@@ -721,7 +721,7 @@ function PositionModal({
    * 一个已绑定的工作台都没有时（还没绑 / 接口失败）**不报错**，退回手填目录名，
    * 并在提示里说清"请先在工作台里绑定资料目录"。
    */
-  const wbs = useApi<{ items: Workbench[] }>(`/api/workbenches?workTypeId=${workTypeId}&limit=100`, [workTypeId]);
+  const wbs = useWorkbenchCollection(false,workTypeId);
   const boundWb = (wbs.data?.items ?? []).find((w) => (w.external_root ?? '').trim());
   const rootPath = (boundWb?.external_root ?? '').trim() || null;
   const subdirs = useApi<{ items: FolderSubdir[] }>(
@@ -806,6 +806,7 @@ function PositionModal({
         <Input value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="例如：到货与开箱" />
       </Field>
 
+      {wbs.error&&<LoadError error={{message:`工作列表加载失败：${wbs.error.message}`}} retry={wbs.reload}/>}
       {/* 目录名：从已有目录里选（§10.1 ①）或显式新建（§10.1 ②） */}
       <Field
         label="目录名"
@@ -822,7 +823,7 @@ function PositionModal({
           )
         }
       >
-        {canList && subdirs.loading ? (
+        {wbs.loading || (canList && subdirs.loading) ? (
           <Loading text="读取可选目录…" />
         ) : canList ? (
           <>

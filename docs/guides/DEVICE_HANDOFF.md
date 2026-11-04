@@ -1,6 +1,6 @@
 # 换机开发与接续清单
 
-文档ID：GUIDE-DEVICE-HANDOFF。版本：1.2。更新：2026-10-26。关联：GOV-11。性质：源码接续与完整运行迁移的操作规范。
+文档ID：GUIDE-DEVICE-HANDOFF。版本：1.3。更新：2026-11-04。关联：GOV-11。性质：源码接续与完整运行迁移的操作规范。
 
 源码接续与完整运行迁移分开处理。Git只共享源码、通用工具、开发文档和配置样例；测试用例、夹具、私有配置、业务数据及历史验证产物不随源码上传。具体范围见[资料边界](DATA_BOUNDARIES.md)。各设备的实际状态以现场核查为准，汇总见[开发进度](../../DEVELOPMENT_PROGRESS.md)，过程见[工作日志](../management/WORK_LOG.md)。
 
@@ -20,6 +20,20 @@
 
 执行者保存文件并提供修改清单及建议提交说明；用户手动提交、推送。默认不执行git add/commit/push或发布。保存、提交、远端同步、发布和业务验收分别记录。文档维护后运行docs-maintenance generate/check及git diff --check。
 
+### 1.1 不依赖旧机聊天的最小阅读闭环
+
+| 需要回答的问题 | 正式主记录 | 新机如何判断 |
+|---|---|---|
+| 项目做什么、不做什么 | README、PRODUCT_REQUIREMENTS、CONTEXT | 本机单用户行政/项目工作台；保留现有业务分类和事实边界 |
+| 代码如何组织和运行 | SYSTEM_ARCHITECTURE、DEVELOPMENT、INSTALLATION | React→Fastify→领域服务→SQLite/磁盘；区分daily/development/test |
+| 做完了什么、当前运行什么 | DEVELOPMENT_PROGRESS | 区分已提交基点、未提交候选、所选发布包和实际健康身份；旧机事实不套用新机 |
+| 哪些链路验过、哪些没验 | QUALITY_AND_ACCEPTANCE | 按首屏/接口/操作链/未测阅读；旧通过数不能当本机执行结果 |
+| 已知缺陷如何复现和关闭 | RISKS_AND_DECISIONS | RK-11设置双窗口覆盖、RK-12月度说明保护缺失均未修；有匿名复现与验收条件 |
+| 接下来做什么 | PROJECT_PLAN | 唯一GOV队列；当前代码实施暂停，等用户继续指令 |
+| 改过哪些文件及原证据在哪 | WORK_LOG | 历史增量、执行/独立复核区分、六种交付状态；本机原证据可能缺失 |
+
+截至2026-11-04文档交接，用户确认候选尚未提交推送。该状态在用户同步后可能改变，不作为未来固定结论。正式文档均已有Git跟踪；源码新文件packages/web/src/components/WorkbenchSelect.tsx在交接时尚未跟踪，用户同步时须与引用它的页面一起检查。不要自动暂存整包工作区；远端更新成功与否只以用户实际提交清单、推送结果及新机拉取后状态判断。
+
 ## 2. 源码接续
 
 1. 旧设备检查分支、HEAD、未提交与未跟踪文件，确认所需修改已实际保存；核对共享边界，不能将私有文件混入Git。
@@ -27,9 +41,26 @@
 3. 新设备先保护已有修改，再clone或更新目标分支。有分歧先审查，不强推或覆盖。核对分支、HEAD、远端差异和五份根文档。
 4. 按根package.json安装支持的Node.js（≥24）及Git，按锁文件执行npm ci；依赖锁变化后重新核对环境。不能用旧机器node_modules代替新机安装验证。
 5. 开发使用源码外独立环境及默认18889端口。前端代理必须核对development及数据库身份，不能借用正式数据库补齐开发或测试条件。
-6. 测试资源只有在用户另行授权时私下接续。未提供用例时明确记录缺项，不运行缺失入口后宣称测试通过。
+6. 测试资源只有在用户另行授权时私下接续。packages/server/test、夹具、tsconfig.test.json、outputs原始报告/截图/日志均不随Git提供。未提供用例时明确记录缺项；可以依据正式风险表准备匿名隔离复现方案，但执行仍须符合用户当前范围，不能连接正式数据或把历史通过数复制为新机通过。
+7. 用户授权继续后，先复述正在接续的GOV、所依赖源码和两项未修问题，再按PROJECT_PLAN限定实施。若用户只要求同步/读文档，不启动修复、测试服务、数据迁移或发布。
 
 默认pack按共享白名单打包源码、根文档、通用工具和配置样例，不读取真实配置，不包含Git历史、正式数据和完整运行现场。它可用于源码交付，不能代替完整运行迁移。
+
+### 2.1 新机只读核对示例
+
+在已确认的项目根执行：
+
+```powershell
+git status --short
+git branch --show-current
+git rev-parse HEAD
+git ls-files --error-unmatch AGENTS.md GPT_CONTEXT.md DEVELOPMENT_PROGRESS.md docs/management/PROJECT_PLAN.md docs/management/RISKS_AND_DECISIONS.md docs/management/QUALITY_AND_ACCEPTANCE.md docs/guides/DEVICE_HANDOFF.md packages/web/src/components/WorkbenchSelect.tsx
+Test-Path packages/server/test
+Test-Path tsconfig.test.json
+node scripts/docs-maintenance.mjs check
+```
+
+缺少被引用的WorkbenchSelect等源码文件属于源码交接不完整，应核对提交范围；测试资源返回False则属于既定交付边界，不是业务数据为空。任何文档里的本机证据路径不可访问时，按正式摘要保留结论及“尚未在本机复验”状态；需要原始证据时另行请求脱敏接续，不扩大Git白名单或复制整个个人环境。
 
 ## 3. 完整运行迁移需另行清点
 

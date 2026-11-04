@@ -1,6 +1,6 @@
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {useEditorGuard} from '../components/NavigationGuard';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import LocalModelSettings from '../components/LocalModelSettings';
 import { api, useApi, type AiProfile, type AiProvider, type KbComplianceConfig, type KbExtractConfig, type KbExtractSettings, type KbSource } from '../api';
 
@@ -63,13 +63,22 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [system.data]);
 
-  const { busy, run } = useAction();
+  const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
   const savedForm={org:setting('app.org'),operator:setting('app.operator'),style:setting('ai.writing_style')};
   const [baseline,setBaseline]=useState('');
   useEffect(()=>{if(system.data)setBaseline(JSON.stringify(savedForm));},[system.data]);
   const dirty=!!baseline&&JSON.stringify(form)!==baseline;
-  const saveForm=async()=>{await api.put('/api/settings',{'app.org':form.org,'app.operator':form.operator,'ai.writing_style':form.style});setBaseline(JSON.stringify(form));toast('本栏目已保存','ok');};
-  const request=useEditorGuard({dirty,save:saveForm,discard:()=>setForm(JSON.parse(baseline))});
+  const saveForm=async()=>{
+    if(saving.current)throw Error('设置正在保存，请等待完成后再操作');
+    saving.current=true;setBusy(true);
+    const snapshot={...form};
+    try {
+      await api.put('/api/settings',{'app.org':snapshot.org,'app.operator':snapshot.operator,'ai.writing_style':snapshot.style});
+      setBaseline(JSON.stringify(snapshot));toast('本栏目已保存','ok');
+    } finally {saving.current=false;setBusy(false);}
+  };
+  const request=useEditorGuard({dirty,busy,save:saveForm,discard:()=>setForm(JSON.parse(baseline))});
 
 
   return (
@@ -212,19 +221,19 @@ export default function SettingsPage() {
       <Card title="应用设置">
         <div className="inline-fields">
           <Field label="单位名称" hint="出现在公文抬头、盖章处、模板变量 {单位名称}">
-            <Input value={form.org} onChange={(v) => setForm({ ...form, org: v })} placeholder="某某单位" />
+            <Input value={form.org} onChange={(v) => setForm({ ...form, org: v })} placeholder="某某单位" disabled={busy} />
           </Field>
           <Field label="默认经办人" hint="生成文书时默认的编制人">
-            <Input value={form.operator} onChange={(v) => setForm({ ...form, operator: v })} placeholder="你的名字" />
+            <Input value={form.operator} onChange={(v) => setForm({ ...form, operator: v })} placeholder="你的名字" disabled={busy} />
           </Field>
         </div>
         <Field label="写作风格约束" hint="每次调用写作模型时固定注入，用来约束文风和禁止编造">
-          <Textarea value={form.style} onChange={(v) => setForm({ ...form, style: v })} rows={3} />
+          <Textarea value={form.style} onChange={(v) => setForm({ ...form, style: v })} rows={3} disabled={busy} />
         </Field>
         <Button
           kind="primary"
           disabled={busy||!dirty}
-          onClick={()=>void run(saveForm)}
+          onClick={()=>void saveForm().catch(e=>toast((e as Error).message,'err'))}
         >
           保存设置
         </Button>

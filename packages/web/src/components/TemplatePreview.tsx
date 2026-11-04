@@ -1,3 +1,5 @@
+import {useWorkbenchCollection} from './useWorkbenchCollection';
+import {WorkbenchSelect} from './WorkbenchSelect';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi, type TemplateVarSpec } from '../api';
 import { Button, Field, Loading, Modal, Select, Tag, Textarea, useAction, useToast } from '../ui';
@@ -55,7 +57,7 @@ export function TemplatePreview({ template, onClose, onRescanned }: {
   const [selected, setSelected] = useState('');
   const [trial, setTrial] = useState<Trial | null>(null);
   const [view, setView] = useState<'source' | 'trial'>('source');
-  const works=useApi<{items:{id:number;name:string}[]}>('/api/workbenches');
+  const works=useWorkbenchCollection();
   const [workbenchId,setWorkbenchId]=useState('');
   const [sources,setSources]=useState<Autofill | null>(null);
   const [manuallyEdited,setManuallyEdited]=useState<Set<string>>(new Set());
@@ -119,9 +121,8 @@ export function TemplatePreview({ template, onClose, onRescanned }: {
       {canTrial&&<TemplateFieldRecognition templateId={template.id} onApplied={()=>{onRescanned();inspection.reload();}}/>}
       <div className="mt12">
         <Field label="从工作档案自动带入" hint="切换工作会重新带入并清空本窗口当前填写值，请先完成当前核对。">
-          <Select value={workbenchId} onChange={value=>{if(!busy)setWorkbenchId(value);}} placeholder="仅使用系统日期，不关联工作" options={(works.data?.items??[]).map(w=>({value:String(w.id),label:w.name}))}/>
+          <WorkbenchSelect collection={works} value={workbenchId} onChange={setWorkbenchId} placeholder="仅使用系统日期，不关联工作" disabled={busy}/>
         </Field>
-        {works.error&&<div className="notice notice-warn">工作列表加载失败：{works.error.message}</div>}
         {autofillError&&<div className="notice notice-warn">自动带入失败：{autofillError}；仍可手动填写。</div>}
         {sources&&<div className="small muted">已自动带入 {sources.autoCount} 项，另有 {sources.todoCount} 项需填写或完善档案。检查、监督、签约等实际发生日期不会默认填今天；需要时可逐项明确采用今天。</div>}
         {testMode&&<div className="notice notice-warn mt8">当前使用测试示例，下载文件中的测试文字并非真实业务内容。</div>}

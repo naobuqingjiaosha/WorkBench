@@ -1,7 +1,10 @@
+import {useEditorGuard} from '../components/NavigationGuard';
+import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
+import {WorkbenchSelect} from '../components/WorkbenchSelect';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {DocVersionsModal} from './DocVersions';
-import { useEffect, useState } from 'react';
-import { api, useApi, type Artifact, type Workbench } from '../api';
+import { useEffect, useRef, useState } from 'react';
+import { api, useApi, type Artifact } from '../api';
 import { Button, Card, Empty, Field, Input, Loading, Modal, Select, Tag, Textarea, fmtSize, fmtTime, useDebounced, useToast } from '../ui';
 import { FilePreview } from '../components/FilePreview';
 import type { RouteKey } from '../App';
@@ -31,6 +34,18 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   const [kind, setKind] = useState('');
   const [versionId,setVersionId]=useState<number|null>(null);
   const [uploadOpen,setUploadOpen]=useState(false),[uploadFile,setUploadFile]=useState<File|null>(null),[uploadKind,setUploadKind]=useState('source'),[uploadBusy,setUploadBusy]=useState(false),[uploadError,setUploadError]=useState('');
+  const uploadPending=useRef(false);
+  const clearUpload=()=>{setUploadOpen(false);setUploadFile(null);setUploadError('');setUploadKind('source');};
+  const saveUpload=async()=>{
+    if(uploadPending.current)throw Error('文件正在上传，请稍候');
+    if(!uploadFile||!workbenchId)throw Error('请选择文件及所属工作');
+    uploadPending.current=true;setUploadBusy(true);setUploadError('');
+    try{const form=new FormData();form.append('file',uploadFile);form.append('workbenchId',workbenchId);form.append('kind',uploadKind);await api.upload('/api/artifacts/upload',form);clearUpload();reloadAll();toast('文件已上传','ok');}
+    catch(e){setUploadError((e as Error).message);throw e;}
+    finally{uploadPending.current=false;setUploadBusy(false);}
+  };
+  const requestUpload=useEditorGuard({dirty:uploadOpen&&!!uploadFile,busy:uploadBusy,save:saveUpload,discard:clearUpload});
+  const closeUpload=()=>requestUpload(clearUpload);
   const [mode, setMode] = useState<'or' | 'and'>('or');
   const [detailId, setDetailId] = useState<number | null>(null);
   /** B4-12 正在页面内预览的那份文件（点「预览」或点缩略图） */
@@ -39,7 +54,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   const [page,setPage]=useState(0);
   useEffect(()=>setPage(0),[debounced,workbenchId,kind,mode]);
 
-  const workbenches = useApi<{ items: Workbench[] }>('/api/workbenches');
+  const workbenches = useWorkbenchCollection();
   const stats = useApi<{ total: number; bytes: number; byKind: { kind: string; n: number; bytes: number }[]; indexed: number; missingFiles: { id: number; file_rel: string }[]; dataRoot: string }>(
     '/api/files/stats',
   );
@@ -94,12 +109,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
         </div>
         <div className="inline-fields mt12">
           <Field label="限定工作台">
-            <Select
-              value={workbenchId}
-              onChange={setWorkbenchId}
-              placeholder="全部工作台"
-              options={(workbenches.data?.items ?? []).map((w) => ({ value: String(w.id), label: `${w.code} ${w.name}` }))}
-            />
+            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="全部工作台" label={w=>`${w.code} ${w.name}`}/>
           </Field>
           <Field label="文件类别">
             <Select
@@ -288,8 +298,8 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
       {detailId !== null && <FileDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={reloadAll} />}
       {previewOf !== null && <FilePreview id={previewOf} onClose={() => setPreviewOf(null)} />}
       {versionId!==null&&<DocVersionsModal id={versionId} onClose={()=>setVersionId(null)} onChanged={reloadAll}/>}
-      <Modal open={uploadOpen} title="上传业务文件" onClose={()=>{if(!uploadBusy)setUploadOpen(false);}} footer={<><Button disabled={uploadBusy} onClick={()=>setUploadOpen(false)}>取消</Button><Button kind="primary" disabled={uploadBusy||!uploadFile||!workbenchId} onClick={async()=>{setUploadBusy(true);setUploadError('');try{const form=new FormData();form.append('file',uploadFile!);form.append('workbenchId',workbenchId);form.append('kind',uploadKind);await api.upload('/api/artifacts/upload',form);setUploadOpen(false);setUploadFile(null);reloadAll();toast('文件已上传','ok');}catch(e){setUploadError((e as Error).message);}finally{setUploadBusy(false);}}}>{uploadBusy?'上传中…':'上传文件'}</Button></>}>
-        <Field label="所属工作"><Select value={workbenchId} onChange={setWorkbenchId} placeholder="请选择工作" options={(workbenches.data?.items??[]).map(w=>({value:String(w.id),label:w.name}))}/></Field><Field label="类别"><Select value={uploadKind} onChange={setUploadKind} options={[{value:'source',label:'原始资料'},{value:'other',label:'附件 / 其他'}]}/></Field><Field label="文件"><input type="file" disabled={uploadBusy} onChange={e=>setUploadFile(e.target.files?.[0]??null)}/></Field>{uploadError&&<p role="alert" className="notice notice-err">{uploadError}。所选文件保留，请核对文件库后重试。</p>}
+      <Modal open={uploadOpen} title="上传业务文件" onClose={closeUpload} footer={<><Button disabled={uploadBusy} onClick={closeUpload}>取消</Button><Button kind="primary" disabled={uploadBusy||!uploadFile||!workbenchId} onClick={()=>void saveUpload().catch(()=>{})}>{uploadBusy?'上传中…':'上传文件'}</Button></>}>
+        <Field label="所属工作"><WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="请选择工作" disabled={uploadBusy}/></Field><Field label="类别"><Select disabled={uploadBusy} value={uploadKind} onChange={setUploadKind} options={[{value:'source',label:'原始资料'},{value:'other',label:'附件 / 其他'}]}/></Field><Field label="文件"><input type="file" disabled={uploadBusy} onChange={e=>setUploadFile(e.target.files?.[0]??null)}/></Field>{uploadError&&<p role="alert" className="notice notice-err">{uploadError}。所选文件保留，请核对文件库后重试。</p>}
       </Modal>
     </div></PageSplit>
   );

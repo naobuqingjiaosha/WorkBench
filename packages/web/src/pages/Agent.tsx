@@ -1,3 +1,6 @@
+import {useNavigationGuard} from '../components/NavigationGuard';
+import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
+import {WorkbenchSelect} from '../components/WorkbenchSelect';
 /**
  * AI 助手 —— 把「AI 梳理」升级成对话
  *
@@ -14,7 +17,7 @@ import WorkRecordsPage,{RecordMessageText} from './WorkRecords';
 import {SectionNav,LoadError} from '../components/DesignSystem';
 import {InspectionDrafts} from '../components/InspectionDrafts';
 import { useEffect, useRef, useState } from 'react';
-import { api, useApi, type Workbench } from '../api';
+import { api, useApi } from '../api';
 import { MemoryLifecycle } from '../components/WorkflowPanels';
 import { Button, Card, Empty, Input, Loading, Select, Tag, Textarea, fmtSize, fmtTime, useAction, useToast } from '../ui';
 import { ProposalsPanel } from './Proposals';
@@ -70,6 +73,7 @@ type Tab = 'records' | 'chat' | 'memory' | 'proposals' | 'audit';
 
 export default function AgentPage() {
   const [tab, setTab] = useState<Tab>('chat');
+  const navigation=useNavigationGuard();
   const [savedRun,setSavedRun]=useState<number|null>(null);
   const history=useApi<{items:{id:number;question:string;artifact_id:number|null;created_at:string}[]}>('/api/agent/business');
   const [pendingCount, setPendingCount] = useState(0);
@@ -86,7 +90,7 @@ export default function AgentPage() {
     <div className="col" style={{ gap: 14 }}>
       <div className="row" style={{ gap: 8, alignItems: 'center' }}>
         {tabs.map(([k, label]) => (
-          <button key={k} className={`btn btn-sm${tab === k ? ' btn-primary' : ''}`} onClick={() => setTab(k)}>
+          <button key={k} className={`btn btn-sm${tab === k ? ' btn-primary' : ''}`} onClick={() => {if(k!==tab)navigation.request(()=>setTab(k));}}>
             {label}
             {k === 'proposals' && pendingCount > 0 ? `（${pendingCount}）` : ''}
           </button>
@@ -127,7 +131,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
   const [recordMode,setRecordMode]=useState('');
   const endRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
-  const workbenches = useWorkbenches();
+  const workbenches = useWorkbenchCollection();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -276,12 +280,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
         extra={
           <>
             <Select value={recordMode} onChange={setRecordMode} options={[{value:'',label:'自动识别'},{value:'capture',label:'记工作记录'},{value:'query',label:'查工作记录／总结'}]}/>
-            <Select
-              value={workbenchId}
-              onChange={setWorkbenchId}
-              placeholder="不指定工作"
-              options={(workbenches.data?.items ?? []).map((w) => ({ value: String(w.id), label: w.name }))}
-            />
+            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="不指定工作"/>
             {!!businessPeriods.length&&<Select value={periodId} onChange={setPeriodId} placeholder="期间由问题或唯一资料期次确定" options={businessPeriods.map(p=>({value:String(p.id),label:p.report_period}))}/>}
             {sessionId && (
               <Button
@@ -476,7 +475,7 @@ function MemoryPanel() {
   const [text, setText] = useState('');
   const [due, setDue] = useState('');
   const [workbenchId, setWorkbenchId] = useState('');
-  const workbenches = useWorkbenches();
+  const workbenches = useWorkbenchCollection();
 
   const load = async () => {
     setLoading(true);
@@ -512,12 +511,7 @@ function MemoryPanel() {
             <Input value={text} onChange={setText} placeholder="记一条：例如「清廉工程 9 月 30 日前补齐签收记录」" onEnter={() => undefined} />
           </div>
           <Input value={due} onChange={setDue} placeholder="期限(可空)" />
-          <Select
-            value={workbenchId}
-            onChange={setWorkbenchId}
-            placeholder="不指定工作"
-            options={(workbenches.data?.items ?? []).map((w) => ({ value: String(w.id), label: w.name }))}
-          />
+          <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="不指定工作"/>
           <Button
             kind="primary"
             disabled={busy || !text.trim()}
@@ -822,7 +816,7 @@ function mergeById<T extends { id: number }>(prev: T[], next: T[]): T[] {
 function AuditPanel() {
   const toast = useToast();
   const { busy, run } = useAction();
-  const workbenches = useWorkbenches();
+  const workbenches = useWorkbenchCollection();
   const [sub, setSub] = useState<'actions' | 'generations'>('actions');
   const [workbenchId, setWorkbenchId] = useState('');
   const [status, setStatus] = useState('');
@@ -979,12 +973,7 @@ function AuditPanel() {
             <button className={`btn btn-sm${sub === 'generations' ? ' btn-primary' : ''}`} onClick={() => setSub('generations')}>
               出文书
             </button>
-            <Select
-              value={workbenchId}
-              onChange={setWorkbenchId}
-              placeholder="全部工作台"
-              options={(workbenches.data?.items ?? []).map((w) => ({ value: String(w.id), label: w.name }))}
-            />
+            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="全部工作台"/>
             {sub === 'actions' && (
               <Select
                 value={status}
@@ -1251,17 +1240,4 @@ function AuditPanel() {
       )}
     </>
   );
-}
-
-/* ============================== 小工具 ============================== */
-
-function useWorkbenches() {
-  const [data, setData] = useState<{ items: Workbench[] } | null>(null);
-  useEffect(() => {
-    api
-      .get<{ items: Workbench[] }>('/api/workbenches')
-      .then(setData)
-      .catch(() => setData(null));
-  }, []);
-  return { data };
 }

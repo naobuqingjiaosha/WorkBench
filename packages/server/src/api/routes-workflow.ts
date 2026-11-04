@@ -175,10 +175,20 @@ export function registerWorkflowRoutes(app: FastifyInstance): void {
             if(aid&&get<{kind:string}>('SELECT kind FROM artifact WHERE id=?',[aid])?.kind==='generated'&&get<{requirement_kind:string}>('SELECT requirement_kind FROM period_material WHERE id=?',[mid])?.requirement_kind==='external')throw new ApiError('EXTERNAL_REQUIRED','生成文书不能替代外部签章件或证明');
             if (aid && !get('SELECT id FROM artifact WHERE id=? AND workbench_id=? AND (work_period_id IS NULL OR work_period_id=?) AND deleted_at IS NULL', [aid, p.workbench_id, id]))
                 throw new ApiError('WRONG_FILE', '文件不属于本工作或已属于另一期');
-            tx(() => { if (aid)
+            const expected=b.expected;
+            if(expected!==undefined&&(!expected||typeof expected!=='object'||Array.isArray(expected)||status!=='provided'||!aid))throw new ApiError('BAD_EXPECTED','附件关联核对参数无效');
+            const updated=tx(() => {
+                if(expected!==undefined){
+                    const e=expected as Record<string,unknown>;
+                    const current=get<{artifact_id:number|null;status:string;title:string;required:number;requirement_kind:string}>('SELECT artifact_id,status,title,required,requirement_kind FROM period_material WHERE id=? AND period_id=?',[mid,id])!;
+                    if(current.title!==e.title||current.required!==e.required||current.requirement_kind!==e.requirement_kind)throw new ApiError('MATERIAL_CONFLICT','附件要求已变化，请核对；已保存文件保留',409);
+                    if(current.artifact_id===aid&&['provided','verified'].includes(current.status))return false;
+                    if(current.artifact_id!==e.artifact_id||current.status!==e.status)throw new ApiError('MATERIAL_CONFLICT','附件关联或状态已变化，未覆盖；已保存文件保留',409);
+                }
+                if (aid)
                 run('UPDATE artifact SET work_period_id=? WHERE id=?', [id, aid]); run('UPDATE period_material SET status=?,note=?,artifact_id=? WHERE id=?', [status, note, aid, mid]); event(id, 'material', JSON.stringify({ id: mid, status, note, artifact_id: aid })); });
             recalcProgress(p.workbench_id);
-            return ok(reply, { updated: true });
+            return ok(reply, { updated: updated!==false });
         }
         catch (e) {
             return fail(reply, e);

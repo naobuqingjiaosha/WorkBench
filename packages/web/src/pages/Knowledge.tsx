@@ -1,3 +1,5 @@
+import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
+import {WorkbenchSelect} from '../components/WorkbenchSelect';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {FilePreview} from '../components/FilePreview';
 /**
@@ -19,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   api, coverageApi, useApi,
   type Artifact, type CoverageSuggestion, type CoverageSummary, type CoverageUnmappedResponse,
-  type KbExtractConfig, type KbExtractJob, type KbExtractPreview, type KbExtractSettings, type KbSource, type Workbench, type WorkType,
+  type KbExtractConfig, type KbExtractJob, type KbExtractPreview, type KbExtractSettings, type KbSource, type WorkType,
 } from '../api';
 import {
   Bar, Button, Card, Empty, Input, Loading, Modal, Select, Tag, fmtSize, fmtTime,
@@ -1429,7 +1431,7 @@ function FileSearchPanel() {
   const [mode, setMode] = useState<'or' | 'and'>('or');
   const dq = useDebounced(q);
 
-  const workbenches = useApi<{ items: Workbench[] }>('/api/workbenches');
+  const workbenches = useWorkbenchCollection();
   const stats = useApi<{ total: number; bytes: number; indexed: number; dataRoot: string }>('/api/files/stats');
 
   const searching = dq.trim().length > 0;
@@ -1466,12 +1468,7 @@ function FileSearchPanel() {
       extra={
         <>
           <Input value={q} onChange={setQ} placeholder="搜文件名或正文内容…" />
-          <Select
-            value={workbenchId}
-            onChange={setWorkbenchId}
-            placeholder="全部工作"
-            options={(workbenches.data?.items ?? []).map((w) => ({ value: String(w.id), label: w.name }))}
-          />
+          <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="全部工作"/>
           <Select
             value={kind}
             onChange={setKind}

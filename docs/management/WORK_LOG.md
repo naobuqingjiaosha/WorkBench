@@ -1,10 +1,92 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.1。更新：2026-11-03。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.5。更新：2026-11-04。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-04｜GOV-11｜正式文档与跨电脑接续闭环
+
+**授权与边界：** 用户确认尚未提交推送，明确要求补齐正式交接文件，供不同电脑上的Codex理解项目并接续。本次仅工作台项目文档；应用代码、业务规则、数据库、配置、发布指针均不修改，不调用模型，不启动应用或独立Codex修改任务。代码实施仍暂停。开工HEAD为main/086d2993980dffec4db62a3a1b14bf0e3e29c7ac，暂存区为空，原21份跟踪差异和WorkbenchSelect新文件保留；开始前另存文档副本与已跟踪文件/新组件哈希用于复核。
+
+**盘点结论与修改：** 现有README、CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE已说明定位、术语、约束和架构，无需新建重复总览。此前覆盖矩阵与缺陷细节只在被忽略的本机报告；现将可共享事实整合到已有主记录，不复制原始测试、私人配置、截图或业务正文。
+
+- GPT_CONTEXT.md：明确不依赖聊天的阅读路线、正式证据主记录、用户未提交推送及文档授权/代码暂停状态。
+- DEVELOPMENT_PROGRESS.md：区分包版本0.1.0、Git候选与所选运行包；补daily/development/test运行定位，链接覆盖及问题主记录，保留已完成与未验收边界。
+- docs/management/RISKS_AND_DECISIONS.md：RK-11设置双窗口覆盖、RK-12月度说明切期保护缺失的匿名复现、影响、代码入口、最小修复方向和关闭条件；两项均明确未修。
+- docs/management/QUALITY_AND_ACCEPTANCE.md：正式四层覆盖矩阵，含回收站、月度说明、文件/附件和跨模块保存；区分历史证据、三批通过和收尾5通过/4失败，说明原生选文件、Office、真实模型、整数工时及真实业务验收未覆盖。
+- docs/management/PROJECT_PLAN.md：在原GOV-11/GOV-13与后续顺序中整合两项缺陷、有限冗余清理建议及依赖，不建立新队列，不自动授权恢复实施。
+- docs/guides/DEVICE_HANDOFF.md：补正式阅读闭环、新机Git/源码完整性检查、本机测试和证据缺失处理；明确WorkbenchSelect新文件需随引用方审查同步，不能只推送已跟踪文件。
+- docs/guides/DEVELOPMENT.md：将共享边界整合进正文，说明测试目录、夹具及tsconfig.test.json不随Git；命令存在不等于资源齐备，纯文档任务不重跑应用测试。
+- 本日志：单独记录正式文档交接任务；自动生成docs/README.md、docs/knowledge-index.json、docs/reference/source-inventory.json，仅实际有差异的文件列入交付。
+
+**五份根文档复核：** GPT_CONTEXT和DEVELOPMENT_PROGRESS按上述事实更新；CONTEXT的对象术语、PRODUCT_REQUIREMENTS的已确认需求、SYSTEM_ARCHITECTURE的实际结构和运行语义无新增变化，保持全文。README及章程定位保持，不编造新目标、业务规则、预算或完成比例。
+
+**验证：** 文档generate/check通过：24份文档、232处本地引用、216份源码、282处路由、40份迁移，0错误；仓库共享边界检查250文件通过，git diff --check通过。相对开工快照仅9份已跟踪文档/索引改变，应用源码哈希无变化，无新增重复二级标题；HEAD未变、暂存区为空。验证限定文档、仓库共享边界、Git跟踪与文件哈希，不运行应用测试。原始覆盖结论来自已有证据；本次文档自检不是独立功能复测。新增内容不包含个人数据或凭据，原证据仍按既定忽略规则留在本机。
+
+**交付与接续：** 仅本地保存，由用户审查提交和推送；未暂存、提交、推送、发布或迁移数据。正式文档均在现有Git跟踪范围，不新增忽略目录中的必读文件，不放宽共享策略。用户同步后，新机重新核对自身分支、HEAD、文件和运行身份；不能把旧机测试/运行结论视为新机已验证。两项代码缺陷及Office、整数工时、真实模型和业务验收保持未解决；本次完成后停止写入，继续等待用户。建议提交说明：docs(handoff): 补齐验证边界与跨电脑接续依据。
+
+## 2026-11-04｜GOV-13 / GOV-08 / GOV-11｜个人使用审查及三批保存恢复修复
+
+**目标与边界：** 用户要求继续全面检查个人使用问题，经监督限定为设置并发保存、局部输入保护、附件关联恢复三批；随后限定核对月度说明、同文件重选、附件刷新与未知POST、设置双窗口及静态重复入口。用户最终要求本轮结束暂停、自行同步GitHub并换机；限定追加只做证据与文档，不启动第四批应用修复。仅本机源码、匿名隔离测试及文档。开始时main/086d2993980dffec4db62a3a1b14bf0e3e29c7ac已有17份跟踪修改及WorkbenchSelect新文件，全部保留。日常指针未改；11月4日监督健康探测连接被拒绝，执行者未启动日常服务、未读真实正文或数据库、未调用模型。
+
+**修改清单与原因：** packages/web/src/pages/Settings.tsx将普通保存和保存并离开共用同步互斥及busy，成功后更新快照基线，失败继续抛给guard；Agent.tsx内部标签经过导航保护；WorkRecords.tsx更正弹窗建立进入时基线并保护关闭、取消、保存与修订冲突；Files.tsx上传选择/busy接入保护，明确放弃清理File及错误。packages/web/src/components/PeriodAttachments.tsx保留已知上传ID、先核对再仅重试关联，失败展示已保存文件，避免断服刷新父级卸载恢复信息。packages/server/src/api/routes-workflow.ts对携带expected的关联在事务内比较原关联、状态与要求，409保护并发变化，同文件已成功返回updated=false且不新增事件或降级verified；旧调用仍按原契约，不增加表/迁移。
+
+**本机测试与证据：** outputs/full-review-20261104-XFyINJ保存初始源码/文档基线、各批独立基线、唯一审查报告和证据。新增仅本机settings-save-regression.ts、input-guards-regression.ts、attachment-recovery-regression.ts、project-create-regression.ts；审查观察器full-review-phase-one.ts及明确月份的full-review-seed.ts亦仅本机。修改本机type-navigation.ts，拒绝普通once创建时检查USE_WORK_RECORD和零新增，另验证合法周期行政与旧单次工作只读保留。未为旧用例放宽生产规则。
+
+**验证：** 所有运行经scripts/test-isolated.mjs。第一批修复前1失败/4通过且非零退出，修复后5通过（settings-after-J100CH），监督独立5通过（settings-after-fvGR54）。第二批最终14通过（input-guards-LLQPOP），监督独立14通过（input-guards-sUenT8）；包括失败后同页取消、明确放弃、重开无隐形旧文件。第三批执行者附件6通过（attachments-uu2CsT）、项目创建/阶段/重启2通过（project-create-1TiGfC）、分类15项通过；监督独立附件6通过（attachments-g9jM6t）、项目2通过（project-create-e1AB7e）、分类15项、workflow40项及monthly-workspaces14项通过，均退出0。真实后端、SQLite、磁盘文件与headless Edge；无mock成功响应，部分故障以目标请求abort或响应丢弃明确传输状态。首次附件停服后仍continue的请求存在晚到可能，修正为停服后明确abort目标PUT后再测；另保留真实PUT成功丢响应场景。测试还发现失败刷新父级会卸载恢复UI，已调整并重新通过。早期定位器、DOM回调类型、脚本拼接及旧seed月份问题均为测试辅助代码问题，报告不把观察器退出0或test-incomplete列为通过。
+
+应用及本机测试类型检查通过；候选Vite构建位于candidate-web-3QbQWR，不覆盖日常dist；仓库共享检查250文件通过，git diff --check通过。文档generate/check通过：24份文档、217个本地引用、216份源码、282处路由、40份迁移，0错误。没有重新把此前19项mock浏览器或48项HTTP检查算作新修改通过；监督已按后端路由范围独立复跑workflow/月度相关检查，通过范围如上。
+
+**限定收尾核查（同一任务）：** 独立快照bounded-followup-N6CkR0含baseline/、manifest.json、baseline.patch；新增仅本机packages/server/test/bounded-followup-regression.ts。最终before-MtWrDl为9组5通过/4失败，Node及隔离入口非零退出，4个失败是月度未保存切期、慢保存仍可编辑并切期、保存失败后切期，以及设置两个独立上下文的旧快照覆盖。应用源码保持三批成果，未修复这些新证实问题。月度请求仍写原期次、目标月未串写；普通保存重开、文件输入DOM状态、实际beforeunload取消后pending仍在，以及两种未知POST提示/风险记录通过。Playwright setInputFiles不能代替原生Windows选文件验证；未知POST已有先核对提示，无视提示重传仍重复属于已明确限制，不新增无ID幂等承诺。首次共用label定位器错误及早期错误的未知POST断言已纠正，旧失败证据保留，不归因应用；最终测试类型检查通过。未重复运行全套或重建应用。监督独立只读确认结果、无残留测试/无头进程及源码哈希未变。最终cleanup.json记录browserConnected=false、测试服务SIGTERM且退出事件已确认；隔离运行器清理临时根。
+
+唯一审查报告重整为首屏/API/完整操作链/未测四层矩阵，补回收站首屏但删除恢复未重验；区分同页设置互斥与新双窗口冲突。静态盘点保留Template、WorkRecords双入口、WorkDocuments、useUnsavedClose、WorkbenchSelect与不同上传用途；仅Periods未消费的文件查询及GenerateModal导入列为可清理建议，未删除或改代码。当前追加实际修改GPT_CONTEXT.md、DEVELOPMENT_PROGRESS.md、docs/management/PROJECT_PLAN.md、本日志及唯一报告，生成docs/knowledge-index.json；本机测试与bounded-followup-N6CkR0证据不随Git同步。
+
+**五份根文档与计划：** GPT_CONTEXT更新简短候选及日常健康边界；CONTEXT全文复核，术语无变化不改正文；PRODUCT_REQUIREMENTS整合保存/离开与已知文件ID恢复的验收条件；SYSTEM_ARCHITECTURE整合两步关联恢复、事务核对和页面暂存限制；DEVELOPMENT_PROGRESS区分既有证据与新专项、三批独立复测及未完成的完整验收边界。PROJECT_PLAN整合GOV-13现状及GOV-11健康信息，不创建新队列；docs/README、knowledge-index及source-inventory由既有生成器刷新。限定收尾再次通读五份根文档：GPT_CONTEXT增加暂停接续边界，DEVELOPMENT_PROGRESS明确5通过/4失败与未修状态；CONTEXT术语、PRODUCT_REQUIREMENTS验收条件（已含无ID不承诺幂等）、SYSTEM_ARCHITECTURE实际结构均无新增变化，正文保持三批结束版本。PROJECT_PLAN整合GOV-13未修事项及用户暂停要求，不另造队列。
+
+**未完成与回退：** 审查矩阵覆盖入口并列出未测链，不等于全部功能、真实模型、Office或业务验收。附件恢复信息只在当前页面；刷新/明确放弃后文件保留但需重新核对；POST未返回ID时不保证无重复。回退按报告列出的每批基线逐文件比较恢复，保留原有工作区修改，禁止git reset或整包覆盖。
+
+**交付状态：** 本地保存；未暂存、提交、推送、正式发布或完成业务验收；旧ui-design日常指针保持。三批独立复核及限定收尾完成后暂停；月度说明与双窗口设置缺陷未修，等待用户继续指令。测试子进程与浏览器已回收，无本任务后台写入。用户自行Git同步；新增本机测试/快照/证据不会随源码推送。建议提交说明：fix(workbench): 保护编辑保存并支持附件关联安全恢复。目录盘点误入过程已停止，既有目录清单及日志保留，不混算修复功能。
+
+## 2026-11-04｜GOV-11｜整理本机项目文件结构
+
+**目标与范围：** 按用户要求枚举当前项目的全部目录和文件，交付完整文件树、折叠依赖及本机产物的源码结构精简版、目录统计；仅读取名称及目录类型，不读取业务文件或私人配置正文，不跟随目录链接。
+
+**修改清单：** 新增本机输出目录outputs/project-structure-20261104-WcVc34，包含完整文件树.txt、项目结构精简版.txt、目录统计.json；WORK_LOG登记本任务。保留任务开始时的17份已修改文件及未跟踪WorkbenchSelect.tsx，不覆盖既有产物；本次不修改应用源码。文档索引按既有生成器刷新。
+
+**五份文档复核：** GPT_CONTEXT、CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE、DEVELOPMENT_PROGRESS已逐一通读；本次只整理文件结构，接续、术语、需求、架构及实现/发布状态均无新增变化，正文不修改。
+
+**验证与边界：** 文件清单由实际目录遍历生成，隐藏目录纳入完整树，符号链接只列入口，不扩展到项目外；统计和树节点数量交叉核对通过：20191个文件、2583个目录、11个链接，0处读取错误。文档generate/check通过（24份文档、217个本地引用、216份源码、282处路由、40份迁移），git diff --check通过。未运行应用测试、未检查当前服务或发布可用性；文件存在不等于功能可用。
+
+**交付状态：** 清单与日志保存本地；未暂存、提交、推送、发布或改动业务数据。本机清单含私有路径名称，不纳入共享源码。无待实施功能；建议提交说明：docs(structure): 记录项目目录盘点。
+
+## 2026-11-04｜GOV-13 / GOV-08 / GOV-11｜离开保护、关联分页与本机回归修复
+
+**目标、边界与基点：** 按用户授权的监督接续指令，以小批修复现有交互Bug和明确重复代码；第一批完成后经独立审查继续第二批。开始时main/086d2993980dffec4db62a3a1b14bf0e3e29c7ac、工作区和暂存区干净，本地origin/main差异0/0；远端实时查询因现有代理连接失败，未改网络设置。已读仓库约定、五份根文档、README、文档总览、开发指南及计划；本仓库没有.agents/skills目录。未启动其他代理。本任务不修改后端业务规则、正式数据库、资料、配置、发布包或日常前端，不进行真实模型调用。
+
+**第一批：** NavigationGuard把Editor快照存入离开弹窗，导致忙碌结束后按钮仍禁用、重试保存和放弃调用旧闭包、卸载后仍调用旧保存。改为只保存离开目的地，每次显示/操作读取当前注册编辑器；状态变化通知弹窗，顺序保存时重新读取并跳过已卸载/已干净编辑器。useUnsavedClose移除重复beforeunload监听；已核对其全部现有调用都位于App的NavigationGuard下，刷新保护仍由统一入口提供。修改仅涉及components/NavigationGuard.tsx、components/useUnsavedClose.ts。
+
+**第二批：** 后端列表默认200、单页上限500，多处选择器只取首200；Process寻找绑定工作也只取首100。复用components/useWorkbenchCollection.ts，增加可选workTypeId过滤及过滤切换的旧结果隔离；新增components/WorkbenchSelect.tsx统一完整加载后显示选项、失败重试、原选择保留。更新pages/WorkRecords.tsx、Files.tsx、Knowledge.tsx、Agent.tsx、Process.tsx及components/TemplatePreview.tsx、WorkflowPanels.tsx。保留默认未归档过滤语义；不修改后端模型。Agent原useWorkbenches仅有三个本文件调用，均已替换后移除；未删除业务、历史或缓存目录。新增WorkbenchSelect尚未跟踪，须与引用它的文件一起审查/提交。
+
+**本机测试修复：** packages/server/test/evidence-writing-boundaries.ts的竞争子进程改了runtime却继承旧OCR目录，六个进程均以“OCR资源必须位于当前运行目录”退出；已捕获stderr与退出码复现。子进程DB/TEST_DB/OCR统一到本测试race目录，加入超时诊断及finally回收本次创建的子进程，不放宽生产路径校验。packages/server/test/e2e.ts旧断言把明确required=false的结论当作必填，和generate.ts的optionalRenderValues、placeholders.ts的OPTIONAL_EMPTY及已有template-collections契约矛盾；改为核对可选结论留空且不造事实，并另请求缺少必填检查情况的DOCX，检查实际XML占位和X-Missing-Vars缺项。没有为了通过测试修改渲染行为。
+
+**复现与验证：**
+
+- 新增本机测试navigation-guard.ts、navigation-guard-page.ts、workbench-collection.ts，均通过node scripts/test-isolated.mjs --unit运行。before模式从上述Git基点读取原源码进行对照，不回退工作区。离开组件原版6失败/2通过、修复后8通过；完整App的工作记录保存中导航与失败保留/重试两场景原版均失败、修复后均通过；501项工作记录和文件上传关联原版均无法选中末项，修复后分页专项9项通过。
+- 浏览器专项覆盖501项跨500边界、第二页失败不提供部分列表、重试保留选择、类型/归档切换、卸载后旧请求、工作记录/文件上传/模板自动带入/记忆更正的关联提交；Field标签可被真实getByLabel定位。使用本机Edge、真实React页面/组件及匿名受控API响应，无真实模型或日常后端。未逐个业务页面完成全面视觉验收。
+- 执行者运行npm run typecheck、npm run typecheck:tests通过；独立候选Vite构建通过，最终产物在outputs/navigation-guard-20261104/web-final。11项隔离契约、8组可靠性通过。
+- 监督端首次npm test在锁竞争测试处失败；其前面的isolation/unit/regression/workflow/policy/local-model/business/business-ai/stability通过。修正后执行者重跑evidence-writing-boundaries、evidence-directed、evidence-semantic-entry、evidence-citation-contract、work-records（16项）、inspection-drafts（20项）全部通过；监督端另重跑整个test:evidence-writing及后续两组通过。此为首次全链失败后分段覆盖通过，不称首次全链成功。
+- HTTP端到端首次由监督端报告46通过/1失败；区分可选与必填契约后，执行者及监督端重跑npm run test:e2e均48通过/0失败，使用隔离后端与匿名生成文件，不包含Office分页打印验收。
+- 监督端独立复核离开组件8项、真实页面2项、分页9项、应用及测试类型检查均通过；独立Vite构建通过，产物在监督任务本机目录workbench-review-build-20261104。同日只读核对current-release.json与ui-design-20261024-r1/RELEASE.json，仍选该包；未检查健康或完整包哈希。未把监督反馈写成执行者直接运行的首次全链结果。
+
+**证据与文件：** outputs/navigation-guard-20261104内before.json、after.json、before-page.json、after-page.json、before-collection.json、after-collection.json分别保存浏览器对照结果；PNG保留失败/重试界面；boundaries-before.log包含子进程诊断，六份后续套件日志及e2e-after.log保留验证输出。测试三份新增、两份修改和产物均被Git忽略，仅留本机。源码共10份既有修改加1份新增；文档修改GPT_CONTEXT、SYSTEM_ARCHITECTURE、DEVELOPMENT_PROGRESS、PROJECT_PLAN、WORK_LOG；docs/README.md、knowledge-index.json及reference/source-inventory.json由生成器刷新，以最终Git差异为准。
+
+**五份根文档复核：** GPT_CONTEXT更新源码候选与日常证据日期边界；SYSTEM_ARCHITECTURE更新共享编辑/分页组件职责；DEVELOPMENT_PROGRESS整合当前源码基点、验证结果及未发布状态；CONTEXT业务术语无变化、PRODUCT_REQUIREMENTS需求与验收条件无变化，两份正文不修改。GOV-13与GOV-11在唯一队列原行更新状态，不新建并行任务。
+
+**收尾检查、风险与回退：** 文档generate/check通过：24份文档、217处本地引用、216份源码、282处路由声明、40份迁移，0错误；共享内容检查250文件通过，git diff --check通过。完整分页仍为多请求读取，数据在翻页期间变化时不保证数据库快照一致性；大规模数据的加载耗时未做容量验收。新增选择组件应与调用方成组回退；当前无迁移/依赖更新，可按本任务diff逐文件恢复至086d299，先保护之后的新改动，禁止整仓reset。仅本机测试改动应按本条明确的目录修正/断言差异恢复，不删除测试或产物目录。其他GOV未完成项维持原状态。
+
+**交付状态：** 修改实际保存本地；未暂存、未提交、未推送、未发布，日常发布指针未改，未完成真实业务验收。建议提交说明：fix(ui): 修复编辑离开状态与工作关联分页。当前批次完成后停下，等待独立复核，不继续扩大范围。
 
 ## 2026-11-03｜GOV-11｜梳理项目完整文件结构
 

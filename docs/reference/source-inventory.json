@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "8b1e9275091b5dc7fc93092acb773d95e405ffe8",
+  "committedBase": "086d2993980dffec4db62a3a1b14bf0e3e29c7ac",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -161,7 +161,7 @@
     },
     {
       "path": "packages/server/src/api/routes-workflow.ts",
-      "sha256": "326970e6ee43164831ea2f9c46b02dcc807b76b3bca61adfc936e0b5e2c6efb7"
+      "sha256": "804f355a29f0f417fb5afce4b66b8a8f8cd3abedf517e95268930382a7ebb78c"
     },
     {
       "path": "packages/server/src/api/upload.ts",
@@ -713,11 +713,11 @@
     },
     {
       "path": "packages/web/src/components/NavigationGuard.tsx",
-      "sha256": "a2a9b71c741e4cad02731cef026a89804089b871efdfdaa5a8ae6cca06324ef5"
+      "sha256": "f34b727cf3d9425f6b92c01bd08de6163f1c9878b5bde0eef2bd84b1befbe014"
     },
     {
       "path": "packages/web/src/components/PeriodAttachments.tsx",
-      "sha256": "1bf511271e4cf7d3c2a64c0d4040447d8df392e4d6d3231ceedb2c80f397892a"
+      "sha256": "85d523b7ff24699b31edb9a32cd846078d0629f548b490101da7b106ace79e0d"
     },
     {
       "path": "packages/web/src/components/PeriodExecution.tsx",
@@ -733,7 +733,7 @@
     },
     {
       "path": "packages/web/src/components/TemplatePreview.tsx",
-      "sha256": "3341a4ea2a2630cdbcd13e655f2ef0c1a1bacae2b5485a25233796804e1aed86"
+      "sha256": "75adb4b7e8ca2d1be06bbf4d555a7b724e4d362d5490481cb3592ed2c5ba97f5"
     },
     {
       "path": "packages/web/src/components/WorkDocuments.tsx",
@@ -748,16 +748,20 @@
       "sha256": "171c0a93782e503f96532d62b627b147d8767878a25df9c0bbe867fdeee435c8"
     },
     {
+      "path": "packages/web/src/components/WorkbenchSelect.tsx",
+      "sha256": "ea0ca2d2fed9c3b60a2ac62a5feab6c338eee2510c4fd7c6ba0d969d3eb35e00"
+    },
+    {
       "path": "packages/web/src/components/WorkflowPanels.tsx",
-      "sha256": "d57fcc78fab3b86dae2418ea8617fa1499516807adcb5807dda878762f2bd7f5"
+      "sha256": "2162f02e83010e9880e0df92ab778891e66d6fcc70ac4ffe4a850c6001f788de"
     },
     {
       "path": "packages/web/src/components/useUnsavedClose.ts",
-      "sha256": "099728a41cf274905051c4cb792d1f332b101e0f6f4f300ac9dc1befca3c12f2"
+      "sha256": "7a2406befc4b46f5ed2f6d5a83a700fcacb004fa7dabffad39c626b9db96f962"
     },
     {
       "path": "packages/web/src/components/useWorkbenchCollection.ts",
-      "sha256": "f3e3a701a363c17faed8a6a65de953a1931bc945064428ef592a47192ba0e3ba"
+      "sha256": "d3cc2628d3fed8837b13e3845591fc2c6b51da2e415c99af73c8a219e34c9147"
     },
     {
       "path": "packages/web/src/design.css",
@@ -773,7 +777,7 @@
     },
     {
       "path": "packages/web/src/pages/Agent.tsx",
-      "sha256": "cafaf781c59db05d3d6b8c9f8abc639077ad1032b727cb2ab76a3da1bd0dfd6d"
+      "sha256": "92c50284f89c3666e5ff571fe2d0423bfb97fe553861dcb5a5292cadd750e8a7"
     },
     {
       "path": "packages/web/src/pages/Dashboard.tsx",
@@ -785,7 +789,7 @@
     },
     {
       "path": "packages/web/src/pages/Files.tsx",
-      "sha256": "dd52fa322d6d29139ff3a029230cfe359ea0b28adedc96fde0a61e2825d25ca7"
+      "sha256": "20c6aa6ebb38b4e4edd0029c725c61be28794c84b6ec737f9e0f3e144857ff8a"
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
@@ -793,7 +797,7 @@
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
-      "sha256": "e83dc2abb495d58e6fd37c4cdc190a7445d09fd50908d8b1238b1f174593e82a"
+      "sha256": "c7f4d9ee1403f6e96bf5788f4b058a1d363e874c1d714fb47c08050779c149d7"
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
@@ -805,7 +809,7 @@
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
-      "sha256": "f0b372e825d41ec53b5990f9c39ea5e7d4eea3b4883e004a41c0646ae9edace7"
+      "sha256": "871ae18bfaeee0b1178636e48718e117fe62112e8675ff0d60240d51f2d3e52d"
     },
     {
       "path": "packages/web/src/pages/ProjectInfo.tsx",
@@ -817,7 +821,7 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "54df045a769e70d9954c0b395c2cd7a36fc4360e36c5ddfeef6c380d7bcb45d1"
+      "sha256": "586f45489f0d5016822cdef2d9e4eaa6bc862913d2d7c0ead00fe16c5ccc7330"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
@@ -833,7 +837,7 @@
     },
     {
       "path": "packages/web/src/pages/WorkRecords.tsx",
-      "sha256": "e38b6254c5d283889ae62aa3a681198ffd995e696ef056bdd0bcfeb31c84f1e0"
+      "sha256": "b6aff5440735dbb86f5f26b2ecb1714ae346b945b3400d13c9d61e12984fcb9c"
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
@@ -2588,31 +2592,31 @@
       "method": "GET",
       "path": "/api/workbenches/:id/dossier",
       "file": "packages/server/src/api/routes-workflow.ts",
-      "line": 187
+      "line": 197
     },
     {
       "method": "PUT",
       "path": "/api/checklist/:id/requirement",
       "file": "packages/server/src/api/routes-workflow.ts",
-      "line": 188
+      "line": 198
     },
     {
       "method": "GET",
       "path": "/api/quick-todos",
       "file": "packages/server/src/api/routes-workflow.ts",
-      "line": 196
+      "line": 206
     },
     {
       "method": "POST",
       "path": "/api/quick-todos",
       "file": "packages/server/src/api/routes-workflow.ts",
-      "line": 197
+      "line": 207
     },
     {
       "method": "PUT",
       "path": "/api/quick-todos/:id",
       "file": "packages/server/src/api/routes-workflow.ts",
-      "line": 213
+      "line": 223
     },
     {
       "method": "GET",

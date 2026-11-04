@@ -1,3 +1,5 @@
+import {useWorkbenchCollection} from './useWorkbenchCollection';
+import {WorkbenchSelect} from './WorkbenchSelect';
 import { ImportResult } from './ImportResult';
 import { useEffect, useState } from 'react';
 import { api, useApi } from '../api';
@@ -112,12 +114,7 @@ function MemoryEditor({ memory: m, reload }: {
 }) {
     const [text, setText] = useState(m.text), [source, setSource] = useState(m.source ?? ''), [wb, setWb] = useState(String(m.workbench_id ?? '')), [period, setPeriod] = useState(String(m.period_id ?? '')), [from, setFrom] = useState(m.valid_from ?? ''), [until, setUntil] = useState(m.valid_until ?? ''), { busy, run } = useAction();
     const [factKey,setFactKey]=useState(m.fact_key ?? ''), [factValue,setFactValue]=useState(m.fact_value ?? '');
-    const work = useApi<{
-        items: {
-            id: number;
-            name: string;
-        }[];
-    }>('/api/workbenches'), periods = useApi<{
+    const work = useWorkbenchCollection(), periods = useApi<{
         items: {
             id: number;
             report_period: string;
@@ -125,5 +122,5 @@ function MemoryEditor({ memory: m, reload }: {
     }>(wb ? `/api/workbenches/${wb}/periods` : null);
     const history = useApi<{items: Memory[]}>(`/api/agent/memories/${m.id}/history`);
     const save = (status: string) => run(async () => { await api.put(`/api/agent/memories/${m.id}`, { text, source: source || '用户更正', workbench_id: wb ? Number(wb) : null, period_id: period ? Number(period) : null, valid_from: from || null, valid_until: until || null, fact_key:factKey.trim() || null,fact_value:factValue.trim() || null, status }); reload(); history.reload(); });
-    return <div className="col"><Field label="记忆内容"><Textarea value={text} onChange={setText}/></Field><Field label="来源"><Input value={source} onChange={setSource}/></Field><div className="grid grid-2"><Field label="事实字段（可选，与模板变量同名）"><Input value={factKey} onChange={setFactKey}/></Field><Field label="事实值（与字段同时填写）"><Input value={factValue} onChange={setFactValue}/></Field></div><p>标注事实字段后，与本次值不同的记忆会要求逐项选择并记录依据；自由文本仍需人工核对。</p><div className="row"><Select value={wb} onChange={v => { setWb(v); setPeriod(''); }} options={[{ value: '', label: '全局' }, ...(work.data?.items ?? []).map(w => ({ value: String(w.id), label: w.name }))]}/><Select value={period} onChange={setPeriod} options={[{ value: '', label: '不限期次' }, ...(periods.data?.items ?? []).map(p => ({ value: String(p.id), label: p.report_period }))]}/></div><div className="grid grid-2"><Field label="生效日期"><Input type="date" value={from} onChange={setFrom}/></Field><Field label="失效日期"><Input type="date" value={until} onChange={setUntil}/></Field></div><div className="row"><Button disabled={busy} onClick={() => void save('active')}>确认并启用</Button><Button disabled={busy} onClick={() => void save('archived')}>停用</Button></div><details><summary>更正历史与来源</summary>{history.data?.items.map(x => <p key={x.id}>#{x.id} · {x.text} · 来源：{x.source || '未说明'} · {x.status === 'active' ? '当前启用' : '已停用或替代'}</p>)}</details></div>;
+    return <div className="col"><Field label="记忆内容"><Textarea value={text} onChange={setText}/></Field><Field label="来源"><Input value={source} onChange={setSource}/></Field><div className="grid grid-2"><Field label="事实字段（可选，与模板变量同名）"><Input value={factKey} onChange={setFactKey}/></Field><Field label="事实值（与字段同时填写）"><Input value={factValue} onChange={setFactValue}/></Field></div><p>标注事实字段后，与本次值不同的记忆会要求逐项选择并记录依据；自由文本仍需人工核对。</p><div className="row"><WorkbenchSelect collection={work} value={wb} onChange={v => { setWb(v); setPeriod(''); }} placeholder="全局"/><Select value={period} onChange={setPeriod} options={[{ value: '', label: '不限期次' }, ...(periods.data?.items ?? []).map(p => ({ value: String(p.id), label: p.report_period }))]}/></div><div className="grid grid-2"><Field label="生效日期"><Input type="date" value={from} onChange={setFrom}/></Field><Field label="失效日期"><Input type="date" value={until} onChange={setUntil}/></Field></div><div className="row"><Button disabled={busy} onClick={() => void save('active')}>确认并启用</Button><Button disabled={busy} onClick={() => void save('archived')}>停用</Button></div><details><summary>更正历史与来源</summary>{history.data?.items.map(x => <p key={x.id}>#{x.id} · {x.text} · 来源：{x.source || '未说明'} · {x.status === 'active' ? '当前启用' : '已停用或替代'}</p>)}</details></div>;
 }

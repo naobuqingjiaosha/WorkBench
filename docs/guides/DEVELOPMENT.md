@@ -1,8 +1,8 @@
 # 开发与验证指南
 
-文档ID：GUIDE-DEVELOPMENT。版本：1.1。更新：2026-10-24。适用：本仓库开发工作区；不会自动授权日常发布。
+文档ID：GUIDE-DEVELOPMENT。版本：1.2。更新：2026-11-04。适用：本仓库开发工作区；不会自动授权日常发布。
 
-2026-10-26边界更新：仅共享源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例及历史验证产物均保留本机、不上传。旧文中要求随Git携带测试或运行快照的表述由本条替代，具体见[源码与资料边界](DATA_BOUNDARIES.md)。
+共享范围为源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例、夹具、tsconfig.test.json及历史验证产物均保留本机、不上传。具体见[源码与资料边界](DATA_BOUNDARIES.md)，跨机阅读与资源缺项处理见[换机清单](DEVICE_HANDOFF.md)。
 
 首次获取源码后的配置、安装和日常启动见[安装指南](INSTALLATION.md)；根README仅维护项目介绍。
 
@@ -28,13 +28,15 @@ npm ci会重建node_modules；已有环境不是每次任务都要运行，更�
 
 ## 3. 安全的测试入口
 
+应用依赖齐备后可运行npm run typecheck核对源码类型。纯文档任务只执行文档及共享边界检查，不重跑应用测试。
+
+用例齐备时才通过隔离入口运行相关专项，例如：
+
 ```powershell
-npm run typecheck
 node scripts/test-isolated.mjs --unit inspection-drafts
-npm test
 ```
 
-按实际变更选择需要的命令，不要求文档维护运行以上应用测试。完整扩展回归为 `npm run test:all`。
+先确认packages/server/test中存在所需用例及其依赖夹具；npm run typecheck:tests还需要本机tsconfig.test.json。npm test和npm run test:all引用的部分隔离契约脚本与用例同样仅在旧机，不能因根package.json有命令就认为新克隆可运行。缺失时记录未执行及所缺资源；依据当前授权另行接续或在隔离环境重建匿名验证，不创建空测试绕过失败，不连接日常库补样本。按改动范围选检查，不反复运行无关全套。
 
 隔离启动器在子进程执行前设置数据库、文件、运行、备份、OCR、前端等绝对路径，并预加载test-preflight。不要直接运行业务测试文件，也不要先静态import应用再设置隔离变量。
 
