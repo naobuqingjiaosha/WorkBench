@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "4869a7ec69b95f3d8441393b8cbc744880b69b28",
+  "committedBase": "f609016234c3b4cf056742ee35fe2c29fb96f975",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -113,7 +113,7 @@
     },
     {
       "path": "packages/server/src/api/routes-files.ts",
-      "sha256": "1fee65a1b067ba7466b52dce5b414eede3b24906357b3aef830c8c67f34e1f5b"
+      "sha256": "10ae3733bf3f1890ac3e0489d88edd4a50b37fadcba1ad867522dbb0f6047fb9"
     },
     {
       "path": "packages/server/src/api/routes-generate.ts",
@@ -317,7 +317,7 @@
     },
     {
       "path": "packages/server/src/core/trash.ts",
-      "sha256": "c995fa2114d8a2433b85b59ff6a63aa0a0a138809e2a83614f3255a57273bb90"
+      "sha256": "a1a093ea40dec7f15840a7dd0cc37dcd1a0d2b035753a88d3171f0da0f24d196"
     },
     {
       "path": "packages/server/src/core/vision.ts",

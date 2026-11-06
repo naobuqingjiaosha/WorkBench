@@ -817,11 +817,11 @@ export function registerTrashRoutes(app: FastifyInstance): void {
       return ok(reply, {
         ...r,
         withFile,
-        message: r.skipped?.length
+        message: (r.skipped?.length
           ? `已彻底删除记录，但有 ${r.skipped.length} 份磁盘文件按安全规则未删除（只读来源 / 内容与登记不符 / 还被在用记录引用）：${r.skipped.join('；')} —— 不可恢复`
           : withFile
             ? `已彻底删除（含磁盘文件，共删掉 ${r.filesRemoved} 个文件）—— 不可恢复`
-            : '已彻底删除记录（磁盘文件保留）—— 不可恢复',
+            : '已彻底删除记录（磁盘文件保留）—— 不可恢复') + (r.warnings?.length ? `；${r.warnings.join('；')}` : ''),
       });
     } catch (e) {
       return fail(reply, e);
@@ -833,9 +833,9 @@ export function registerTrashRoutes(app: FastifyInstance): void {
       const r = emptyTrash(qInt(req, 'olderThanDays'));
       return ok(reply, {
         ...r,
-        message: r.skipped?.length
+        message: (r.skipped?.length
           ? `已彻底删除 ${r.purged} 项（磁盘文件 ${r.filesRemoved} 个）；另有 ${r.skipped.length} 份磁盘文件按安全规则未删除：${r.skipped.join('；')} —— 不可恢复`
-          : `已彻底删除 ${r.purged} 项（磁盘文件 ${r.filesRemoved} 个）—— 不可恢复`,
+          : `已彻底删除 ${r.purged} 项（磁盘文件 ${r.filesRemoved} 个）—— 不可恢复`) + (r.warnings?.length ? `；${r.warnings.join('；')}` : ''),
       });
     } catch (e) {
       return fail(reply, e);

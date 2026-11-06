@@ -1,10 +1,37 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.18。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.19。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-01 / GOV-11｜单附件彻底删除的数据库失败与文件补偿
+
+**目标与基点：** 按原GOV-01队列选择单附件回收站彻底删除`purgeFromTrash('artifact')`，覆盖与它直接相关的普通软删/恢复，不重做Periods、不重写删除系统。本次Linux Codex Cloud环境/workspace/WorkBench，origin为https://github.com/naobuqingjiaosha/WorkBench.git。初始work/4869a7e干净；实时远端main为f609016234c3b4cf056742ee35fe2c29fb96f975，确认祖先关系后fetch并切main，无覆盖既有修改。环境status可见source_config_id/version，但不显示github-1434044454别名；指定绑定来自委派，不能声称后台别名已独立核验。读AGENTS、GPT_CONTEXT、docs/README、五份根文档、正式GOV/RK/质量与隔离治理；无本仓库.agents/skills。协作01原报告未随Git存在，未以旧报告冒充当前证据。不读真实资料、正式库、配置、模板、成品，不操作Mac或调用模型。
+
+**确证与修改：**
+
+- 修前本地`gov01-repro.ts`经原隔离入口建立完整迁移匿名库、单个合成文本附件和额外RESTRICT引用。实际SQLite拒绝DELETE，artifact记录仍在，但文件已unlink。`/workspace/workbench-cloud/gov01/before.json`及本地复现脚本保留；复现命令退出0只证明缺陷存在，不是修复通过。未发现或宣称真实资料丢失。
+- `packages/server/src/core/trash.ts`：仅单附件withFile路径增加私有临时补偿副本和原路径说明，数据库清理与unlink纳入同一事务；即时外键失败不删原文件，延迟提交失败用COPYFILE_EXCL补回字节。补偿失败/新文件冲突明确报错、保留副本，不覆盖新文件；临时复制失败不改记录。外层事务拒绝带文件删除，避免调用者后续回滚破坏一致性。正常完成清理副本并回收空业务目录；删除已提交但副本清理失败返回warnings。withFile=false、缺文件、原有只读/指纹/在用引用拒绝保留。清空入口只转发单附件返回的清理警告；不修整工作或软删withFile=true逻辑，不新增迁移/依赖/UI/配置。
+- `packages/server/src/api/routes-files.ts`：单项及清空回复message附加清理警告，保留实际purged/filesRemoved字段，不把清理失败写成普通删除失败。
+- `GPT_CONTEXT.md`、`DEVELOPMENT_PROGRESS.md`整合当前main/f609016基点、单附件候选和验证边界；前批Periods与旧Mac结论保留原范围。`SYSTEM_ARCHITECTURE.md`说明私有补偿流程及无崩溃自动恢复边界。
+- `docs/management/PROJECT_PLAN.md`沿GOV-01/GOV-11整合状态，RK-01记录确证缺陷、RK-07区分补偿与备份、RK-08补本批隔离边界；`QUALITY_AND_ACCEPTANCE.md`分列单附件覆盖与未测，GOV-01不整体关闭。`docs/guides/DEVELOPMENT.md`补本地专项重建条件、模拟与实测区别及残留副本处理原则。本条WORK_LOG记录过程，不新建队列或追加CHANGELOG。
+- 运行docs-maintenance刷新`docs/knowledge-index.json`与`docs/reference/source-inventory.json`；生成器复核docs/README，无需手改。
+- 新增本机忽略测试`packages/server/test/gov01-repro.ts`、`gov01-artifact.ts`与源码外`/workspace/workbench-cloud/gov01`证据；全部不进入Git。没有新增可上传测试或虚构夹具。
+
+**自检证据：**
+
+- 最终`node scripts/test-isolated.mjs --unit gov01-artifact`退出0，17组通过；结果在`/workspace/workbench-cloud/gov01/run-D7iZgf/results.json`，日志test-final.log。包括普通软删/重复/恢复/重复恢复/HTTP彻底删除重试、即时RESTRICT、延迟外键提交失败补偿、模拟unlink EBUSY与EPERM、复制ENOSPC、补偿失败保留副本、补偿冲突保护新文件、已提交清理警告、withFile=false、缺文件恢复警告、指纹/在用引用/只读拒绝、外层事务拒绝、关联工作恢复同步失败回滚重试、清空入口警告转发。失败分支逐表比较全部SQLite表行，并直接读取实际文件字节；最终foreign_key_check为空。HTTP只注册本批现有回收站路由，不冒充完整应用或页面验收。
+- 第一次测试13组通过后在“只读根”测试失败：夹具错误地把平台DATA_ROOT声明为只读，生产规则明确忽略这种声明。修正本地夹具为隔离根内独立外部目录后15组通过（run-bdhBWU）；再补关联恢复/警告转发两组，最终17组通过。原失败run-vwJIH6及test-first.log保留，不改业务安全规则以适配测试；次数不累计扩大覆盖。
+- `npm run typecheck`server/web通过；`npm --workspace @workbench/web run build -- --outDir /tmp/workbench-gov01-build-y8zqlf/dist`成功（78模块）；无前端源码变更。`npm run repo:check`258项通过；差异检查通过。没有安装依赖或改锁文件。
+- `npm test`及`npm run typecheck:tests`未执行：旧packages/server/test套件、scripts/test-isolation-contract.mjs和tsconfig.test.json缺失；本地最小专项不能替代完整套件。Windows文件锁/权限、Office、真实工时/模型、完整UI、跨进程压力、断电/进程崩溃自动恢复、整工作/阶段/批量矩阵、软删withFile=true未验，不列为本批完成。
+
+**独立验收：** 一名全新、未参与实施的审查者在冻结后只读审查共享源码/文档与测试，未修改候选。`/workspace/workbench-cloud/gov01/independent/REPORT.md`结论PASS，无阻断；冻结258共享文件及2作者本地测试共260项前后哈希匹配，补丁SHA256为e7f6e56d413f5370ac707b5b564ccfacc4b0adc7aaea6d0b8958d2d8ca41aea7。原17组独立复跑通过（run-tWZj3N），新增本地忽略`gov01-independent.ts`的12组补测通过；包括真实business_ai_run外键、非空依赖图/FTS即时与延迟回滚、65,537字节二进制恢复、manifest/目录清理失败、复制期间指纹/引用重查、withFile=false外层回滚、恢复父目录链接拒绝、零字节/重试。常规77表，带测试约束78表，逐表完整行摘要及文件字节对照保存在supplement-results.json；次数分开记录，不累计成全系统覆盖。独立server/web类型、diff及docs检查通过，两临时根已删、36143端口已关闭，cleanup.json确认。未把作者修前复现称为独立重现。独立通过后只更新文档验收状态、DEVELOPMENT修订号与前批GOV-13已推送事实，刷新索引，不改应用或测试。
+
+**五份根文档复核：** GPT_CONTEXT替换已过时的前批开工状态，指向当前单附件限定任务；CONTEXT全文核对，术语不变，正文不改；PRODUCT_REQUIREMENTS全文核对，既有PR-08/完整性验收条件足够、业务要求不变，正文不改；SYSTEM_ARCHITECTURE整合实际补偿结构和非整体事务边界；DEVELOPMENT_PROGRESS更新基点/能力/验证/未完成项，历史证据不冒充本机复跑。
+
+**清理与交付：** 每轮专项在finally关闭HTTP与SQLite，外层test-isolated删除其专属临时根；模拟补偿失败保留检查后由用例明确清理自有副本。没有浏览器或长期测试服务。作者cleanup-author.json确认4个自建根已删、3端口关闭、构建目录已删；独立cleanup.json另确认2个自建根及端口释放。必要匿名证据与源码保留。限定独立验收已通过、源码/文档已保存；本条正文写于提交前，不预记提交/推送结果。用户已授权每轮验收后普通提交推送对应GitHub main，仅精确暂存本批12份共享文件，测试/夹具/证据不上传；提交前后核对远端main，遇并发停止。云克隆原pre-commit/pre-push为0600，将仅在执行期间临时启用原钩子并恢复权限，不跳过保护、不改安全设置。实际SHA、推送/CI和最终Git状态以Git及执行回报核对；正式发布与真实业务验收未执行。
 
 ## 2026-11-06｜GOV-13 / GOV-11｜云端Periods冗余查询清理与限定回归
 

@@ -1,6 +1,6 @@
 # AI 项目接续入口
 
-文档ID：KB-AI-ENTRY。版本：1.30。更新：2026-11-06。性质：AI接续所需的最小上下文和阅读路线。
+文档ID：KB-AI-ENTRY。版本：1.31。更新：2026-11-06。性质：AI接续所需的最小上下文和阅读路线。
 
 工作台是Windows本机、单用户应用，以工作、期次、阶段、资料和成果组织行政管理及项目实施。技术上为React前端、Fastify后端、SQLite与磁盘文件；AI辅助起草、检索和整理。项目介绍由[README](README.md)维护。
 
@@ -16,13 +16,13 @@ README只介绍项目；本文不替代需求、完整架构或历史变更记�
 
 ## 2. 接续所需的项目状态
 
-- 当前接续环境为Linux Codex Cloud，仓库naobuqingjiaosha/WorkBench，检出分支work；2026-11-06本批验收及提交前实查HEAD与远端main均为4869a7ec69b95f3d8441393b8cbc744880b69b28。已有流程配置两阶段、共享模板映射、关联保护与旧文书指纹P2修复全部保留；Mac限定独立验收是历史证据，不代表云端全套已通过。Periods限定清理已通过云端独立验收；本地测试等待和清单中文路径两项P3已修正，原小套件连续两次复验通过。本批候选及未验收边界统一见[开发进度](DEVELOPMENT_PROGRESS.md)。没有操作Mac、迁移真实数据或发布。
+- 当前接续环境为Linux Codex Cloud，仓库naobuqingjiaosha/WorkBench，分支main，GOV-01开工基点与远端核对为f609016234c3b4cf056742ee35fe2c29fb96f975；上一批Periods限定清理已提交推送，本批不重做。当前单附件彻底删除的外键失败丢文件已在匿名库确证并最小修复，17组合成自检通过，候选已通过限定独立复核（原17组重跑与独立12组补测分别通过）；完整删除矩阵、Windows实测及日常发布未完成。已有流程配置与Mac限定独立验收保留原范围。当前能力、候选及未验收边界统一见[开发进度](DEVELOPMENT_PROGRESS.md)。
 - 源码、运行配置、真实数据和测试在设计上分离。开发使用独立根和默认18889，代理核对development及数据库身份；测试只用隔离入口。
 - 测试用例和所有夹具仅留本机，不上传。新克隆缺少用例时明确说明，不能连接日常数据补测试。
 - 用户已授权GOV-02/GOV-13流程配置优化，两阶段及其修复已通过既定范围Mac独立验收，源码已包含在当前云端与远端基点。两项保存问题的实现与验证边界见风险表和质量矩阵；旧全套测试及夹具未随源码接续，本机新增匿名专项只留本地。上传未收到编号时仍不保证幂等。源码保存、独立复核、发布和业务验收分别判断，不因本轮通过扩展为全系统完成。
 - 旧远端敏感历史清理、实际资料迁移和新架构日常发布仍待单独处理。旧布局兼容保留，源码同步不代表资料已迁移或已发布。
 
-不同电脑上的Codex不需要访问本轮聊天即可接续：项目定位读README与需求，结构与运行读SYSTEM_ARCHITECTURE，已完成/未完成读DEVELOPMENT_PROGRESS，验证范围读[QUALITY_AND_ACCEPTANCE](docs/management/QUALITY_AND_ACCEPTANCE.md)，两项缺陷读[RISKS_AND_DECISIONS](docs/management/RISKS_AND_DECISIONS.md)，顺序只读PROJECT_PLAN，具体换机检查读[DEVICE_HANDOFF](docs/guides/DEVICE_HANDOFF.md)。工作日志保存历史经过，不能替代当前计划。原始测试证据只在旧机；缺失必须说明，不能以旧通过数替代新机验证。
+不同电脑上的Codex不需要访问本轮聊天即可接续：项目定位读README与需求，结构与运行读SYSTEM_ARCHITECTURE，已完成/未完成读DEVELOPMENT_PROGRESS，验证范围读[QUALITY_AND_ACCEPTANCE](docs/management/QUALITY_AND_ACCEPTANCE.md)，两项缺陷读[RISKS_AND_DECISIONS](docs/management/RISKS_AND_DECISIONS.md)，顺序只读PROJECT_PLAN，具体换机检查读[DEVICE_HANDOFF](docs/guides/DEVICE_HANDOFF.md)。工作日志保存历史经过，不能替代当前计划。历史原始测试证据只在对应旧环境，本批匿名证据只留当前云环境；缺失必须说明，不能以旧通过数替代新机验证。
 
 ## 3. 必须保持的业务边界
 

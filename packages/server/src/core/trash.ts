@@ -26,12 +26,12 @@ import {syncEvidence} from './checklist.ts';
  * import 本模块的过滤片段，本模块反过来 import 它们就成环了。所以这里只有 DB 原语，
  * 需要刷新进度时动态 import（`checklist.ts` 不依赖本模块，静态 import 也是安全的）。
  */
-import { existsSync, readdirSync, rmdirSync, statSync, unlinkSync } from 'node:fs';
+import { constants, copyFileSync, existsSync, mkdtempSync, readdirSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { all, get, run, tx } from '../db/index.ts';
-import { DATA_ROOT } from './config.ts';
+import { all, get, getDb, run, tx } from '../db/index.ts';
+import { DATA_ROOT, RUNTIME_ROOT } from './config.ts';
 import {
-  assertDeletableFile, artifactFileAbs, canUse, grantOf, isInsideRoot, parseRootId,
+  assertDeletableFile, assertNoPathLinks, artifactFileAbs, canUse, ensureDir, grantOf, isInsideRoot, parseRootId,
   SafetyRefusal, samePathKey,
 } from './paths.ts';
 import { segCJK } from './search.ts';
@@ -605,6 +605,8 @@ function restoreFromTrashInner(kind: string, id: number): RestoreResult {
 export interface PurgeResult {
   purged: true;
   filesRemoved: number;
+  /** 删除已提交，但临时补偿副本未清理完；不能伪装成普通删除失败。 */
+  warnings?: string[];
   /**
    * 按安全阀**跳过**的磁盘文件与原因（只读来源 / 内容与登记不符 / 还被在用记录引用）。
    * 有值时界面必须把原因说出来 —— "说了彻底删除却一个文件没删掉"最让人摸不着头脑。
@@ -753,6 +755,66 @@ function removeArtifactFile(info: ArtifactFileInfo): { removed: number; skipped:
   unlinkSync(abs);
   pruneEmptyDirsUpTo(abs);
   return { removed: 1, skipped: null };
+}
+
+/**
+ * 单附件：先完成数据库删除，再在同一事务内删文件；提交失败时用私有副本补偿。
+ * 副本位于运行目录，不进入业务文件列表。恢复只用 EXCL，不覆盖后来出现的文件。
+ * 不提供断电/进程崩溃自动恢复；残留目录含原路径说明，须人工核对数据库后处理。
+ */
+function purgeArtifactWithFile(info: ArtifactFileInfo, deleteRows: () => void): PurgeResult {
+  // 外层事务仍可能回滚；在它提交前不能永久删除文件或清理补偿副本。
+  if (getDb().isTransaction) throw new Error('带文件的彻底删除不能在外层事务内执行');
+  const abs = artifactAbsPathFor(info);
+  if (!abs || !existsSync(abs)) {
+    tx(deleteRows);
+    return { purged: true, filesRemoved: 0 };
+  }
+  assertDeletableFile(abs, info, '文件');
+  assertNoOtherLiveArtifactRefers(info);
+  const recoveryDir = mkdtempSync(join(ensureDir(join(RUNTIME_ROOT, 'purge-recovery')), `${info.id}-`));
+  const backup = join(recoveryDir, 'file');
+  const manifest = join(recoveryDir, 'recovery.json');
+  const cleanup = (): string | null => {
+    try {
+      if (existsSync(backup)) unlinkSync(backup);
+      if (existsSync(manifest)) unlinkSync(manifest);
+      rmdirSync(recoveryDir);
+      return null;
+    } catch (e) {
+      return `删除补偿目录未清理完，请核对后处理：${recoveryDir}（${(e as Error).message}）`;
+    }
+  };
+  let removed = false;
+  try {
+    writeFileSync(manifest, JSON.stringify({ artifactId: info.id, originalPath: abs }), { flag: 'wx' });
+    copyFileSync(abs, backup, constants.COPYFILE_EXCL);
+    // 复制期间原文件可能改变；登记指纹和在用引用仍须在删除前有效。
+    assertDeletableFile(abs, info, '文件');
+    tx(() => {
+      assertNoOtherLiveArtifactRefers(info);
+      deleteRows();
+      assertDeletableFile(abs, info, '文件');
+      unlinkSync(abs);
+      removed = true;
+    });
+  } catch (e) {
+    if (removed) {
+      try {
+        assertNoPathLinks(abs);
+        copyFileSync(backup, abs, constants.COPYFILE_EXCL);
+      } catch (restoreError) {
+        // 保留副本及原路径，明确提示补偿失败；绝不覆盖冲突文件或删掉唯一副本。
+        throw new Error(`彻底删除失败：${(e as Error).message}；文件补偿失败：${(restoreError as Error).message}；请核对数据库和原路径，补偿副本保留在 ${recoveryDir}`);
+      }
+    }
+    const warning = cleanup();
+    if (warning) throw new Error(`彻底删除失败：${(e as Error).message}；${warning}`);
+    throw e;
+  }
+  const warning = cleanup();
+  pruneEmptyDirsUpTo(abs);
+  return { purged: true, filesRemoved: 1, ...(warning ? { warnings: [warning] } : {}) };
 }
 
 /**
@@ -913,20 +975,14 @@ export function purgeFromTrash(kind: string, id: number, opts: { withFile?: bool
       [id],
     );
     if (!deleted?.deleted_at) throw new Error('这份文件还没有移到回收站，不能直接彻底删除。请先删除它（移到回收站），再在回收站里彻底删除');
-    let filesRemoved = 0;
-    const skipped: string[] = [];
-    if (withFile) {
-      const r = removeArtifactFile(a);
-      filesRemoved += r.removed;
-      if (r.skipped) skipped.push(`${a.file_rel}（${r.skipped}）`);
-    }
-    tx(() => {
+    const deleteRows = () => {
       run('DELETE FROM artifact_search WHERE id = ?', [id]);
       // 彻底删除：不按 deleted_at IS NULL 过滤，这条记录本身就在回收站里
       purgeRows('artifact', 'id = ?', [id]);
-    });
-    if (skipped.length) console.warn(`[回收站] 文件 #${id} 彻底删除时按规则跳过了磁盘文件：${skipped.join('；')}`);
-    return { purged: true, filesRemoved, skipped: skipped.length ? skipped : undefined };
+    };
+    if (withFile) return purgeArtifactWithFile(a, deleteRows);
+    tx(deleteRows);
+    return { purged: true, filesRemoved: 0 };
   }
 
   if (kind === 'position') {
@@ -1026,6 +1082,7 @@ function recyclePlatformDirs(workbenchId: number): void {
 export interface EmptyTrashResult {
   purged: number;
   filesRemoved: number;
+  warnings?: string[];
   /** 按安全阀跳过的磁盘文件（只读来源 / 内容与登记不符 / 还被在用记录引用） */
   skipped?: string[];
 }
@@ -1041,6 +1098,7 @@ export function emptyTrash(olderThanDays?: number): EmptyTrashResult {
   let purged = 0;
   let filesRemoved = 0;
   const skipped: string[] = [];
+  const warnings: string[] = [];
   const entries = listTrash({ limit: 2000 });
   for (const e of entries) {
     if (cutoff && e.deletedAt >= cutoff) continue;
@@ -1049,11 +1107,12 @@ export function emptyTrash(olderThanDays?: number): EmptyTrashResult {
       purged += 1;
       filesRemoved += r.filesRemoved;
       if (r.skipped?.length) skipped.push(...r.skipped);
+      if (r.warnings?.length) warnings.push(...r.warnings);
     } catch (err) {
       console.warn(`[回收站] 清空时跳过 ${e.kind} #${e.id}：${(err as Error).message}`);
     }
   }
-  return { purged, filesRemoved, skipped: skipped.length ? skipped : undefined };
+  return { purged, filesRemoved, skipped: skipped.length ? skipped : undefined, ...(warnings.length ? { warnings } : {}) };
 }
 
 /** 回收站规模（界面上的角标/概览用） */
