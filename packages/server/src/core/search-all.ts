@@ -24,7 +24,7 @@
 import { all } from '../db/index.ts';
 import { KB_DECISION_STALE } from './kb.ts';
 import { buildMatch } from './search.ts';
-import { liveFilter, visibleArtifactFilter } from './trash.ts';
+import { liveFilter, visibleArtifactFilter, visibleKbDocumentFilter } from './trash.ts';
 
 /* ============================== 类型（对外契约） ============================== */
 
@@ -523,7 +523,7 @@ function searchKb(terms: string[], pool: number, atOf: Map<string, string>): Sea
             (SELECT COUNT(*) FROM kb_chunk c3 WHERE c3.document_id = d.id AND (${chunkMatch('c3')})) AS body_hits
        FROM kb_document d
        LEFT JOIN artifact a ON a.id = d.artifact_id
-      WHERE ${KB_STALE_GUARD} AND ((${like.sql}) OR (${chunkExists}))
+      WHERE ${visibleKbDocumentFilter('d')} AND ${KB_STALE_GUARD} AND ((${like.sql}) OR (${chunkExists}))
       ORDER BY d.id DESC
       LIMIT ?`,
     // 参数顺序与 ? 出现顺序一致：子查询 body → 子查询 body_hits → 主字段 LIKE → EXISTS → LIMIT

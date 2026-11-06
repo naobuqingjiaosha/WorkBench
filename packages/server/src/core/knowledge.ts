@@ -18,6 +18,7 @@ import { join } from 'node:path';
 import { all, run, tx } from '../db/index.ts';
 import { DATA_ROOT } from './config.ts';
 import { buildMatch, segCJK } from './search.ts';
+import { visibleKbDocumentFilter } from './trash.ts';
 
 export type KnowledgeSource = 'template' | 'policy';
 
@@ -233,7 +234,7 @@ async function searchPolicies(keyword: string, limit: number, documentIds: numbe
   if (!keyword.trim()) return { hits: [] };
   const docs = all<{ id: number; title: string; doc_no: string | null; scope_layer: string | null; artifact_id: number | null }>(
     `SELECT id,title,doc_no,scope_layer,artifact_id FROM kb_document
-     WHERE (decision IS NULL OR decision='active')
+     WHERE ${visibleKbDocumentFilter()} AND (decision IS NULL OR decision='active')
        AND (version_status IS NULL OR version_status IN ('current','final'))`);
   const eligible = new Map(docs.filter(d => (!documentIds.length || documentIds.includes(d.id))
     && (!authorityOnly || d.scope_layer !== 'reference')).map(d => [d.id, d]));
@@ -320,7 +321,11 @@ export async function searchKnowledge(
       ? searchPolicies(kw, budget, opts.documentIds, opts.authorityOnly)
       : Promise.resolve({ hits: [] as KnowledgeHit[], error: undefined as string | undefined }),
   ]);
-  const polHits = polRes.hits;
+  // await期间工作可能被删除；返回前再按当前可见性与既有制度口径核对。
+  const currentPolicyIds = modules.includes('policy') ? new Set(all<{id:number}>(`SELECT id FROM kb_document
+    WHERE ${visibleKbDocumentFilter()} AND (decision IS NULL OR decision='active')
+      AND (version_status IS NULL OR version_status IN ('current','final'))`).map(d => d.id)) : new Set<number>();
+  const polHits = polRes.hits.filter(h => currentPolicyIds.has(h.documentId!));
 
   const merged = modules.length === 1 && modules[0] === 'policy' ? polHits
     : [...tplHits, ...polHits].sort((a, b) => b.score - a.score).slice(0, budget);
@@ -328,7 +333,7 @@ export async function searchKnowledge(
     ok: true,
     hits: merged,
     counts: { template: tplHits.length, policy: polHits.length },
-    corpus,
+    corpus: kbCorpus(modules.includes('policy')),
     // 两个模块都空时给个能解释的原因
     error: polRes.error,
   };
@@ -336,8 +341,8 @@ export async function searchKnowledge(
 
 function kbCorpus(includePolicy: boolean): { templates: number; documents: number; chunks: number } {
   const templates = all<{ n: number }>('SELECT COUNT(*) AS n FROM template WHERE archived_at IS NULL')[0]?.n ?? 0;
-  const documents = includePolicy ? all<{ n: number }>('SELECT COUNT(*) AS n FROM kb_document')[0]?.n ?? 0 : 0;
-  const chunks = includePolicy ? all<{ n: number }>('SELECT COUNT(*) AS n FROM kb_chunk')[0]?.n ?? 0 : 0;
+  const documents = includePolicy ? all<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_document WHERE ${visibleKbDocumentFilter()}`)[0]?.n ?? 0 : 0;
+  const chunks = includePolicy ? all<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_chunk WHERE EXISTS (SELECT 1 FROM kb_document d WHERE d.id=kb_chunk.document_id AND ${visibleKbDocumentFilter('d')})`)[0]?.n ?? 0 : 0;
   return { templates, documents, chunks };
 }
 

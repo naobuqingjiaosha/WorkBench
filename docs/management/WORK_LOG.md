@@ -1,10 +1,26 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.22。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.23。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-01 / GOV-11｜整工作软删知识可见性与恢复一致性
+
+**范围与依据：** Linux Codex Cloud接续main/5fd56249be81639e1b280d88b9af1d3d3c3c8e2f，HEAD与实时远端一致、工作区干净，仓库naobuqingjiaosha/WorkBench；重读AGENTS、根接续/术语/需求/架构/进度、docs入口、GOV/RK及隔离说明，.agents/skills不存在，沿用已读取云环境运行技能。PR-08要求软删/恢复关联保护；trash读契约及softDeleteWorkbench明确“进回收站=从检索消失”，无依据支持其派生知识继续活动引用。仅整工作软删后的活动读取和本轮在途引用，不重做删除架构、不物理删KB、不改UI，不读真实库/模板/配置/凭证，不调用真实模型。
+
+**修前确证：** gov01-kb-visibility-repro经原隔离入口、实际SQLite/原KB与助手路由注入及回环AI替身完成4组：软删后列表、直接正文/条款、全文/语义/全局与实际search_knowledge助手仍返回合成标识；等待embedding响应期间删除仍返回旧片段；等待KB问答或助手最终chat响应期间删除仍返回旧正文/引用。KB原行与磁盘字节未变、恢复后可读。证据`/workspace/workbench-cloud/gov01-kb-visibility/before.json`及before.log；复现退出0不是修复通过，无真实用户资料泄漏证据。
+
+**8个源码文件与最小变化：** trash.ts增加复用既有visibleArtifactFilter的知识可见性SQL片段，无附件知识不受父工作过滤。kb.ts在列表/正文/片段/统计和缓存返回处过滤，缓存保留原片段向量以便恢复，不污染事务回滚；semantic/hybrid在await后复核。knowledge.ts为统一制度检索、显式ID及语料统计过滤并在返回前重核。kb-extract.ts片段FTS、search-all.ts全局KB、kb-cite.ts条款/文档匹配共用谓词。routes-kb.ts对齐统计、条款选择器和问答，模型前后来源不可见则409，避免回传旧答案。agent.ts仅记录本轮制度检索文档ID，在后续模型调用前/后及保存前复核；变化时撤回本轮答案和检索trace并提示重新查询。未改变整工作删除/恢复写入、文件补偿、stale/版本业务规则，未新增依赖/迁移/持久引擎。已返回历史会话不改写，已发送本地模型的上下文不能撤回。
+
+**自检与本地证据：** 新专项20组通过（run-4Liogm/results.json、test-first.log）：列表/正文/条款/FTS/语义/全局/实际助手、删除/恢复的KB行向量和文件字节保留、独立知识/正常工作/无父附件、先删子项、单独父标记、stale、暖/冷缓存、删除触发器与恢复sync故障全表回滚、外层删除/恢复回滚、embedding/hybrid/统一检索await复核、KB回答409与助手本轮持久trace撤回、topK/显式ID/统计、单附件仍需重导入。回归副本仅改输出目录：软删21（run-N3yIai）+P2组合3（fix-FTrfSQ）、单附件17（single-run-EojUvd）、整工作22（run-PRBtRU）、清空12（api-y3y7oH）均通过。类型及78模块隔离构建通过（typecheck-candidate.log/build-candidate.log），仅输出/tmp/workbench-gov01-kb-build/dist。原测试与前批证据不改，不累计运行次数扩大覆盖。
+
+**独立验收：** 首轮265项及补丁dacf6af2b65ee21f75bf58fc24194bc1ce7351366ae43fa0162d5731ba0c0938由全新审查者只读核对，原20+75组亲自复跑通过。独立反向6组5过1失败，确证P2/F1：多轮助手把命中原文作为后续search_knowledge.query，来源在第三轮响应时删除，最终答案虽撤回，trace.args仍随HTTP响应返回并保存在新agent_message.tool_calls；直接隔离DB证据见independent/extra-r0TXTg，首轮报告independent/REPORT.md保留。原20组第17组通过消息API验证正文，接口未返回tool_calls，不能证明落库trace无残留；已增强为直接SELECT content,tool_calls。限定修复仅在撤回本轮知识trace时同时清空args，保留工具名和固定状态；既有历史消息不改写。作者原20组增强重跑（run-fpbCHT）及原独立失败单项的只改输出路径副本（fix-mKnBbA）通过，typecheck-r2通过。新冻结266项及补丁9e383ae874865f4a38bdbd232b8f55479e4b450d8c7aacdebfeb312835475c38经独立复验通过（independent/RECHECK.md）：增强20组及独立6组全过，第6组并入原v3直接DB失败断言，未降低要求；撤回时响应和DB均args={}且无来源标记，正常trace原样、历史消息完整行不变，F1/P2解除。前后266项无变化；旧75组本轮未重复，保留首轮本人通过的原范围。独立初版曾误期望已删父的子附件恢复抛错，实际契约是恢复成功带警告、父过滤仍隐藏；修正测试预期后的v2通过对应场景，旧失败保留，不列为应用缺陷或累加覆盖。
+
+**五份根文档与治理：** 全文复核GPT_CONTEXT、CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE、DEVELOPMENT_PROGRESS；术语无变保持CONTEXT，其余整合接续基点、PR-08活动可见性、共享过滤/缓存/异步边界与当前验证。现有GOV-01/11、RK-01、质量矩阵、开发指南3.13及本条日志同步，修正指南旧“软删带文件未验”链接到3.12；生成知识/源码索引，不新建任务队列，不追逐committedBase自指。
+
+**边界、清理与交付：** 全部AI调用仅匿名本地替身，纯后端API不代表UI/真实模型或全应用鉴权；历史会话/维护报告全链未验，Windows锁、跨盘/跨进程/崩溃、真实业务/Office及完整旧npm test/typecheck:tests资源未具备。GOV-01未整体关闭。隔离DB/合成文件与服务运行后关闭并由runner清根，作者构建目录已清理，首轮独立9次运行的根与6端口已清理；新冻结复验两隔离根及两AI端口亦已清理；原始证据仅云端本地。源码/正式文档已保存并限定独立验收通过，文档/仓库边界/差异检查通过；本条在提交前定稿，按用户授权审查精确暂存并执行原钩子普通提交推送main，前后核对并发及CI，最终SHA及远端状态以交付核验为准；不强推、不部署。建议提交标题：fix(kb): hide trashed workbench knowledge from active retrieval。
 
 ## 2026-11-06｜GOV-01 / GOV-11｜附件带文件软删除失败一致性
 

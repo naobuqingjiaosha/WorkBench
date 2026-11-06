@@ -11,6 +11,7 @@
  *            在这个量级下不需要 HNSW 之类的索引结构。
  */
 import { all, get, getDb, run, tx } from '../db/index.ts';
+import { visibleArtifactFilter, visibleKbDocumentFilter } from './trash.ts';
 import { embed,embeddingSignature } from '../ai/gateway.ts';
 import type { AiPurpose } from '../ai/providers.ts';
 import { segCJK } from './search.ts';
@@ -461,18 +462,19 @@ export function listKbDocuments(): (KbDocument & { embedded_count: number; file_
             (SELECT COUNT(*) FROM kb_chunk c WHERE c.document_id = d.id AND c.embedding IS NOT NULL) AS embedded_count,
             a.file_name, a.workbench_id
        FROM kb_document d LEFT JOIN artifact a ON a.id = d.artifact_id
-      ORDER BY d.id DESC`,
+      WHERE ${visibleKbDocumentFilter('d')} ORDER BY d.id DESC`,
   );
 }
 
 export function getKbDocument(id: number): KbDocument | undefined {
-  return get<KbDocument>('SELECT * FROM kb_document WHERE id = ?', [id]);
+  return get<KbDocument>(`SELECT * FROM kb_document WHERE id = ? AND ${visibleKbDocumentFilter()}`, [id]);
 }
 
 export function listKbChunks(documentId: number, limit = 200): { id: number; seq: number; heading: string | null; content: string; has_vector: number }[] {
   return all(
     `SELECT id, seq, heading, content, CASE WHEN embedding IS NULL THEN 0 ELSE 1 END AS has_vector
-       FROM kb_chunk WHERE document_id = ? ORDER BY seq LIMIT ?`,
+       FROM kb_chunk WHERE document_id = ? AND EXISTS (SELECT 1 FROM kb_document d
+         WHERE d.id=kb_chunk.document_id AND ${visibleKbDocumentFilter('d')}) ORDER BY seq LIMIT ?`,
     [documentId, limit],
   );
 }
@@ -815,13 +817,14 @@ export function kbStats(): {
   dims: number | null;
   models: string[];
 } {
-  const documents = get<{ n: number }>('SELECT COUNT(*) AS n FROM kb_document')?.n ?? 0;
-  const chunks = get<{ n: number }>('SELECT COUNT(*) AS n FROM kb_chunk')?.n ?? 0;
-  const embedded = get<{ n: number }>('SELECT COUNT(*) AS n FROM kb_chunk WHERE embedding IS NOT NULL')?.n ?? 0;
-  const sample = get<{ embedding: Uint8Array | null }>('SELECT embedding FROM kb_chunk WHERE embedding IS NOT NULL LIMIT 1');
+  const documents = get<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_document WHERE ${visibleKbDocumentFilter()}`)?.n ?? 0;
+  const chunkVisible = `EXISTS (SELECT 1 FROM kb_document d WHERE d.id=kb_chunk.document_id AND ${visibleKbDocumentFilter('d')})`;
+  const chunks = get<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_chunk WHERE ${chunkVisible}`)?.n ?? 0;
+  const embedded = get<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_chunk WHERE embedding IS NOT NULL AND ${chunkVisible}`)?.n ?? 0;
+  const sample = get<{ embedding: Uint8Array | null }>(`SELECT embedding FROM kb_chunk WHERE embedding IS NOT NULL AND ${chunkVisible} LIMIT 1`);
   const dims = sample?.embedding ? sample.embedding.byteLength / 4 : null;
   const models = all<{ embedding_model: string | null }>(
-    'SELECT DISTINCT embedding_model FROM kb_chunk WHERE embedding IS NOT NULL AND embedding_model IS NOT NULL LIMIT 10',
+    `SELECT DISTINCT embedding_model FROM kb_chunk WHERE embedding IS NOT NULL AND embedding_model IS NOT NULL AND ${chunkVisible} LIMIT 10`,
   )
     .map((m) => m.embedding_model)
     .filter((m): m is string => Boolean(m));
@@ -867,11 +870,18 @@ export function invalidateCache(): void {
   matrix = null;
 }
 
+/** 缓存保留原片段与向量；每次返回按当前事务可见状态过滤，恢复不等待TTL。 */
+function visibleMatrix(chunks: CachedChunk[]): CachedChunk[] {
+  const ids = new Set(all<{ id: number }>(`SELECT id FROM kb_document
+    WHERE ${visibleKbDocumentFilter()} AND (decision IS NULL OR decision <> '${KB_DECISION_STALE}')`).map(d => d.id));
+  return chunks.filter(c => ids.has(c.documentId));
+}
+
 /** 把全部向量读进内存（带 30 秒缓存，避免每次搜索都读库） */
 function buildMatrix(force = false): CachedChunk[] {
   // 事务内读取当前行，且不把尚可回滚的结果放入全局缓存。
   const inTransaction = getDb().isTransaction;
-  if (!inTransaction && matrix && !force && Date.now() - matrixBuiltAt < 30_000) return matrix;
+  if (!inTransaction && matrix && !force && Date.now() - matrixBuiltAt < 30_000) return visibleMatrix(matrix);
   /**
    * 失效文档（`decision='stale'`）的向量**留在库里但不参与检索** —— 这正是"标记失效"
    * 与"删库"的区别：换口径后不该被检索到的，检索不到（口径照样生效），
@@ -889,7 +899,7 @@ function buildMatrix(force = false): CachedChunk[] {
     m.push({ id: r.id, documentId: r.document_id, seq: r.seq, heading: r.heading, content: r.content, vector: v,signature:r.embedding_model ?? '' });
   }
   if (!inTransaction) { matrix = m; matrixBuiltAt = Date.now(); }
-  return m;
+  return visibleMatrix(m);
 }
 
 export interface SemanticHit {
@@ -916,7 +926,7 @@ export interface SemanticSearchResult {
 
 /** 语义检索：把问题向量化，和全部块算余弦相似度，取 topK */
 export async function semanticSearch(query: string, topK = 8, minScore = 0.2, opts: { documentIds?: number[] } = {}): Promise<SemanticSearchResult> {
-  const m = buildMatrix().filter(c => !opts.documentIds || opts.documentIds.includes(c.documentId));
+  let m = buildMatrix().filter(c => !opts.documentIds || opts.documentIds.includes(c.documentId));
   const corpus = { chunks: m.length, documents: kbStats().documents };
   if (!query.trim()) return { ok: true, hits: [], corpus };
   if (!m.length) {
@@ -924,6 +934,9 @@ export async function semanticSearch(query: string, topK = 8, minScore = 0.2, op
   }
 
   const res = await embed([query]);
+  m = visibleMatrix(m);
+  corpus.chunks = m.length; corpus.documents = kbStats().documents;
+  if (!m.length) return { ok: true, hits: [], corpus };
   if (!res.ok || !res.vectors[0]) {
     return { ok: false, hits: [], corpus, error: res.error ?? '查询向量化失败' };
   }
@@ -943,7 +956,7 @@ export async function semanticSearch(query: string, topK = 8, minScore = 0.2, op
   for (const id of docIds) {
     const row = get<{ title: string; doc_type: string | null; file_rel: string | null; artifact_id: number | null; workbench_id: number | null }>(
       `SELECT d.title, d.doc_type, a.file_rel, d.artifact_id, a.workbench_id
-         FROM kb_document d LEFT JOIN artifact a ON a.id = d.artifact_id WHERE d.id = ?`,
+         FROM kb_document d LEFT JOIN artifact a ON a.id = d.artifact_id WHERE d.id = ? AND ${visibleKbDocumentFilter('d')}`,
       [id],
     );
     if (row) docs.set(id, row);
@@ -952,7 +965,7 @@ export async function semanticSearch(query: string, topK = 8, minScore = 0.2, op
   return {
     ok: true,
     corpus,
-    hits: scored.map((s) => {
+    hits: scored.filter(s => docs.has(s.c.documentId)).map((s) => {
       const d = docs.get(s.c.documentId);
       return {
         chunkId: s.c.id,
@@ -992,19 +1005,22 @@ export async function hybridSearch(
   // 纯标点/纯符号的查询（`q=*`、`q=()`）切不出词，buildFtsQuery 返回空串 —— 这时必须
   // **整段跳过**：把空串喂给 MATCH 只会得到 FTS5 语法错，整条请求 500。
   const fts = buildFtsQuery(query);
-  const raw = fts
+  let raw = fts
     ? all<{ id: number; title: string; file_name: string; workbench_id: number | null; score: number }>(
         `SELECT a.id, a.title, a.file_name, a.workbench_id, bm25(artifact_fts, 10.0, 3.0) AS score
            FROM artifact_fts f
            JOIN artifact_search s ON s.id = f.rowid
            JOIN artifact a ON a.id = s.id
-          WHERE artifact_fts MATCH ?
+          WHERE artifact_fts MATCH ? AND ${visibleArtifactFilter('a')}
           ORDER BY score ASC LIMIT ?`,
         [fts, topK * 2],
       )
     : [];
 
   const sem = await semanticSearch(query, topK * 2);
+  // 全文结果也可能在等待向量服务时进入回收站。
+  raw = raw.filter(r => !!get(`SELECT id FROM artifact WHERE id=? AND ${visibleArtifactFilter()}`, [r.id]));
+  sem.hits = sem.hits.filter(h => !!getKbDocument(h.documentId));
 
   // 没有全文条件、语义又用不了：两半段都给不出结果，直接回空结果和原因，
   // 不要再往下堆一个空壳 merged 让人以为"搜过了但什么都没有"。

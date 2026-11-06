@@ -34,6 +34,7 @@ import { RUNTIME_ROOT, getSetting } from './config.ts';
 import { extractAnyFromBuffer, extractDocxHead } from './extract.ts';
 import { isIgnoredName } from './ignore.ts';
 import { toPosix } from './paths.ts';
+import { visibleKbDocumentFilter } from './trash.ts';
 import {
   chunkTextWithClauses,
   indexDocumentChunksFs,
@@ -1348,7 +1349,7 @@ export function searchKbChunks(match: string, limit = 20): KbChunkHit[] {
        FROM kb_chunk_fts f
        JOIN kb_chunk c ON c.id = f.rowid
        JOIN kb_document d ON d.id = c.document_id
-      WHERE kb_chunk_fts MATCH ?
+      WHERE kb_chunk_fts MATCH ? AND ${visibleKbDocumentFilter('d')}
         AND (d.decision IS NULL OR d.decision <> '${KB_DECISION_STALE}')
       ORDER BY score ASC LIMIT ?`,
     [match, limit],

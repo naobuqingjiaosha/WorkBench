@@ -50,6 +50,7 @@ import { ApiError } from '../api/reply.ts';
 import { inferBusinessScope } from './business-evidence.ts';
 import { runBusinessAssistant, type BusinessResult } from './business-assistant.ts';
 import { searchKnowledge } from '../core/knowledge.ts';
+import { getKbDocument } from '../core/kb.ts';
 import { requestsPolicyReference } from './policy-reference.ts';
 import { reviewArtifact, reviewChecklistItem } from '../core/vision.ts';
 import { getArtifact } from '../core/store.ts';
@@ -2626,6 +2627,7 @@ export async function runAgentTurn(input: {
   ).reverse();
 
   const policyReference = requestsPolicyReference(input.message);
+  const policyDocuments = new Set<number>();
   const ctx: ToolContext = { sessionId, pending: [], workbenchId: input.workbenchId };
 
   /**
@@ -2698,6 +2700,17 @@ export async function runAgentTurn(input: {
   let finalText = '';
   let messageId: number | null = null;
 
+  const withdrawUnavailablePolicy = (): boolean => {
+    if (![...policyDocuments].some(id => !getKbDocument(id))) return false;
+    finalText = '引用的资料已移入回收站或不可用，请重新查询。';
+    for (const item of trace) if (item.tool === 'search_knowledge') {
+      // 后续检索参数也可能来自刚读到的原文，不能随撤回答复返回或落库。
+      item.args = {};
+      item.result = '资料状态已变化，本轮检索结果已撤回';
+    }
+    return true;
+  };
+
   const settle = (): void => {
     const created = ctx.pending.length
       ? all<AgentAction>('SELECT * FROM agent_action WHERE session_id = ? AND status = ? ORDER BY id', [sessionId, 'pending'])
@@ -2720,6 +2733,7 @@ export async function runAgentTurn(input: {
   };
 
   for (let round = 0; round < 6; round += 1) {
+    if (withdrawUnavailablePolicy()) break;
     const res = await chat({
       purpose: 'agent',
       messages,
@@ -2732,6 +2746,7 @@ export async function runAgentTurn(input: {
     usage.total += res.usage.total;
     model = res.model || model;
 
+    if (withdrawUnavailablePolicy()) break;
     if (!res.ok) {
       finalText = `模型调用失败：${res.error}`;
       break;
@@ -2777,8 +2792,11 @@ export async function runAgentTurn(input: {
       }
       try {
         const out = call.function.name === 'search_knowledge' && policyReference
-          ? await searchKnowledge(String(args.query ?? ''), { budget: 5, modules: ['template', 'policy'] }).then(r =>
-            r.hits.map(h => `【${h.sourceLabel}】${h.title}${h.heading ? ` · ${h.heading}` : ''}\n${h.snippet}`).join('\n\n') || '没有查到依据')
+          ? await searchKnowledge(String(args.query ?? ''), { budget: 5, modules: ['template', 'policy'] }).then(r => {
+            const hits = r.hits.filter(h => h.source !== 'policy' || !!getKbDocument(h.documentId!));
+            for (const h of hits) if (h.source === 'policy' && h.documentId) policyDocuments.add(h.documentId);
+            return hits.map(h => `【${h.sourceLabel}】${h.title}${h.heading ? ` · ${h.heading}` : ''}\n${h.snippet}`).join('\n\n') || '没有查到依据';
+          })
           : await reader(args);
         if(call.function.name==='search_work_records'){
           const result=JSON.parse(String(out)) as {items:{id:number;revision:number}[];unknownItems:{id:number;revision:number}[]};
@@ -2797,6 +2815,7 @@ export async function runAgentTurn(input: {
   }
 
   if (changedRecordRefs([...recordRefs.values()]).length) finalText += '\n\n⚠ 引用的工作记录已更正或撤回，请重新查询。';
+  withdrawUnavailablePolicy();
   settle();
   const created = all<AgentAction>('SELECT * FROM agent_action WHERE session_id = ? AND message_id = ? ORDER BY id', [
     sessionId,

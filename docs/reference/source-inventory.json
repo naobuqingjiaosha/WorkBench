@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "9fdd0f208f1ec2fdaa313637c9b6ede20bb58433",
+  "committedBase": "5fd56249be81639e1b280d88b9af1d3d3c3c8e2f",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -125,7 +125,7 @@
     },
     {
       "path": "packages/server/src/api/routes-kb.ts",
-      "sha256": "5ec9843cfd259a5f165374e6d7eb4e5cd67b95a8d3262bd57609c88c669728a3"
+      "sha256": "13023141b81faf0d2dbb1d5182035f0afea21d6cb40531ed3675b6a6d4582ce3"
     },
     {
       "path": "packages/server/src/api/routes-ledger.ts",
@@ -233,15 +233,15 @@
     },
     {
       "path": "packages/server/src/core/kb-extract.ts",
-      "sha256": "69eddabfaca6bb6bf0777eae340ab2800a8ef59bdadaa00845ebcd627b6cd526"
+      "sha256": "adb28218b6def35ee8b64a21345a3b3a7dcee630853f9db531d55cc151358cb3"
     },
     {
       "path": "packages/server/src/core/kb.ts",
-      "sha256": "d322a54f981a85be6954dbee1bddf698fa6820ac601c6a691d757aac530fd5be"
+      "sha256": "34562f2dc5869ddb7ddd223f965739bff61ee15a5b258e82c4e3a255c0bc3674"
     },
     {
       "path": "packages/server/src/core/knowledge.ts",
-      "sha256": "699f2c51c0d3dce6c7c97135c676608ec74624e4640ff033635d58b5e570f3f6"
+      "sha256": "7991698c6127834d1a7c62416f5d5f55b05b6e565ac2a6564ca2836afa4785da"
     },
     {
       "path": "packages/server/src/core/ocr-queue.ts",
@@ -285,7 +285,7 @@
     },
     {
       "path": "packages/server/src/core/search-all.ts",
-      "sha256": "b71169a4851da0d1207a15dd8601fcd9077614904814ab3d354daea37b90bef3"
+      "sha256": "abc6fee0cbf838c5aecf4d2af64db35b06d18340bbabe73a28bc3d0d6f9ae9bf"
     },
     {
       "path": "packages/server/src/core/search.ts",
@@ -317,7 +317,7 @@
     },
     {
       "path": "packages/server/src/core/trash.ts",
-      "sha256": "cb5a9334ab4c141127a11a87d68cf68f017f95f52c261e0d75881450a99da87b"
+      "sha256": "942963118f01b36cd938ecace0a2b40f291fdf23bc77803d4c7fcf980a5cd50b"
     },
     {
       "path": "packages/server/src/core/vision.ts",
@@ -501,7 +501,7 @@
     },
     {
       "path": "packages/server/src/domain/agent.ts",
-      "sha256": "2f0dff4fc0828bf49c9f407f01cc96d2349da718f349918bb85593fa5878d34f"
+      "sha256": "ff85df8b942f268c02c0ea5e79c11334e124e12e7ccd9c88e834949f219f328a"
     },
     {
       "path": "packages/server/src/domain/annual-ledger.ts",
@@ -573,7 +573,7 @@
     },
     {
       "path": "packages/server/src/domain/kb-cite.ts",
-      "sha256": "eb9750ef4c9e0dd2fb0d2b061704c72dda81f80deb4ad887b1b225dda152c2bb"
+      "sha256": "e4937e2b4273efba36a7e9fe87411c10faffbf50854d45bb39d0c574d9b82d4e"
     },
     {
       "path": "packages/server/src/domain/kb-links.ts",
@@ -1730,271 +1730,271 @@
       "method": "GET",
       "path": "/api/kb/documents",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 271
+      "line": 269
     },
     {
       "method": "GET",
       "path": "/api/kb/documents/:id",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 273
+      "line": 271
     },
     {
       "method": "DELETE",
       "path": "/api/kb/documents/:id",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 284
+      "line": 282
     },
     {
       "method": "POST",
       "path": "/api/kb/upload",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 304
+      "line": 302
     },
     {
       "method": "POST",
       "path": "/api/kb/import",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 352
+      "line": 350
     },
     {
       "method": "POST",
       "path": "/api/kb/documents/:id/embed",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 369
+      "line": 367
     },
     {
       "method": "POST",
       "path": "/api/kb/import-all",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 386
+      "line": 384
     },
     {
       "method": "POST",
       "path": "/api/kb/batch/reset",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 457
+      "line": 455
     },
     {
       "method": "GET",
       "path": "/api/kb/knowledge",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 470
+      "line": 468
     },
     {
       "method": "GET",
       "path": "/api/kb/search",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 490
+      "line": 488
     },
     {
       "method": "POST",
       "path": "/api/kb/ask",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 502
+      "line": 500
     },
     {
       "method": "GET",
       "path": "/api/kb/diagnostics",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 565
+      "line": 570
     },
     {
       "method": "GET",
       "path": "/api/kb/sources",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 714
+      "line": 719
     },
     {
       "method": "POST",
       "path": "/api/kb/sources",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 748
+      "line": 753
     },
     {
       "method": "DELETE",
       "path": "/api/kb/sources/:id",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 791
+      "line": 796
     },
     {
       "method": "POST",
       "path": "/api/kb/sources/:id/scan",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 810
+      "line": 815
     },
     {
       "method": "GET",
       "path": "/api/kb/extract/config",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 846
+      "line": 851
     },
     {
       "method": "POST",
       "path": "/api/kb/sources/:id/preview",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 907
+      "line": 912
     },
     {
       "method": "POST",
       "path": "/api/kb/sources/:id/extract",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 975
+      "line": 980
     },
     {
       "method": "GET",
       "path": "/api/kb/extract/:jobId",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1003
+      "line": 1008
     },
     {
       "method": "GET",
       "path": "/api/kb/sources/:id/extract/status",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1015
+      "line": 1020
     },
     {
       "method": "POST",
       "path": "/api/kb/extract/:jobId/cancel",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1035
+      "line": 1040
     },
     {
       "method": "GET",
       "path": "/api/kb/sources/:id/extract/result",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1052
+      "line": 1057
     },
     {
       "method": "GET",
       "path": "/api/kb/sources/:id/stale",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1113
+      "line": 1118
     },
     {
       "method": "POST",
       "path": "/api/kb/sources/:id/stale/purge",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1144
+      "line": 1149
     },
     {
       "method": "GET",
       "path": "/api/kb/documents/:id/clauses",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1173
+      "line": 1178
     },
     {
       "method": "GET",
       "path": "/api/kb/chunks/search",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1198
+      "line": 1203
     },
     {
       "method": "POST",
       "path": "/api/kb/extract/chunk-preview",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1217
+      "line": 1222
     },
     {
       "method": "GET",
       "path": "/api/kb/clauses/documents",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1383
+      "line": 1388
     },
     {
       "method": "GET",
       "path": "/api/kb/clauses/lookup",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1407
+      "line": 1412
     },
     {
       "method": "GET",
       "path": "/api/kb/clauses/search",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1449
+      "line": 1454
     },
     {
       "method": "GET",
       "path": "/api/kb/clauses/cite",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1462
+      "line": 1467
     },
     {
       "method": "POST",
       "path": "/api/kb/compliance/check",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1484
+      "line": 1489
     },
     {
       "method": "GET",
       "path": "/api/kb/compliance/config",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1506
+      "line": 1511
     },
     {
       "method": "PUT",
       "path": "/api/kb/compliance/config",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1533
+      "line": 1538
     },
     {
       "method": "PUT",
       "path": "/api/kb/compliance/rules/:code",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1548
+      "line": 1553
     },
     {
       "method": "GET",
       "path": "/api/kb/compliance/exceptions",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1578
+      "line": 1583
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/citations",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1684
+      "line": 1689
     },
     {
       "method": "GET",
       "path": "/api/citations",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1695
+      "line": 1700
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/citations",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1711
+      "line": 1716
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/citations/resync",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1751
+      "line": 1756
     },
     {
       "method": "DELETE",
       "path": "/api/citations/:id",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1779
+      "line": 1784
     },
     {
       "method": "GET",
       "path": "/api/kb/documents/:id/usages",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1797
+      "line": 1802
     },
     {
       "method": "GET",
       "path": "/api/kb/documents/:id/impact",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1820
+      "line": 1825
     },
     {
       "method": "GET",
       "path": "/api/kb/impact/pending",
       "file": "packages/server/src/api/routes-kb.ts",
-      "line": 1839
+      "line": 1844
     },
     {
       "method": "POST",

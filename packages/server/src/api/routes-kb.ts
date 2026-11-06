@@ -38,7 +38,7 @@ import { artifactBodyText, getArtifact, registerExistingFile, saveArtifact } fro
 import { DATA_ROOT, DIRS } from '../core/config.ts';
 import { isInsideRoot, safeName, toPosix } from '../core/paths.ts';
 import { isIgnoredName } from '../core/ignore.ts';
-import { liveFilter } from '../core/trash.ts';
+import { liveFilter, visibleArtifactFilter, visibleKbDocumentFilter } from '../core/trash.ts';
 import {
   deleteKbDocument,
   getKbDocument,
@@ -245,15 +245,13 @@ export function registerKbRoutes(app: FastifyInstance): void {
   /** 总览：规模、维度、模型、是否可用 */
   app.get('/api/kb/status', async (_req, reply) => {
     const stats = kbStats();
-    const indexedArtifacts = get<{ n: number }>('SELECT COUNT(*) AS n FROM kb_document WHERE artifact_id IS NOT NULL')?.n ?? 0;
-    // 「候选」只数**在用**的文件（`liveFilter('artifact')` → deleted_at IS NULL，老库自动降级成 1=1）：
-    // 回收站里的记录在软删除时已经被摘掉了 kb_document，把它算进候选会让 notIndexed 虚高，
-    // 界面上会出现「还有 N 篇没导入」而实际上那些文件已经被用户删掉了。
+    const indexedArtifacts = get<{ n: number }>(`SELECT COUNT(*) AS n FROM kb_document WHERE artifact_id IS NOT NULL AND ${visibleKbDocumentFilter()}`)?.n ?? 0;
+    // 列表、已导入与候选都遵循附件/父工作可见性；整工作软删保留KB原行供恢复。
     const totalCandidates = get<{ n: number }>(
       `SELECT COUNT(*) AS n FROM artifact /* deleted_at IS NULL（真正的过滤是下面那行 liveFilter）*/
         WHERE ((extracted_text IS NOT NULL AND length(extracted_text) > 50)
             OR (ocr_text IS NOT NULL AND length(ocr_text) > 50))
-          AND ${liveFilter('artifact')}`,
+          AND ${visibleArtifactFilter()}`,
     )?.n ?? 0;
     return ok(reply, {
       ...stats,
@@ -525,6 +523,12 @@ export function registerKbRoutes(app: FastifyInstance): void {
       if (!local) {
         throw new ApiError('LOCAL_MODEL_REQUIRED', '制度问答只使用本地模型，请先配置 LM Studio；关键词检索无需模型', 409);
       }
+      const requireVisibleSources = () => {
+        if (r.hits.some(h => !getKbDocument(h.documentId!))) {
+          throw new ApiError('KNOWLEDGE_CHANGED', '引用的资料已移入回收站或不可用，请重新查询', 409);
+        }
+      };
+      requireVisibleSources();
       const res = await chat({
         purpose: 'writing',
         messages: [
@@ -541,6 +545,7 @@ export function registerKbRoutes(app: FastifyInstance): void {
         ],
         ref: { type: 'kb-ask' },
       });
+      requireVisibleSources();
       if (!res.ok) throw new ApiError('AI_FAILED', res.error ?? '模型调用失败');
       return ok(reply, {
         answer: res.text,
@@ -1389,7 +1394,7 @@ export function registerKbRoutes(app: FastifyInstance): void {
         `SELECT d.id, d.title, d.doc_no, d.scope_layer, d.version_status, d.decision, a.file_name,
                 (SELECT COUNT(DISTINCT clause_path) FROM kb_chunk c WHERE c.document_id = d.id AND c.clause_path IS NOT NULL) AS clause_count
            FROM kb_document d LEFT JOIN artifact a ON a.id = d.artifact_id
-          WHERE (d.decision IS NULL OR d.decision = 'active')
+          WHERE ${visibleKbDocumentFilter('d')} AND (d.decision IS NULL OR d.decision = 'active')
             ${kw ? 'AND (d.title LIKE ? OR d.doc_no LIKE ? OR a.file_name LIKE ?)' : ''}
           ORDER BY d.id DESC LIMIT ?`,
         kw ? [like, like, like, limit] : [limit],

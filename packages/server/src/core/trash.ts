@@ -99,6 +99,12 @@ export function visibleArtifactFilter(alias = 'artifact'): string {
     (SELECT 1 FROM workbench parent_work WHERE parent_work.id=${alias}.workbench_id AND ${liveFilter('workbench','parent_work')}))`;
 }
 
+/** 派生知识随附件及父工作隐藏；无附件的独立知识保持原有可见性。 */
+export function visibleKbDocumentFilter(alias = 'kb_document'): string {
+  return `(${alias}.artifact_id IS NULL OR EXISTS (SELECT 1 FROM artifact kb_artifact
+    WHERE kb_artifact.id=${alias}.artifact_id AND ${visibleArtifactFilter('kb_artifact')}))`;
+}
+
 /* ============================== 类型 ============================== */
 
 /** 回收站里的对象类型。`position` = 阶段实例，`field` / `alias` = 档案字段与变量别名 */

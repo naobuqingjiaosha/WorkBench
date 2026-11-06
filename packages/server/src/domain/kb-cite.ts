@@ -37,6 +37,7 @@ import { CLAUSE_PATH_SEP } from '../core/kb.ts';
 import { extractText } from '../core/extract.ts';
 import { segCJK } from '../core/search.ts';
 import { searchKbChunks } from '../core/kb-extract.ts';
+import { visibleKbDocumentFilter } from '../core/trash.ts';
 import { getTemplate, readTemplateVars, templateAbsPath } from './service.ts';
 
 /* ============================================================================
@@ -368,7 +369,7 @@ function docMatchScore(d: DocRow, name: string, docNoText: string | null): numbe
  * 找不到时给出"疑似是你想引的那几份"（按字面重合度排），让人一眼看出是名字写错了还是没入库。
  */
 export function findDocuments(name: string, docNoText: string | null = null): { hits: DocRow[]; ambiguous: boolean; near: DocRow[] } {
-  const rows = all<DocRow>(DOC_SELECT);
+  const rows = all<DocRow>(`${DOC_SELECT} WHERE ${visibleKbDocumentFilter('d')}`);
   const scored = rows
     .map((d) => ({ d, s: docMatchScore(d, name, docNoText) }))
     .filter((x) => x.s > 0)
