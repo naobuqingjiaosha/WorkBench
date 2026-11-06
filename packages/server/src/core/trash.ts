@@ -26,7 +26,8 @@ import {syncEvidence} from './checklist.ts';
  * import 本模块的过滤片段，本模块反过来 import 它们就成环了。所以这里只有 DB 原语，
  * 需要刷新进度时动态 import（`checklist.ts` 不依赖本模块，静态 import 也是安全的）。
  */
-import { constants, copyFileSync, existsSync, mkdtempSync, readdirSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { constants, copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { all, get, getDb, run, tx } from '../db/index.ts';
 import { DATA_ROOT, RUNTIME_ROOT } from './config.ts';
@@ -733,88 +734,139 @@ function pruneEmptyDirsUpTo(abs: string): void {
   }
 }
 
-/**
- * 删掉一条 artifact 记录的磁盘文件（如果还在）—— 与 `store.deleteArtifact({withFile:true})`
- * **共用同一套安全阀**（`core/paths.ts` 的 `assertDeletableFile`）：
- *   ① 必须命中允许根（不在白名单里的绝对路径一律不碰）；
- *   ② **只读来源里的文件绝不删**（iCloud 原件 / 显式声明的只读来源）；
- *   ③ 绑定根 / 工作台根本身绝不删；
- *   ④ 有登记指纹时，磁盘内容（大小 + sha256）必须与登记时一致 ——
- *      改绑目录后同一个相对路径可能指向用户自己放着、平台从没登记过的原件；
- *   ⑤ 还被别的**存活**记录指着的文件不删（`assertNoOtherLiveArtifactRefers`）。
- *
- * 返回 `{ removed, skipped }`：跳过不是错误 —— 记录照样清掉，但原因必须回报给用户
- * （"彻底删除时磁盘文件一个都没删掉，用户还不知道为什么"是这次要修的毛病之一）。
- */
-function removeArtifactFile(info: ArtifactFileInfo): { removed: number; skipped: string | null } {
-  const abs = artifactAbsPathFor(info);
-  if (!abs) return { removed: 0, skipped: null };
-  if (!existsSync(abs)) return { removed: 0, skipped: null };
-  assertDeletableFile(abs, info, '文件');
-  assertNoOtherLiveArtifactRefers(info);
-  unlinkSync(abs);
-  pruneEmptyDirsUpTo(abs);
-  return { removed: 1, skipped: null };
+interface PurgeFile {
+  abs: string;
+  infos: ArtifactFileInfo[];
+  validate: () => void;
 }
 
 /**
- * 单附件：先完成数据库删除，再在同一事务内删文件；提交失败时用私有副本补偿。
- * 副本位于运行目录，不进入业务文件列表。恢复只用 EXCL，不覆盖后来出现的文件。
- * 不提供断电/进程崩溃自动恢复；残留目录含原路径说明，须人工核对数据库后处理。
+ * 在数据库事务前备齐全部唯一文件；任一删除/提交失败时逐份排他补偿。
+ * 副本位于私有运行目录，不覆盖后来出现的文件，不提供崩溃/断电自动恢复。
  */
+function purgeFilesWithCompensation(files: PurgeFile[], deleteRows: () => void): PurgeResult {
+  if (getDb().isTransaction) throw new Error('带文件的彻底删除不能在外层事务内执行');
+  const staged: { file: PurgeFile; dir: string; backup: string; manifest: string; removed: boolean; fingerprint?: { sha256: string; size_bytes: number } }[] = [];
+  let phase = '准备删除';
+  const cleanup = (): string[] => {
+    const warnings: string[] = [];
+    for (const item of staged) {
+      try {
+        if (existsSync(item.backup)) unlinkSync(item.backup);
+        if (existsSync(item.manifest)) unlinkSync(item.manifest);
+        rmdirSync(item.dir);
+      } catch (e) {
+        warnings.push(`删除补偿目录未清理完，请核对后处理：${item.dir}（${(e as Error).message}）`);
+      }
+    }
+    return warnings;
+  };
+  try {
+    for (const file of files) {
+      phase = `准备文件 ${file.infos.map(info => `#${info.id}`).join('/')}`;
+      file.validate();
+      const dir = mkdtempSync(join(ensureDir(join(RUNTIME_ROOT, 'purge-recovery')), `${file.infos[0]!.id}-`));
+      const item = { file, dir, backup: join(dir, 'file'), manifest: join(dir, 'recovery.json'), removed: false,
+        fingerprint: undefined as { sha256: string; size_bytes: number } | undefined };
+      staged.push(item);
+      writeFileSync(item.manifest, JSON.stringify({ artifactId: file.infos[0]!.id, artifactIds: file.infos.map(f => f.id), originalPath: file.abs }), { flag: 'wx' });
+      copyFileSync(file.abs, item.backup, constants.COPYFILE_EXCL);
+      const bytes = readFileSync(item.backup);
+      item.fingerprint = { sha256: createHash('sha256').update(bytes).digest('hex'), size_bytes: bytes.length };
+      file.validate();
+      assertDeletableFile(file.abs, item.fingerprint, '文件');
+    }
+    tx(() => {
+      // 备份全部完成后重查引用/指纹，再开始数据库及文件删除。
+      for (const item of staged) {
+        phase = `核对文件 #${item.file.infos[0]!.id}`;
+        item.file.validate();
+        assertDeletableFile(item.file.abs, item.fingerprint, '文件');
+      }
+      phase = '删除数据库记录';
+      deleteRows();
+      for (const item of staged) {
+        phase = `删除文件 #${item.file.infos[0]!.id}`;
+        item.file.validate();
+        assertDeletableFile(item.file.abs, item.fingerprint, '文件');
+        unlinkSync(item.file.abs);
+        item.removed = true;
+      }
+      phase = '提交数据库事务';
+    });
+  } catch (e) {
+    const failures: string[] = [];
+    for (const item of [...staged].reverse()) {
+      if (!item.removed) continue;
+      try {
+        assertNoPathLinks(item.file.abs);
+        copyFileSync(item.backup, item.file.abs, constants.COPYFILE_EXCL);
+      } catch (restoreError) {
+        // 一份补偿失败也继续恢复其余文件；所有副本保留供核对，不覆盖冲突目标。
+        failures.push(`${item.file.abs}（${(restoreError as Error).message}）`);
+      }
+    }
+    const removed = staged.filter(item => item.removed).length;
+    const reason = `${phase}失败：${(e as Error).message}；已补偿 ${removed - failures.length} 份文件，${files.length - removed} 份未执行删除或删除未成功`;
+    if (failures.length) {
+      throw new Error(`${reason}；文件补偿失败：${failures.join('；')}；请核对数据库和原路径，补偿副本保留在 ${staged.map(item => item.dir).join('；')}`);
+    }
+    const warnings = cleanup();
+    if (warnings.length) throw new Error(`${reason}；${warnings.join('；')}`);
+    throw new Error(reason);
+  }
+  const warnings = cleanup();
+  for (const item of staged) pruneEmptyDirsUpTo(item.file.abs);
+  return { purged: true, filesRemoved: staged.length, ...(warnings.length ? { warnings } : {}) };
+}
+
 function purgeArtifactWithFile(info: ArtifactFileInfo, deleteRows: () => void): PurgeResult {
-  // 外层事务仍可能回滚；在它提交前不能永久删除文件或清理补偿副本。
   if (getDb().isTransaction) throw new Error('带文件的彻底删除不能在外层事务内执行');
   const abs = artifactAbsPathFor(info);
   if (!abs || !existsSync(abs)) {
     tx(deleteRows);
     return { purged: true, filesRemoved: 0 };
   }
-  assertDeletableFile(abs, info, '文件');
-  assertNoOtherLiveArtifactRefers(info);
-  const recoveryDir = mkdtempSync(join(ensureDir(join(RUNTIME_ROOT, 'purge-recovery')), `${info.id}-`));
-  const backup = join(recoveryDir, 'file');
-  const manifest = join(recoveryDir, 'recovery.json');
-  const cleanup = (): string | null => {
-    try {
-      if (existsSync(backup)) unlinkSync(backup);
-      if (existsSync(manifest)) unlinkSync(manifest);
-      rmdirSync(recoveryDir);
-      return null;
-    } catch (e) {
-      return `删除补偿目录未清理完，请核对后处理：${recoveryDir}（${(e as Error).message}）`;
-    }
-  };
-  let removed = false;
-  try {
-    writeFileSync(manifest, JSON.stringify({ artifactId: info.id, originalPath: abs }), { flag: 'wx' });
-    copyFileSync(abs, backup, constants.COPYFILE_EXCL);
-    // 复制期间原文件可能改变；登记指纹和在用引用仍须在删除前有效。
+  const validate = () => {
     assertDeletableFile(abs, info, '文件');
-    tx(() => {
-      assertNoOtherLiveArtifactRefers(info);
-      deleteRows();
-      assertDeletableFile(abs, info, '文件');
-      unlinkSync(abs);
-      removed = true;
-    });
-  } catch (e) {
-    if (removed) {
-      try {
-        assertNoPathLinks(abs);
-        copyFileSync(backup, abs, constants.COPYFILE_EXCL);
-      } catch (restoreError) {
-        // 保留副本及原路径，明确提示补偿失败；绝不覆盖冲突文件或删掉唯一副本。
-        throw new Error(`彻底删除失败：${(e as Error).message}；文件补偿失败：${(restoreError as Error).message}；请核对数据库和原路径，补偿副本保留在 ${recoveryDir}`);
-      }
-    }
-    const warning = cleanup();
-    if (warning) throw new Error(`彻底删除失败：${(e as Error).message}；${warning}`);
-    throw e;
+    assertNoOtherLiveArtifactRefers(info);
+  };
+  return purgeFilesWithCompensation([{ abs, infos: [info], validate }], deleteRows);
+}
+
+/** 整工作按实际路径去重；同一路径任一登记不满足安全阀，就保留整份磁盘文件。 */
+function workbenchPurgeFiles(workbenchId: number, infos: ArtifactFileInfo[]): { files: PurgeFile[]; skipped: string[] } {
+  const grouped: PurgeFile[] = [];
+  for (const info of infos) {
+    const abs = artifactAbsPathFor(info);
+    if (!abs) throw new Error(`文件路径无法确认，未执行整工作彻底删除：artifact #${info.id}`);
+    if (!existsSync(abs)) continue;
+    const existing = grouped.find(file => samePathKey(file.abs, abs));
+    if (existing) existing.infos.push(info);
+    else grouped.push({ abs, infos: [info], validate: () => {} });
   }
-  const warning = cleanup();
-  pruneEmptyDirsUpTo(abs);
-  return { purged: true, filesRemoved: 1, ...(warning ? { warnings: [warning] } : {}) };
+  const files: PurgeFile[] = [], skipped: string[] = [];
+  for (const file of grouped) {
+    file.validate = () => {
+      for (const info of file.infos) assertDeletableFile(file.abs, info, '文件');
+      // 外部存活引用按绝对路径判断，不能只比file_rel（不同根/相对路径也可能指向同一文件）。
+      const live = all<ArtifactFileInfo>(`SELECT id, workbench_id, file_rel, root_kind, ${fileCols()} FROM artifact WHERE deleted_at IS NULL AND workbench_id IS NOT ?`, [workbenchId]);
+      for (const ref of live) {
+        const abs = artifactAbsPathFor(ref);
+        if (abs && samePathKey(abs, file.abs)) throw new SafetyRefusal(`这份文件还被在用的记录引用着（artifact #${ref.id}），拒绝连同磁盘文件一起删除`);
+      }
+    };
+    try {
+      file.validate();
+      files.push(file);
+    } catch (e) {
+      // 预检时保留只读/指纹不符/外部在用文件，但必须在成功响应中说明。
+      // 真正的复制、unlink或提交故障不能当作安全跳过，必须整次回滚及补偿。
+      if (!(e instanceof SafetyRefusal)) throw e;
+      skipped.push(`${file.infos.map(info => `#${info.id}`).join('/')} ${file.infos[0]!.file_rel}（${e.message}）`);
+    }
+  }
+  return { files, skipped };
 }
 
 /**
@@ -884,33 +936,23 @@ export function purgeFromTrash(kind: string, id: number, opts: { withFile?: bool
     if (!wb) return { purged: true, filesRemoved: 0 };
     if (!wb.deleted_at) throw new Error(`工作台「${wb.name}」还没有移到回收站，不能直接彻底删除。请先删除它（移到回收站），再在回收站里彻底删除`);
     const bound = Boolean((wb.external_root ?? '').trim());
+    const platformDirs = withFile && bound ? all<{ folder_rel: string | null }>('SELECT folder_rel FROM position_instance WHERE workbench_id = ?', [id]) : [];
     // 这份工作台名下的全部文件记录（含已软删除的，正是要一起清掉的那批）
     // 有意不守卫：这里要读的就是回收站里（deleted_at IS NOT NULL）的记录，好连磁盘文件一起删
-    const files = all<ArtifactFileInfo & { file_rel: string }>(
-      `SELECT id, workbench_id, file_rel, root_kind, ${fileCols()} FROM artifact WHERE workbench_id = ?`,
-      [id],
+    const readFiles = () => all<ArtifactFileInfo & { deleted_at: string | null }>(
+      `SELECT id, workbench_id, file_rel, root_kind, ${fileCols()}, deleted_at FROM artifact WHERE workbench_id = ? ORDER BY id`, [id],
     );
-    let filesRemoved = 0;
-    const unlocatable: string[] = [];
-    const skipped: string[] = [];
-    if (withFile) {
-      for (const f of files) {
-        try {
-          const r = removeArtifactFile(f);
-          filesRemoved += r.removed;
-          if (r.skipped) skipped.push(`${f.file_rel}（${r.skipped}）`);
-        } catch (e) {
-          // 单个文件删不掉（被占用 / 权限 / 越界）：记录照样清掉，但要说清楚是哪一份
-          unlocatable.push(`${f.file_rel}（${(e as Error).message}）`);
-        }
-      }
-      if (bound) recyclePlatformDirs(id);
-    }
+    const files = readFiles();
+    const plan = withFile ? workbenchPurgeFiles(id, files) : { files: [], skipped: [] };
     /**
      * 真删这一段**故意不带** `deleted_at IS NULL`：彻底删除要清掉这份工作台名下的**全部**行，
      * 包括已经在回收站里的子记录 —— 只删 `deleted_at IS NULL` 的那些会留下孤儿行（外键会报错或留脏数据）。
      */
-    tx(() => {
+    const deleteRows = () => {
+      const current = get<typeof wb>('SELECT id, name, code, deleted_at, external_root, folder_path FROM workbench WHERE id = ?', [id]);
+      if (JSON.stringify(current) !== JSON.stringify(wb) || JSON.stringify(readFiles()) !== JSON.stringify(files)) {
+        throw new Error('工作或文件登记已变化，请重新核对后再彻底删除');
+      }
       run('DELETE FROM artifact_search WHERE wb_id = ?', [id]);
       // Remove owned execution records before their parent/stage/file rows.
       // Shared XLSX input copies remain available to other calculation records.
@@ -931,24 +973,24 @@ export function purgeFromTrash(kind: string, id: number, opts: { withFile?: bool
       run('DELETE FROM checklist_item WHERE position_instance_id IN (SELECT id FROM position_instance WHERE workbench_id = ?)', [id]);
       // 阶段实例：不按 deleted_at IS NULL 过滤，彻底删除就是清干净
       purgeRows('position_instance', 'workbench_id = ?', [id]);
-      // 文件记录：同样连回收站里的一起清（磁盘文件已在上面按登记记录删过）
+      // 文件记录：同样连回收站里的一起清；磁盘文件由外层补偿事务随后处理。
       purgeRows('artifact', 'workbench_id = ?', [id]);
       run('DELETE FROM generation_log WHERE workbench_id = ?', [id]);
       run('DELETE FROM archive_proposal WHERE workbench_id = ?', [id]);
       run('DELETE FROM agent_memory WHERE workbench_id = ?', [id]);
       // 工作台行：最后删（它一删，子行靠外键级联也没了）
       purgeRows('workbench', 'id = ?', [id]);
-    });
-    if (unlocatable.length) {
-      console.warn(`[回收站] 工作台 #${id} 彻底删除时 ${unlocatable.length} 份文件未能从磁盘删除：${unlocatable.join('；')}`);
+    };
+    let result: PurgeResult;
+    try {
+      result = withFile ? purgeFilesWithCompensation(plan.files, deleteRows)
+        : tx(() => { deleteRows(); return { purged: true, filesRemoved: 0 }; });
+    } catch (e) {
+      if (plan.skipped.length) throw new Error(`${(e as Error).message}；另有安全保留文件：${plan.skipped.join('；')}`);
+      throw e;
     }
-    /**
-     * 被安全阀跳过的（只读来源 / 指纹不符 / 还被在用记录引用）**必须回报给调用方**：
-     * "彻底删除说删了几个磁盘文件"与实际不符时，用户至少能看到为什么没删。
-     */
-    if (skipped.length) {
-      console.warn(`[回收站] 工作台 #${id} 彻底删除时按规则跳过了 ${skipped.length} 份磁盘文件：${skipped.join('；')}`);
-    }
+    if (withFile && bound) recyclePlatformDirs(wb.external_root!.trim(), platformDirs);
+    if (plan.skipped.length) result.skipped = plan.skipped;
     // 工作台没了，它贡献的允许根也要撤掉
     if (bound) {
       try {
@@ -957,7 +999,7 @@ export function purgeFromTrash(kind: string, id: number, opts: { withFile?: bool
         /* 下次启动会重算 */
       }
     }
-    return { purged: true, filesRemoved, skipped: skipped.length ? skipped : undefined };
+    return result;
   }
 
   if (kind === 'artifact') {
@@ -1041,19 +1083,7 @@ export function purgeFromTrash(kind: string, id: number, opts: { withFile?: bool
  * 只在**非空不删、不在绑定根内不删、绑定根本身不删、只删 `_` 前缀或 `NN_` 形状的目录**
  * 四条同时成立时动手。用户自己的目录与非空文件夹一个都不碰。
  */
-function recyclePlatformDirs(workbenchId: number): void {
-  // 连回收站里的阶段一起看（deleted_at IS NOT NULL 的那些也要回收目录），故不加 `deleted_at IS NULL`
-  const rows = all<{ id: number; workbench_id: number; seq: number; name: string; folder_rel: string | null; code: string }>(
-    'SELECT id, workbench_id, seq, name, folder_rel, code FROM position_instance WHERE workbench_id = ?',
-    [workbenchId],
-  );
-  // 绑定根：目录回收到此为止，绝不删根（契约 §7.1/§7.3）
-  // 这里也不加 `deleted_at IS NULL`：这份工作台本身就在回收站里，要读的正是它的 external_root
-  const wb = get<{ external_root: string | null }>(
-    'SELECT external_root FROM workbench WHERE id = ?',
-    [workbenchId],
-  );
-  const root = (wb?.external_root ?? '').trim();
+function recyclePlatformDirs(root: string, rows: { folder_rel: string | null }[]): void {
   if (!root) return;
   const candidates: string[] = [];
   for (const p of rows) {
@@ -1067,6 +1097,8 @@ function recyclePlatformDirs(workbenchId: number): void {
   const uniq = [...new Set(candidates)].sort((a, b) => b.split(/[\\/]/).length - a.split(/[\\/]/).length);
   for (const dir of uniq) {
     try {
+      assertNoPathLinks(dir);
+      if (!canUse(dir, 'delete')) continue;
       if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
       if (readdirSync(dir).length > 0) continue;
       if (!isInsideRoot(root, dir) || samePathKey(root, dir)) continue;

@@ -1,10 +1,42 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.19。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.20。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-01 / GOV-11｜整工作多文件彻底删除与逐份失败补偿
+
+**目标与基点：** 接续晚间GOV-01，仅处理整工作从回收站彻底删除、涉及多个受管文件的进程内一致性；不重做上批单附件、不扩展通用任务引擎。Linux Codex Cloud `/workspace/WorkBench`，main与实时远端main均为fcb8de36dd7d0990f375d2d9b68018afe5c945ac，origin为https://github.com/naobuqingjiaosha/WorkBench.git，开工工作区干净。环境恢复后可执行，无持续环境阻塞；只使用本云环境，不操作Mac。读取AGENTS、GPT_CONTEXT、docs入口、GOV-01/RK-01、质量与隔离说明并复核五份根文档。不读取真实库、资料、配置、模板、成品或凭证，不调用模型，不部署。
+
+**修前证据与有限设计：** `gov01-workbench-repro.ts`通过原隔离入口创建3份匿名文件、工作及真实SQLite约束。立即外键失败后父/子记录回滚保留，但3份文件全消失；第2份unlink模拟EBUSY被原循环捕获后仍返回purged=true/filesRemoved=2，父/子记录清除而磁盘剩1份。`/workspace/workbench-cloud/gov01-workbench/before.json`、before.log与复现脚本保留，退出0只表示两缺陷被确证，不是修复通过。没有真实资料损失证据。
+
+父任务研究线索与本机复现相符。仅借鉴明确成组范围和验证整组结果的设计经验，独立实现于现有React/Fastify/SQLite体系；已静态读取Paperless-ngx固定a4543c03dceedafd3e588c9832306893993bffc4的[根文档/版本删除分组](https://github.com/paperless-ngx/paperless-ngx/blob/a4543c03dceedafd3e588c9832306893993bffc4/src/documents/models.py#L550-L568)及[根与版本恢复测试](https://github.com/paperless-ngx/paperless-ngx/blob/a4543c03dceedafd3e588c9832306893993bffc4/src/documents/tests/test_api_trash.py#L242-L282)。它使用同一transaction_id维护根/版本组，本项目仍保留原deleted_at同批恢复，不复制GPL代码或增加外部依赖；参考测试不证明跨数据库/文件原子性。持久operation_id、重启扫描与崩溃恢复只是后续设计可能性，本批未实现，也未为此新建任务队列。
+
+**实际修改清单：**
+
+- `packages/server/src/core/trash.ts`：小范围抽取上批补偿为purgeFilesWithCompensation；单附件继续复用，整工作按实际路径分组去重、备齐所有可删文件副本后才进入删除事务。用副本内容哈希检查当前文件（包括旧无登记哈希文件），副本后重查引用/指纹，事务内核对父工作/附件登记快照。先删数据库行，逐份unlink，再提交；即时外键、文件操作或提交失败时回滚并逐份COPYFILE_EXCL恢复，一份补偿失败继续其余项，保留全部副本并报位置，不覆盖新文件。保留原数据库关系清理顺序，不新增迁移或解除业务外键。
+- 同文件多个登记任一安全阀不满足则整份磁盘文件保留；外部活引用按各自实际绝对路径核对，避免不同root/file_rel指向同一路径被漏掉。预检只读/指纹不符/外部活引用通过skipped明确返回，符合既有安全保留语义；无法确认位置则整次拒绝。复制/unlink/提交等真正失败不得转为跳过并清库。错误响应沿原路由返回400，说明失败阶段/文件编号、已补偿和未执行/未成功数量；已提交但副本清理失败沿上批warnings返回。无API路由或UI源码变更。
+- 绑定工作目录清理改到数据库成功提交之后，提前保存必要目录清单；仅处理允许删除、非链接、平台命名且空的目录，保留根、只读目录和未登记文件。withFile=false保持仅数据库操作及嵌套事务回滚；带文件操作拒绝外层事务。未修改softDelete withFile=true或清空回收站逐项循环的整批语义。
+- `GPT_CONTEXT.md`、`DEVELOPMENT_PROGRESS.md`：整合main/fcb8de3基点、当前整工作范围与单附件历史交付，补本机22组及17/12组新候选回归边界。`SYSTEM_ARCHITECTURE.md`整合成组补偿、保护、失败结果与无持久恢复协议的边界。
+- `docs/management/PROJECT_PLAN.md`、`RISKS_AND_DECISIONS.md`、`QUALITY_AND_ACCEPTANCE.md`：沿GOV-01/GOV-11与RK-01/07更新确证问题、限定进度和未测，不整体关闭GOV-01。`docs/guides/DEVELOPMENT.md`新增3.10限定验证及人工补偿目录处理说明、整合3.9副本字段；本条WORK_LOG记录实际工作，不追加CHANGELOG。
+- 自动生成`docs/knowledge-index.json`与`docs/reference/source-inventory.json`，docs/README由生成器复核。没有依赖、锁文件、配置、数据库迁移或前端改动。
+- 本机新增忽略测试：`gov01-workbench-repro.ts`、`gov01-workbench.ts`、`gov01-single-regression.ts`、`gov01-single-independent-regression.ts`。后两份仅改上批脚本的输出目录，原脚本/证据保留；所有用例、合成夹具、证据均不进入Git。
+
+**验证结果：**
+
+- 最终`node scripts/test-isolated.mjs --unit gov01-workbench`退出0、22组通过，原始结果`/workspace/workbench-cloud/gov01-workbench/run-eDxcCf/results.json`，日志test-candidate.log。包含正常3文件HTTP删除/重复、普通父恢复/重复/重删、父立即和延迟外键、现有business_ai_run外键、第2份EBUSY/第3份EPERM、第二份副本复制失败、补偿失败仍恢复其他项、恢复目标冲突、同路径去重及冲突指纹、不同根的外部活引用、只读文件/目录、旧无指纹变化、登记快照变化、定位失败、嵌套事务、withFile=false、缺失/零字节、旧external_root绑定及提交后清理警告。每轮核对全表行/字节和foreign_key_check，失败不凭HTTP码推断回滚；第N份unlink时直接断言3份副本都已存在。
+- 首轮20组run-QPMxgC通过，补绑定目录2组后run-0yOYUL的22组通过；随后仅补失败阶段/数量提示及其断言，最终22组通过。分别保留日志，不累计数量扩大业务覆盖。
+- 在最终共享源码上运行`gov01-single-regression`17组通过（single-run-cOwxfg，single-17-candidate.log）；`gov01-single-independent-regression`12组通过（single-independent-rerun/supplement-results.json，single-12-candidate.log）。这是作者重跑上批原套件及上批独立补测，用例来源不使本次作者运行自动变成独立验收；旧证据未覆盖。这两份副本只更换输出路径，未删断言。
+- `npm run typecheck`server/web通过；`npm --workspace @workbench/web run build -- --outDir /tmp/workbench-gov01-multi-build-7l4gra/dist`78模块构建通过，仅专属临时目录。`npm run repo:check`258项通过，`git diff --check`通过；docs-maintenance generate/check按治理运行。不新增依赖，不覆盖日常dist。
+- `npm test`、`typecheck:tests`未运行：旧完整用例、test-isolation-contract及tsconfig.test.json缺失。文件占用、权限、容量、补偿故障仅通过测试进程内fs替身模拟，不是Windows真实锁。没有完整应用鉴权/UI、Windows/Office、真实业务/模型、跨盘/跨进程压力、崩溃/断电自动恢复、软删带文件或清空回收站全矩阵验收；不把本批升级为完整系统通过。
+
+**独立验收：** 全新未参与本批实施的审查者仅只读核查/复跑，`/workspace/workbench-cloud/gov01-workbench/independent/REPORT.md`结论PASS，无阻断。262项冻结前后相同，patch SHA256 d7c2471135993f79002b2f5a9e42f6e63fa862da446dab3e2798f034da97953f，trash.ts SHA256 1c55dd369eefa0ac97dae43daf40ec7e5c741337ec4a7b0a41dcd80ae8bee8ba。独立原22组通过（author-rerun-oB1BCB），单附件12组原断言重跑通过（single/supplement-results.json），新增16组通过（supplement-WqB82l）。新补证使用5份二进制文件、77表及故障约束时78表，含非空检查/草稿/工作历史关系，验证第1/3/5份unlink、末份备份失败、两份补偿失败仍继续、EXCL冲突、同批deleted_at与FTS恢复、迟到外部引用、父快照漂移、lstat EACCES/ENOTDIR、缺失计数、绑定目录链接/只读哨兵保护。所有表行/字节比较、foreign_key_check及事务退出均核对。独立未重跑作者17组或类型/构建，未把作者结果当独立结果；未将修前作者复现称为独立重现。3个新本地忽略审查脚本只保存本环境。独立cleanup.json/process-cleanup.json确认3根已删、37053无监听且无残留Node服务。独立通过后仅收尾文档状态及索引，生产源码/原测试保持冻结哈希。
+
+**五份根文档复核：** GPT_CONTEXT更新本批开工基点/限定状态；CONTEXT完整复核，业务术语不变、正文不改；PRODUCT_REQUIREMENTS完整复核，PR-08及完整性要求不变、正文不改；SYSTEM_ARCHITECTURE整合成组补偿的实际流程及无崩溃保证边界；DEVELOPMENT_PROGRESS更新本批范围、验证、缺资源与历史证据归属。只在实际改变正文的文档递增版本。
+
+**清理与交付：** 原隔离入口在每轮finally关闭并删除专属运行根；作者cleanup-author.json另核对7份可定位证据的临时根全部不存在、对应HTTP端口无监听，专属构建目录已删除。模拟补偿失败留存副本在断言后仅清理本轮自建数据；未启动浏览器，未触碰既有证据/源码/资料。候选已通过限定独立验收，源码与文档已保存；本条写于提交前，不预记提交/推送结果。用户已授权精确暂存本批11份共享文件并普通提交推送main；提交前后核对远端并发，原钩子0600仅执行期间临时启用并恢复原权限，不强推、不跳过保护。测试/夹具/报告不上传，未部署。完整SHA、最终Git状态与CI由实际执行回报核对，无CI记录不算通过。
 
 ## 2026-11-06｜GOV-01 / GOV-11｜单附件彻底删除的数据库失败与文件补偿
 
