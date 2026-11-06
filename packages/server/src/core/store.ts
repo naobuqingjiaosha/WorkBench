@@ -10,18 +10,19 @@ import { syncEvidence,validateChecklist } from './checklist.ts';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
-import { all, get, run, tx } from '../db/index.ts';
+import { all, get, getDb, run, tx } from '../db/index.ts';
 import { DATA_ROOT } from './config.ts';
 import {
   assertDeletableFile, assertUsable, artifactFileAbs, ensureDir, getBoundRoots, isInsideRoot,
   parseRootId, relativeToRoot, resolveInAnyRoot, rootIdFor, rootKindOf, rootOf, SafetyRefusal, toPosix, uniqueFileName,
 } from './paths.ts';
 import { segCJK } from './search.ts';
+import { invalidateCache as invalidateKbCache } from './kb.ts';
 import { extractAny, type ExtractResult } from './extract.ts';
 import { detectFormat } from './template.ts';
 import { ocrEnabled } from './ocr.ts';
 import { enqueueOcr, processQueue } from './ocr-queue.ts';
-import { assertNoOtherLiveArtifactRefers, liveFilter, visibleArtifactFilter, tableHasDeletedAt } from './trash.ts';
+import { PurgeSafetyRefusal, purgeFilesWithCompensation, assertNoOtherLiveArtifactRefers, liveFilter, visibleArtifactFilter, tableHasDeletedAt } from './trash.ts';
 
 export type ArtifactKind = 'generated' | 'evidence' | 'source' | 'scan' | 'template' | 'other';
 
@@ -625,7 +626,7 @@ export function artifactExists(a: Artifact): boolean {
  *   · 记录留着 → 回收站里看得见、能恢复；
  *   · 所有读路径（列表/详情/搜索/统计/清单/助手/导出）默认都排除它（见 core/trash.ts 的 NOT_DELETED）。
  *
- * `withFile` 的参数名保持兼容，语义按本次改造收敛成「**彻底删除时要不要连磁盘文件一起删**」：
+ * `withFile` 在此入口表示「软删除记录时是否同时删除磁盘文件」：
  *   · `withFile: true`  → 顺手把磁盘文件删掉。安全阀与 `core/trash.ts` 的彻底删除**完全同一套**
  *     （共用 `core/paths.ts` 的 `assertDeletableFile`）：
  *       ① 必须命中允许根 —— 不在白名单里的绝对路径一律不碰（这次修复补上的：以前这里
@@ -642,115 +643,81 @@ export function artifactExists(a: Artifact): boolean {
  * **真删**走 `core/trash.ts` 的 `purgeFromTrash()` / `emptyTrash()`。
  */
 export function deleteArtifact(id: number, opts: { withFile?: boolean } = {}): {
-  /** 磁盘文件是不是真的被删掉了 */
   fileRemoved: boolean;
-  /** 被安全阀跳过时的原因（没有跳过就是 null） */
   fileSkipped: string | null;
+  /** 派生知识已移除，恢复附件后须重新导入。 */
+  kbDocumentsRemoved?: number;
+  warnings?: string[];
 } {
   const a = getArtifact(id, { includeDeleted: true });
-  if (!a) return { fileRemoved: false, fileSkipped: null };
-
-  /**
-   * 删文件会连坐知识库：`kb_document.artifact_id` 是 ON DELETE CASCADE，
-   * 删掉这份文件，它的知识库文档和全部片段（含向量）会**静默消失**。
-   * 静默是最糟的部分 —— 用户以为只是删了个文件，语义检索那边却少了一篇。
-   * 所以这里先把要连坐的文档找出来、明确告诉调用方，并且让向量缓存立刻失效，
-   * 否则接下来 30 秒的检索还会拿已经删掉的片段算相似度。
-   *
-   * 软删除这一轮**不动** kb_document：记录还在、还能恢复，等彻底删除时才真级联。
-   */
-  const linkedDocs = all<{ id: number; title: string }>(
-    'SELECT id, title FROM kb_document WHERE artifact_id = ?',
-    [id],
-  );
-
-  let fileRemoved = false;
-  let fileSkipped: string | null = null;
+  if (!a || get<{ deleted_at: string | null }>('SELECT deleted_at FROM artifact WHERE id = ?', [id])?.deleted_at) {
+    return { fileRemoved: false, fileSkipped: null };
+  }
+  // 带文件操作不能在仍可回滚的外层事务中清掉补偿副本。
+  if (opts.withFile && getDb().isTransaction) throw new Error('带文件软删除不能在外层事务内执行');
+  let fileRemoved = false, fileSkipped: string | null = null, abs: string | null = null;
+  const warnings: string[] = [];
+  let linkedDocs: { id: number; title: string }[] = [];
+  const validate = () => {
+    assertDeletableFile(abs!, a, '文件');
+    assertNoOtherLiveArtifactRefers(a);
+  };
   if (opts.withFile) {
-    try {
-      const abs = artifactAbsPath(a);
-      if (existsSync(abs)) {
-        /**
-         * 授权与内容核对：与 trash.ts 的 `removeArtifactFile` 同一套判据。
-         * 跳过（只读来源 / 指纹不符 / 被别的存活记录引用 / 绑定根本身）不是错误 ——
-         * 记录该进回收站还是进，只是磁盘那一份不动。
-         */
-        assertDeletableFile(abs, a, '文件');
-        assertNoOtherLiveArtifactRefers(a);
-        unlinkSync(abs);
-        fileRemoved = true;
-        pruneEmptyDirs(a, abs);
+    abs = artifactAbsPath(a);
+    if (!existsSync(abs)) abs = null;
+    if (abs) {
+      try { validate(); } catch (e) {
+        if (!(e instanceof SafetyRefusal)) throw e;
+        fileSkipped = e.message;
       }
-    } catch (e) {
-      /**
-       * 分两类：
-       *   · **安全阀拒绝**（`SafetyRefusal`）→ 跳过磁盘那一份、继续软删除，原因回报给调用方；
-       *   · 其它（被占用 EPERM/EBUSY、定位不到…）→ 保持原样抛错，让调用方知道"这次没删成"。
-       */
-      if (e instanceof SafetyRefusal) fileSkipped = e.message;
-      else throw new Error(`文件删除失败，记录未变动：${(e as Error).message}`);
     }
   }
-  // 软删除：索引行也一起摘掉，否则检索会命中一条"已删除"的文件（详情页打开就是 404）
-  tx(() => {
+  const deleteRows = () => {
+    if (JSON.stringify(getArtifact(id, { includeDeleted: true })) !== JSON.stringify(a)) {
+      throw new Error('文件登记已变化，请重新核对后再移入回收站');
+    }
     run('DELETE FROM artifact_search WHERE id = ?', [id]);
     run("UPDATE artifact SET deleted_at = COALESCE(deleted_at, strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE id = ?", [id]);
-    /**
-     * OCR 队列里的这一条也要收尾：待识别的任务留着不动，它会一直占着队列
-     * （`queueState` 的 pending 计数永不归零，界面上的"排队中"下不去）。
-     * 标成 skipped + 一句原因，与 `cancelPending()` 的收尾口径一致。
-     */
-    run(
-      "UPDATE ocr_item SET status = 'skipped', ocr_error = '文件已移入回收站，不再识别' WHERE artifact_id = ? AND status IN ('pending','running')",
-      [id],
-    );
-    /**
-     * 影像初检结论（`evidence_review`）**跟着删掉**，不能留。
-     *
-     * 它原来是靠 `ON DELETE CASCADE` 随记录一起消失的，软删除不再触发级联 —— 于是
-     * 「删了照片，`GET /api/evidence/reviews` 还能看到它的初检结论」。那是**派生的中间结果**
-     * （重跑一次初检就有），不是用户的原始资料，留着只会让人以为这张照片还在库里；
-     * 反过来，把它们一起清掉不影响"恢复照片"这件事 —— 恢复后重新初检即可。
-     * 唯一要如实说清的地方：恢复照片不会连初检结论一起回来（`restoreFromTrash` 的 warnings
-     * 里会提到"只有记录"）。`kb_document` 的处理见下面：那是知识库文档，不能悄悄丢。
-     */
+    run("UPDATE ocr_item SET status = 'skipped', ocr_error = '文件已移入回收站，不再识别' WHERE artifact_id = ? AND status IN ('pending','running')", [id]);
+    // 初检与知识库都是派生数据；软删后不继续检索，恢复后重新初检/导入。
     run('DELETE FROM evidence_review WHERE artifact_id = ?', [id]);
-  });
-  if(a.workbench_id) syncEvidence(a.workbench_id);
-  if (linkedDocs.length) {
-    /**
-     * 知识库文档（`kb_document` + `kb_chunk`）也是靠级联删的，软删除不再触发它。
-     * 但这次**主动清掉**，理由与 `evidence_review` 不同、必须写清楚：
-     *   · 知识库是**全局检索**（不分工作台），一条指向已删除文件的文档会一直被语义检索命中，
-     *     点进去却打不开文件 —— 比"少一篇"更糟；
-     *   · `listKbDocuments()` 用的是 `LEFT JOIN artifact`，本来也过滤不了已删除的，
-     *     想靠读路径挡住就得改 `api/routes-kb.ts`（不在本次范围内）。
-     * 所以这里显式删掉它，并让向量缓存立刻失效；恢复文件后可以重新「导入知识库」。
-     */
+    if (a.workbench_id) syncEvidence(a.workbench_id);
+    linkedDocs = all<{ id: number; title: string }>('SELECT id, title FROM kb_document WHERE artifact_id = ?', [id]);
     for (const d of linkedDocs) {
+      // 内容表触发器同步FTS；与kb_document/kb_chunk在同一事务内清理。
+      run('DELETE FROM kb_chunk_search WHERE document_id = ?', [d.id]);
       run('DELETE FROM kb_document WHERE id = ?', [d.id]);
     }
-    invalidateKbCache();
-    console.warn(
-      `[文件] 「${a.title}」移入回收站，它关联的 ${linkedDocs.length} 篇知识库文档已一并移除：${linkedDocs.map((d) => d.title).join('、')}`,
-    );
+  };
+  if (abs && !fileSkipped) {
+    try {
+      // 复用既有副本/事务/排他恢复；空目录仍按此附件自己的根在提交后回收。
+      const result = purgeFilesWithCompensation([{ abs, infos: [a], validate }], deleteRows, false);
+      fileRemoved = result.filesRemoved > 0;
+      warnings.push(...(result.warnings ?? []));
+    } catch (e) {
+      if (!(e instanceof SafetyRefusal)) throw e;
+      // 备份期间才发现的安全拒绝也保留原“文件不动、记录软删”语义；
+      // 真实IO/数据库/补偿失败不降级为仅删记录。
+      fileSkipped = e.message;
+      const cleanupWarnings = e instanceof PurgeSafetyRefusal ? e.cleanupWarnings : [];
+      try { tx(deleteRows); } catch (dbError) {
+        // 记录事务也失败时仍报失败，同时保留未清理副本的位置供核对。
+        if (cleanupWarnings.length) throw new Error(`${(dbError as Error).message}；${cleanupWarnings.join('；')}`);
+        throw dbError;
+      }
+      warnings.push(...cleanupWarnings);
+    }
+  } else tx(deleteRows);
+  // 缓存只在上述事务成功后同步失效，无异步import间隙或未处理Promise拒绝。
+  if (linkedDocs.length) invalidateKbCache();
+  if (fileRemoved && abs) {
+    try {
+      const warning = pruneEmptyDirs(a, abs);
+      if (warning) warnings.push(warning);
+    } catch (e) { warnings.push(`文件已删除，但空目录回收未完成：${(e as Error).message}`); }
   }
-  /**
-   * 被安全阀跳过磁盘那一份时留一行日志：回收站里那条记录的说明仍然是"磁盘文件还在"，
-   * 与 `listTrash` 的 `artifactFileExists()` 判断口径一致 —— 不要在这里假装删掉了。
-   */
-  if (fileSkipped) console.warn(`[文件] 「${a.title}」已移入回收站，但磁盘那一份按规则未删除：${fileSkipped}`);
-  return { fileRemoved, fileSkipped };
-}
-
-/** 删文件时让知识库的向量缓存失效（core/kb.ts 的内存矩阵） */
-function invalidateKbCache(): void {
-  try {
-    // 动态引入避免 store ↔ kb 的循环依赖
-    void import('./kb.ts').then((m) => m.invalidateCache());
-  } catch {
-    /* 缓存失效失败不影响删除 */
-  }
+  return { fileRemoved, fileSkipped, kbDocumentsRemoved: linkedDocs.length, ...(warnings.length ? { warnings } : {}) };
 }
 
 /**
@@ -763,19 +730,20 @@ function invalidateKbCache(): void {
  * 往上收会删掉用户建的目录。所以最多删到绑定根之下的空目录，绝不删绑定根本身，
  * 也不能越过它继续往上（旧实现一路收到 DATA_ROOT，绑外之后会波及用户的整个资料目录）。
  */
-function pruneEmptyDirs(a: Artifact, fileAbs: string): void {
+function pruneEmptyDirs(a: Artifact, fileAbs: string): string | null {
   const stop = stopDirOf(a);
-  if (!stop) return; // 定位不到所属根：不收目录（宁可留空目录，也不能越过用户的资料目录往上删）
+  if (!stop) return null; // 定位不到所属根：不收目录（宁可留空目录，也不能越过用户的资料目录往上删）
   let dir = dirname(fileAbs);
   while (dir !== stop && isInsideRoot(stop, dir)) {
     try {
-      if (readdirSync(dir).length > 0) return;
+      if (readdirSync(dir).length > 0) return null;
       rmdirSync(dir);
-    } catch {
-      return;
+    } catch (e) {
+      return `文件已删除，但空目录未清理：${dir}（${(e as Error).message}）`;
     }
     dir = dirname(dir);
   }
+  return null;
 }
 
 /**

@@ -300,7 +300,7 @@ export function registerFileRoutes(app: FastifyInstance): void {
    * 把文件**移到回收站**（可选连磁盘文件一起删）。
    *
    * 与改造前的区别：库记录不再 `DELETE`，只打 `deleted_at` 标记 —— 回收站里能恢复。
-   * `withFile` 的参数名保持兼容，语义按本次改造收敛成「**彻底删除时要不要连磁盘文件一起删**」：
+   * `withFile` 在此入口表示「软删除记录时是否同时删除磁盘文件」：
    *   · 不带 / `withFile=0` → 文件仍在磁盘上，回收站里恢复后照样能下载；原文件从此也从
    *     列表/检索/统计/清单里消失；
    *   · `withFile=1` → 顺手把磁盘文件删掉。这时**记录恢复出来也只是空壳**，所以响应里明说
@@ -329,17 +329,17 @@ export function registerFileRoutes(app: FastifyInstance): void {
 
       if (withFile && absPath === null) {
         // 定位不到（典型是工作台解绑后 root_kind='external' 的老记录）：只移动记录
-        deleteArtifact(id, { withFile: false });
+        const r = deleteArtifact(id, { withFile: false });
         return ok(reply, {
+          ...r,
           deleted: true,
           trashed: true,
           fileRemoved: false,
           fileSkipped: null,
-          message: `已移到回收站；原文件在工作台解绑后无法定位，未动磁盘（${a.file_rel}）。可在「回收站」页恢复`,
+          message: `已移到回收站；原文件在工作台解绑后无法定位，未动磁盘（${a.file_rel}）。可在「回收站」页恢复` + (r.kbDocumentsRemoved ? `；已移除 ${r.kbDocumentsRemoved} 篇派生知识库文档，恢复后须重新导入知识库` : ''),
         });
       }
 
-      const hadFile = absPath !== null && existsSync(absPath);
       const r = deleteArtifact(id, { withFile });
       /**
        * 四种情况要分开说清楚，别让界面统一显示"已删除文件"：
@@ -351,11 +351,13 @@ export function registerFileRoutes(app: FastifyInstance): void {
       const message = r.fileSkipped
         ? `已移到回收站，但磁盘上的文件按安全规则未删除：${r.fileSkipped}。恢复记录后文件仍在原处`
         : withFile
-          ? hadFile
+          ? r.fileRemoved
             ? `已移到回收站，并删除了磁盘上的文件（${a.file_rel}）；恢复后只有记录，文件需要重新上传或放回原处`
             : `磁盘上已经没有这个文件了，只把记录移到了回收站（${a.file_rel}）`
           : `已移到回收站，磁盘文件仍在原处（${a.file_rel}），恢复后即可下载`;
-      return ok(reply, { deleted: true, trashed: true, fileRemoved: r.fileRemoved, fileSkipped: r.fileSkipped, message });
+      return ok(reply, { deleted: true, trashed: true, ...r, message: message +
+        (r.kbDocumentsRemoved ? `；已移除 ${r.kbDocumentsRemoved} 篇派生知识库文档，恢复后须重新导入知识库` : '') +
+        (r.warnings?.length ? `；${r.warnings.join('；')}` : ''), });
     } catch (e) {
       return fail(reply, e);
     }

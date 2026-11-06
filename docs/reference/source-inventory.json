@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "31c93bfd6f99d5fcacc4b77ed64ac181ff38384f",
+  "committedBase": "9fdd0f208f1ec2fdaa313637c9b6ede20bb58433",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -113,7 +113,7 @@
     },
     {
       "path": "packages/server/src/api/routes-files.ts",
-      "sha256": "06ee372de893eb54f5291a8bd56a31cbadb1a429018e982bb078ae347bade173"
+      "sha256": "647daefaf2ba262f1552edc267538b19bda588dc04f4e7a38ac5edc5689957fe"
     },
     {
       "path": "packages/server/src/api/routes-generate.ts",
@@ -237,7 +237,7 @@
     },
     {
       "path": "packages/server/src/core/kb.ts",
-      "sha256": "9ddc7253deb8b391340f6ce63c0b8b48bfe6eda690f6361cb7df70c71808c42c"
+      "sha256": "d322a54f981a85be6954dbee1bddf698fa6820ac601c6a691d757aac530fd5be"
     },
     {
       "path": "packages/server/src/core/knowledge.ts",
@@ -301,7 +301,7 @@
     },
     {
       "path": "packages/server/src/core/store.ts",
-      "sha256": "676b8451de9310c1b0f410946b4a4589c8bd03ec1c33aa2ef45de4683b018c5c"
+      "sha256": "cdda3fda9773947aeb5b3e2259f298325fb777c3a63595014c9e8d48a9b3fb3c"
     },
     {
       "path": "packages/server/src/core/template-fields.ts",
@@ -317,7 +317,7 @@
     },
     {
       "path": "packages/server/src/core/trash.ts",
-      "sha256": "0e310de6d556a0b311d0cca97f27c984e64aa918bf9123e06b2e7acb614b86dd"
+      "sha256": "cb5a9334ab4c141127a11a87d68cf68f017f95f52c261e0d75881450a99da87b"
     },
     {
       "path": "packages/server/src/core/vision.ts",
@@ -1520,109 +1520,109 @@
       "method": "GET",
       "path": "/api/search",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 365
+      "line": 367
     },
     {
       "method": "GET",
       "path": "/api/files/stats",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 383
+      "line": 385
     },
     {
       "method": "POST",
       "path": "/api/files/reindex",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 436
+      "line": 438
     },
     {
       "method": "POST",
       "path": "/api/files/import-folder",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 460
+      "line": 462
     },
     {
       "method": "GET",
       "path": "/api/files/generated",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 534
+      "line": 536
     },
     {
       "method": "GET",
       "path": "/api/ocr/status",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 546
+      "line": 548
     },
     {
       "method": "POST",
       "path": "/api/ocr/scan-missing",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 555
+      "line": 557
     },
     {
       "method": "POST",
       "path": "/api/ocr/artifacts/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 580
+      "line": 582
     },
     {
       "method": "POST",
       "path": "/api/ocr/prepare",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 600
+      "line": 602
     },
     {
       "method": "POST",
       "path": "/api/ocr/cancel",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 616
+      "line": 618
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/versions",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 642
+      "line": 644
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/mark-final",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 665
+      "line": 667
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/rollback-to/:revision",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 685
+      "line": 687
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/diff",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 706
+      "line": 708
     },
     {
       "method": "GET",
       "path": "/api/trash",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 757
+      "line": 759
     },
     {
       "method": "POST",
       "path": "/api/trash/:kind/:id/restore",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 770
+      "line": 772
     },
     {
       "method": "DELETE",
       "path": "/api/trash/:kind/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 801
+      "line": 803
     },
     {
       "method": "DELETE",
       "path": "/api/trash",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 831
+      "line": 833
     },
     {
       "method": "GET",

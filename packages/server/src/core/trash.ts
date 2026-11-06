@@ -740,11 +740,20 @@ interface PurgeFile {
   validate: () => void;
 }
 
+/** 安全拒绝与副本清理问题分开传递，调用方仍可按既有规则只处理记录。 */
+export class PurgeSafetyRefusal extends SafetyRefusal {
+  readonly cleanupWarnings: string[];
+  constructor(reason: string, cleanupWarnings: string[]) {
+    super([reason, ...cleanupWarnings].join('；'));
+    this.cleanupWarnings = cleanupWarnings;
+  }
+}
+
 /**
  * 在数据库事务前备齐全部唯一文件；任一删除/提交失败时逐份排他补偿。
  * 副本位于私有运行目录，不覆盖后来出现的文件，不提供崩溃/断电自动恢复。
  */
-function purgeFilesWithCompensation(files: PurgeFile[], deleteRows: () => void): PurgeResult {
+export function purgeFilesWithCompensation(files: PurgeFile[], deleteRows: () => void, prune = true): PurgeResult {
   if (getDb().isTransaction) throw new Error('带文件的彻底删除不能在外层事务内执行');
   const staged: { file: PurgeFile; dir: string; backup: string; manifest: string; removed: boolean; fingerprint?: { sha256: string; size_bytes: number } }[] = [];
   let phase = '准备删除';
@@ -812,11 +821,12 @@ function purgeFilesWithCompensation(files: PurgeFile[], deleteRows: () => void):
       throw new Error(`${reason}；文件补偿失败：${failures.join('；')}；请核对数据库和原路径，补偿副本保留在 ${staged.map(item => item.dir).join('；')}`);
     }
     const warnings = cleanup();
+    if (e instanceof SafetyRefusal) throw new PurgeSafetyRefusal(reason, warnings);
     if (warnings.length) throw new Error(`${reason}；${warnings.join('；')}`);
-    throw e instanceof SafetyRefusal ? new SafetyRefusal(reason) : new Error(reason);
+    throw new Error(reason);
   }
   const warnings = cleanup();
-  for (const item of staged) pruneEmptyDirsUpTo(item.file.abs);
+  if (prune) for (const item of staged) pruneEmptyDirsUpTo(item.file.abs);
   return { purged: true, filesRemoved: staged.length, ...(warnings.length ? { warnings } : {}) };
 }
 

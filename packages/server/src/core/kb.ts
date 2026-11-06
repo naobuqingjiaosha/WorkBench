@@ -10,7 +10,7 @@
  * 相似度计算：启动时把全部向量读进内存做矩阵乘法。一万块 × 1024 维的一次全量打分约几十毫秒，
  *            在这个量级下不需要 HNSW 之类的索引结构。
  */
-import { all, get, run, tx } from '../db/index.ts';
+import { all, get, getDb, run, tx } from '../db/index.ts';
 import { embed,embeddingSignature } from '../ai/gateway.ts';
 import type { AiPurpose } from '../ai/providers.ts';
 import { segCJK } from './search.ts';
@@ -869,7 +869,9 @@ export function invalidateCache(): void {
 
 /** 把全部向量读进内存（带 30 秒缓存，避免每次搜索都读库） */
 function buildMatrix(force = false): CachedChunk[] {
-  if (matrix && !force && Date.now() - matrixBuiltAt < 30_000) return matrix;
+  // 事务内读取当前行，且不把尚可回滚的结果放入全局缓存。
+  const inTransaction = getDb().isTransaction;
+  if (!inTransaction && matrix && !force && Date.now() - matrixBuiltAt < 30_000) return matrix;
   /**
    * 失效文档（`decision='stale'`）的向量**留在库里但不参与检索** —— 这正是"标记失效"
    * 与"删库"的区别：换口径后不该被检索到的，检索不到（口径照样生效），
@@ -886,8 +888,7 @@ function buildMatrix(force = false): CachedChunk[] {
     if (!v) continue;
     m.push({ id: r.id, documentId: r.document_id, seq: r.seq, heading: r.heading, content: r.content, vector: v,signature:r.embedding_model ?? '' });
   }
-  matrix = m;
-  matrixBuiltAt = Date.now();
+  if (!inTransaction) { matrix = m; matrixBuiltAt = Date.now(); }
   return m;
 }
 

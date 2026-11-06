@@ -1,10 +1,26 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.21。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.22。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-01 / GOV-11｜附件带文件软删除失败一致性
+
+**范围与依据：** Linux Codex Cloud接续main/9fdd0f208f1ec2fdaa313637c9b6ede20bb58433，初始HEAD/远端一致、工作区干净，仓库naobuqingjiaosha/WorkBench；重读AGENTS、根文档、正式GOV/RK及隔离规则，.agents/skills不存在，云环境运行技能已读取。仅deleteArtifact及原DELETE附件路由，不重做前批、不操作Mac/真实库/资料/模板/凭证，无模型调用或部署。
+
+**修前确证：** gov01-soft-repro经test-isolated及实际SQLite/原路由注入：记录UPDATE触发器拒绝后HTTP500但文件已丢；syncEvidence拒绝时已软删、索引/OCR已变而清单与KB未处理；第二篇KB删除拒绝时首篇已删、另一篇留下。正常删除KB文档为0但全文索引仍2行、即时空语义查询仍命中缓存2片。before.json/before.log保留于`/workspace/workbench-cloud/gov01-soft/`，退出0仅代表确证。注释曾称软删不动KB，实际代码已删除关联KB；本批按父任务明确要求保留恢复后重导入语义，并把结果写入响应，纠正矛盾注释。
+
+**文件与变化：** store.ts复用trash.ts既有文件补偿，把附件标记/索引、OCR、初检、syncEvidence、KB文档/片段/全文索引合入同一事务；拒绝带文件外层事务、比较附件快照，已软删重复调用不碰新文件。安全拒绝仍软删并明示；真正故障回滚并补偿，补偿冲突保留副本。trash.ts导出既有助手及可关闭其目录收尾参数，软删继续按原附件根清空目录；独立修复增加安全拒绝子类保留清理警告，详见下段。kb.ts同步缓存失效，事务内读取不复用/填充可回滚的全局矩阵；routes-files.ts依据实际结果回传文件删除、跳过、KB移除/重导入及清理警告，提交后清理问题不误报主操作失败。无UI、依赖、迁移或配置修改。
+
+**自检：** gov01-soft最终21组通过（run-r0RpeP/results.json、test-second.log），涵盖正常/恢复/重复、普通软删、记录/同步/KB/延迟FK故障、EBUSY/ENOSPC、补偿EPERM/目标冲突、副本/目录清理警告、前后指纹变化/只读/共享引用/登记漂移、缺文件/解绑、外层事务和回滚缓存。逐表与二进制字节比较，FK及事务退出检查。首轮test-first.log因测试把阶段已完成工作进度错误期望为0而失败；按既有两门槛口径修正为50，不改应用算法，保留失败证据。旧单附件17组（single-run-OtNUJ0）、整工作22组（run-VTS3JY）、清空12组（api-4h4KJT）断言以新输出路径回归通过，不累计为新增覆盖。npm run typecheck及78模块隔离前端构建通过（typecheck-final.log/build.log），产物仅专属/tmp/workbench-gov01-soft-build/dist。文档、边界、差异检查按冻结前执行。
+
+**独立验收：** 首轮冻结263项及补丁4a2863f78dbd6514c6253863b7ddae44fe712caf3b8394bd23bbc71df3ed7096经全新审查者只读核对，原21/17/22/12组亲自复跑通过，新增7组中6过1失败，报告`/workspace/workbench-cloud/gov01-soft/independent/REPORT.md`。阻断P2为晚期安全拒绝叠加副本清理EPERM被转换为普通Error，返回500、全表未软删；原文件与备份均完整，非数据丢失或提交后误报。限定修复以PurgeSafetyRefusal保留安全类别与清理warnings，软删继续事务；如该事务也失败仍报失败并保留副本位置。真实数据库/复制/删除/补偿故障不降级。新增本地3组组合回归（fix-oYL1im）及原21组复跑（run-AYgAeK）通过，类型/构建复跑通过（typecheck-r2.log/build-candidate.log），新冻结264项及补丁76e12089d3e1fa97b2a86f200f9c56654b82a79dc8d130ddb1a905c219d1555f独立复验通过（independent/RECHECK.md）：亲自重跑原21/17/22/12、原独立7、作者新3、独立反向3组共85组全过；核对硬删除400/清空protected、真正DB错误failed与cleanup位置。前后264项无变化，原断言未降低，首轮P2已解除；原失败证据保持，不累计运行次数作更广覆盖。修复首试用了Node strip-only不支持的参数属性，两个专项均在加载前失败（fix.log/soft-final.log）；改为显式类属性后通过，未改业务规则或测试断言。
+
+**五份根文档及治理：** 全文复核GPT_CONTEXT、CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE、DEVELOPMENT_PROGRESS；CONTEXT术语无变化保持正文，其余分别整合当前接续、PR-08既有语义/故障要求、补偿/事务/缓存结构、实际验证与剩余范围。PROJECT_PLAN仍唯一队列，RK-01/07、质量矩阵和开发指南3.12同步；本条日志合并收尾，刷新两份机器索引，不追逐source-inventory提交自指哈希。
+
+**未测、清理与交付：** 未新增页面入口、未做本批浏览器/实际断网/全应用鉴权；Linux注入不等于Windows锁。完整npm test/typecheck:tests旧资源缺失，跨盘/跨进程/崩溃/断电恢复未验，GOV-01未整体关闭。隔离运行根由runner清除，补偿故障残留仅验证后清理自建副本，未启动浏览器或持久测试服务；作者构建目录已清理；首轮独立五个临时根与两个回环端口均已清理，新冻结复验的七个临时根及两个回环端口亦已清理。文档/仓库边界/差异检查通过；源码/文档已保存并完成限定独立验收。本条在提交前定稿，按用户明确授权审查暂存并普通提交推送main，执行原钩子并恢复本地权限；最终SHA、远端与CI实况以交付时核验为准，不强推、不部署；测试/夹具/报告仅本环境保留。建议提交标题：fix(trash): preserve consistency during artifact soft deletion。
 
 ## 2026-11-06｜GOV-01 / GOV-11 / GOV-13｜清空回收站逐目标结果与重复提交保护
 
