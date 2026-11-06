@@ -1,3 +1,4 @@
+import {syncEvidence} from './checklist.ts';
 /**
  * 回收站与软删除
  *
@@ -434,7 +435,15 @@ function refreshBoundRootsQuietly(): void {
 }
 
 export function restoreFromTrash(kind: string, id: number): RestoreResult {
-  const result = restoreFromTrashInner(kind, id);
+  // Restoration and derived counts are one database operation. These paths only
+  // inspect files; indexes and nested restore writes share this savepoint.
+  const result = tx(() => {
+    const restored = restoreFromTrashInner(kind, id);
+    const workbenchId = kind === 'workbench' ? id : kind === 'artifact' || kind === 'position'
+      ? get<{workbench_id:number}>(`SELECT workbench_id FROM ${kind === 'artifact' ? 'artifact' : 'position_instance'} WHERE id=?`, [id])?.workbench_id : undefined;
+    if (workbenchId) syncEvidence(workbenchId);
+    return restored;
+  });
   // 恢复完立刻刷新允许根：删工作台时摘掉的根，这里要装回来（见上面的说明）
   refreshBoundRootsQuietly();
   return result;

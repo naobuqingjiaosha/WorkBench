@@ -1,3 +1,4 @@
+import {assertInstanceTemplate} from './service.ts';
 import {templateGenerationScope} from './service.ts';
 import {requireInspection,inspectionFields,documentPeriodKey,assertInspectionRevision,assertInspectionScope,inspectionSourceSignature} from './inspections.ts';
 import { collectWorkContext } from './work-context.ts';
@@ -7,7 +8,7 @@ import {readArtifactEvidence} from '../core/evidence-file.ts';
 import { inheritBusinessEvidence } from './business-evidence.ts';
 import { reviewMemoryFacts, assertFactReview, type FactChoice } from './memory-facts.ts';
 import { assertFinalBytes } from './finalization.ts';
-import { assertPeriodContext,assertGenerationScope } from './periods.ts';
+import { assertPeriodContext,assertGenerationScope,resolvePeriodResultTarget,periodResultHead } from './periods.ts';
 /**
  * 生成服务 —— 把"模板 + 资料 + 大模型"串成一条闭环
  *
@@ -431,7 +432,7 @@ async function generateVariablesCurrent(input: GenerateInput): Promise<GenerateR
   // 路径①draft：先拦坏模板，别等渲染完才发现文件打不开（也省掉一次模型调用）
   const t = templateForRender(input.templateId);
   if (!t) throw new Error('模板不存在');
-  assertGenerationScope(t,input.workbenchId,input.positionCode);
+  assertGenerationScope(t,input.workbenchId,input.positionCode,input.periodId);
   const varsFile = readTemplateVars(t);
   const specs = varsFile.variables;
   /**
@@ -450,6 +451,7 @@ async function generateVariablesCurrent(input: GenerateInput): Promise<GenerateR
   const period = input.periodId ? requirePeriod(input.periodId,input.workbenchId) : null;
   assertInspectionScope(t,period,input.inspectionId);
   if(period)assertPeriodTemplate(period,t);
+  else assertInstanceTemplate(input.workbenchId,input.positionCode,t);
   if(period && !input.workbenchId)throw new ApiError('WORK_REQUIRED','期次生成必须指定工作');
   if(period)Object.assign(native,periodNativeFields(period));
   Object.assign(native,inspectionFields(input.inspectionId,period?.id));
@@ -1454,8 +1456,9 @@ export async function renderPreviewPlan(
   }
   assertInspectionScope(t,period,opts.inspectionId);
 
-  assertGenerationScope(t,opts.workbenchId,opts.positionCode);
+  assertGenerationScope(t,opts.workbenchId,opts.positionCode,opts.periodId);
   if (period) assertPeriodTemplate(period,t);
+  else assertInstanceTemplate(opts.workbenchId,opts.positionCode,t);
   const abs = templateAbsPath(t);
   if (!existsSync(abs)) {
     const reason = `模板文件已丢失：${t.file_rel}`;
@@ -1689,6 +1692,7 @@ export async function openPreviewInSystem(
 }
 
 export interface SaveGeneratedInput {
+  materialId?:number|null;
   /** Internal scoped draft service only; never copied from an HTTP payload. */
   inspectionDraft?: {id:number;revision:number};
   expectedSourceSignature?:string;
@@ -1754,7 +1758,7 @@ async function saveGeneratedDocumentLocked(input: SaveGeneratedInput): Promise<S
   // 路径③save：坏模板不允许落盘 —— 存进去的是"看起来成功、打不开"的正式文书
   const t = templateForRender(input.templateId);
   if (!t) throw new Error('模板不存在');
-  assertGenerationScope(t,input.workbenchId,input.positionCode);
+  assertGenerationScope(t,input.workbenchId,input.positionCode,input.periodId);
   const abs = templateAbsPath(t);
   const fmt = detectFormat(abs);
   if (!canRender(fmt)) throw new Error(`该格式（${fmt}）不支持填充`);
@@ -1763,6 +1767,8 @@ async function saveGeneratedDocumentLocked(input: SaveGeneratedInput): Promise<S
   const factReview = reviewMemoryFacts(input.workbenchId,input.periodId,input.values,input.factChoices);
   if (input.saveMode === 'final') assertFactReview(factReview);
   const period=input.periodId?requirePeriod(input.periodId,input.workbenchId):null;
+  const resultTarget=period?resolvePeriodResultTarget(period,t.id,input.materialId):undefined;
+  if(!period&&input.materialId!=null)throw new ApiError('WRONG_MATERIAL','成果要求须属于明确期次',409);
   if(input.inspectionDraft){
     const {requireDraft}=await import('./inspection-drafts.ts');
     requireDraft(period!.id,input.inspectionDraft.id,input.inspectionDraft.revision);
@@ -1770,6 +1776,7 @@ async function saveGeneratedDocumentLocked(input: SaveGeneratedInput): Promise<S
   }else assertInspectionScope(t,period,input.inspectionId);
   const inspectionSources=inspectionSourceSignature(t,period,input.inspectionId);
   if(period)assertPeriodTemplate(period,t);
+  else assertInstanceTemplate(input.workbenchId,input.positionCode,t);
   if(period&&!wb)throw new ApiError('PERIOD_CLOSED','请选择所属工作');
   const explicitKey=documentPeriodKey(period,input.inspectionId);
   const inspection=input.inspectionId?requireInspection(input.inspectionId,period?.id):null;
@@ -1813,7 +1820,7 @@ async function saveGeneratedDocumentLocked(input: SaveGeneratedInput): Promise<S
   let planHead: Artifact | null = null;
 
   if (ensureDocVersionSchema()) {
-    const head = findChainHead({
+    const head = resultTarget&&period?periodResultHead(period,t.id,resultTarget):findChainHead({
       periodKey: explicitKey,
       workbenchId: input.workbenchId ?? null,
       templateId: t.id,
@@ -1924,12 +1931,13 @@ async function saveGeneratedDocumentLocked(input: SaveGeneratedInput): Promise<S
     onCommit: (artifact) => {
       if(sourceSignature!==documentSourceSignature(input.workbenchId,input.periodId,input.templateId,sourceArtifactIds,input.inspectionId))throw new ApiError('SOURCE_CHANGED','生成期间业务来源或模板发生变化，请重新核对后保存',409);
       assertInspectionRevision(input.inspectionId,input.periodId,input.inspectionRevision);
+      if(period&&resultTarget){const current=resolvePeriodResultTarget(period,t.id,resultTarget.id);if(current?.artifact_id!==resultTarget.artifact_id||current?.status!==resultTarget.status)throw new ApiError('STALE_MATERIAL','成果材料关联已变化，请保留输入并重新核对',409);}
       if(period){const fresh=requirePeriod(period.id,input.workbenchId);if(fresh.snapshot!==period.snapshot||fresh.content!==period.content)throw new ApiError('STALE_PERIOD','期次内容或模板已变化，请重新核对后保存',409);}
       run('INSERT INTO artifact_fact_review(artifact_id,snapshot) VALUES(?,?)',[artifact.id,JSON.stringify({...factReview,digest:artifact.sha256,inspectionSources,sourceSignature,sourceArtifactIds})]);
       if(period){
         run('UPDATE artifact SET work_period_id=?,inspection_id=?,inspection_revision=? WHERE id=?',[period.id,inspection?.id??null,inspection?.revision??null,artifact.id]);
         const entry=JSON.parse(period.snapshot).templates.find((x:{id:number})=>x.id===t.id);
-        const materialId=entry?.materialId??get<{id:number}>('SELECT id FROM period_material WHERE period_id=? AND title=?',[period.id,t.name])?.id;
+        const materialId=resultTarget?.id??entry?.materialId??get<{id:number}>('SELECT id FROM period_material WHERE period_id=? AND title=? AND config_key IS NULL',[period.id,t.name])?.id;
         if(materialId)run("UPDATE period_material SET artifact_id=?,status=?,note=? WHERE id=? AND period_id=? AND requirement_kind='generated' AND (status<>'verified' OR ?=1)",[artifact.id,plan?.isFinal?'verified':'provided','已自动关联模板成果；定稿由用户核对确认',Number(materialId),period.id,plan?.isFinal?1:0]);
         event(period.id,'generated',JSON.stringify({artifactId:artifact.id,templateId:t.id,materialId:materialId??null,templateUpdatedAt:t.updated_at,reportPeriod:period.report_period}));
       }

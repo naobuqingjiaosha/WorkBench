@@ -1,15 +1,17 @@
+import {stageApplicationReason, publishedPositionDocumentTarget} from './workflow-application.ts';
+import {publishedConfigForCreate} from './workflow-config.ts';
 import { snapshotTemplateRevision } from './template-history.ts';
 import { workTypeNavigation, type NavigationGroup } from './work-type-navigation.ts';
 import {invalidateLegacyDocumentSources} from './document-source.ts';
 import { ApiError } from '../api/reply.ts';
-import { assertPeriodReady, savePeriodRule, syncPeriods, todayShanghai } from './periods.ts';
+import { templateFingerprint, assertPeriodReady, savePeriodRule, syncPeriods, todayShanghai } from './periods.ts';
 import { assertFinalArtifact } from './finalization.ts';
 /**
  * 领域服务：工作类型 / 工作台 / 阶段 / 清单 / 模板 / 生成
  */
-import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync, rmdirSync } from 'node:fs';
 import { basename, extname, isAbsolute, join, relative, resolve as resolvePath } from 'node:path';
-import { checklistSatisfied, syncEvidence,evidenceCount } from '../core/checklist.ts';
+import { checklistSatisfied, syncEvidence,evidenceCount,updateStoredProgress } from '../core/checklist.ts';
 import { all, get, run, tx } from '../db/index.ts';
 import { DATA_ROOT, DIRS, backupDirectoryConfig, getSetting } from '../core/config.ts';
 import {
@@ -26,6 +28,7 @@ import { liveFilter, softDeleteWorkbench } from '../core/trash.ts';
 /* ============================== 工作类型 ============================== */
 
 export interface WorkType {
+  published_config_id: number | null;
   navigation_group?: NavigationGroup | null;
   id: number;
   code: string;
@@ -61,7 +64,7 @@ export function listWorkTypes(includeArchived = false) {
        (SELECT COUNT(*) FROM template tp WHERE tp.work_type_id = t.id AND tp.archived_at IS NULL) AS template_count,
        (SELECT COUNT(*) FROM workbench w WHERE w.work_type_id = t.id AND w.archived_at IS NULL AND ${workbenchCountFilter}) AS workbench_count
      FROM work_type t
-     ${includeArchived ? '' : 'WHERE t.archived_at IS NULL'}
+     ${includeArchived ? '' : 'WHERE t.archived_at IS NULL AND t.published_config_id IS NOT NULL'}
      ORDER BY t.sort_order, t.id`,
   ).map(t => ({ ...t, ...workTypeNavigation(t) }));
 }
@@ -1204,6 +1207,8 @@ function syncPositionFolders(workbenchId: number): void {
 /* ============================== 工作台 ============================== */
 
 export interface Workbench {
+  source_config_version_id?: number | null;
+  template_snapshot?: string | null;
   business_content: string;
   reference_root: string|null;
   historical: number;
@@ -1284,6 +1289,7 @@ export function nextWorkbenchCode(workType: WorkType): string {
 }
 
 export interface CreateWorkbenchInput {
+  publishedConfigId?: number;
   navigationGroup?: string;
   domain?: string;
   name: string;
@@ -1323,7 +1329,11 @@ export interface CreateWorkbenchInput {
 const RECURRENCES = new Set(['once', 'monthly', 'quarterly', 'yearly']);
 
 export function createWorkbench(input: CreateWorkbenchInput): Workbench {
- return tx(()=>{
+ const createdDirectories:string[]=[];
+ try { return tx(()=>{
+  const published = publishedConfigForCreate(input.workTypeId,input.publishedConfigId);
+  if(input.instantiatePositions===false)throw new ApiError('CONFIG_OVERRIDE','新工作须按所选发布配置建立阶段',409);
+  if(input.periodRule)throw new ApiError('CONFIG_OVERRIDE','请先在流程草稿配置默认周期，不接受未记录的创建规则覆盖',409);
   const wt = getWorkType(input.workTypeId);
   if (!wt || wt.archived_at) throw new ApiError('BAD_TYPE','工作类型不存在或已停用，请重新选择');
   if (input.domain !== undefined && input.domain !== wt.domain) throw new ApiError('BAD_CATEGORY','所选类型不属于当前工作入口');
@@ -1373,7 +1383,7 @@ export function createWorkbench(input: CreateWorkbenchInput): Workbench {
     return r.lastInsertRowid;
   });
 
-  if(input.templateIds) setBoundTemplateIds(id,input.templateIds,[]);
+
   /**
    * 首次到期日必须**不早于今天**。
    *
@@ -1398,20 +1408,22 @@ export function createWorkbench(input: CreateWorkbenchInput): Workbench {
    * 一条路径两种情形，避免"建台去了数据目录、上传去了外部目录"这种半截状态。
    */
   const rootAbs = workbenchRootAbs({ folder_path: folderRel, external_root: null });
-  ensureDir(rootAbs);
-  ensureDir(join(rootAbs, DIRS.generated));
-  ensureDir(join(rootAbs, DIRS.source));
+  // Only paths created by this transaction may be removed on failure. Existing paths are untouched.
+  for(const dir of [rootAbs,join(rootAbs,DIRS.generated),join(rootAbs,DIRS.source)]){if(!existsSync(dir)){ensureDir(dir);createdDirectories.push(dir);}}
 
-  run('UPDATE workbench SET rules_snapshot=?,historical=? WHERE id=?',[JSON.stringify({type:wt,positions:listPositions(wt.id)}),input.historical?1:0,id]);
-  if (input.instantiatePositions !== false && wt.mode === 'process') instantiatePositions(id);
+  run('UPDATE workbench SET rules_snapshot=?,historical=?,source_config_version_id=? WHERE id=?',[JSON.stringify({type:wt,positions:listPositions(wt.id),publishedConfigId:published.id,configuration:published.payload,instanceChoices:{firstPeriod:input.firstPeriod??null,templateIds:input.templateIds??null}}),input.historical?1:0,published.id,id]);
+  // Explicit empty selection is fixed for new instances; old null retains legacy fallback.
+  setBoundTemplateIds(id,input.templateIds??[],[]);
+  if (wt.mode === 'process') instantiatePositions(id,true);
   if(input.periodRule || wt.period_defaults) {
     const defaults=input.periodRule??JSON.parse(wt.period_defaults!), today=todayShanghai();
     const first=input.firstPeriod ?? (defaults.frequency==='monthly'?today.slice(0,7):defaults.frequency==='quarterly'?today.slice(0,4)+'-Q'+Math.ceil(Number(today.slice(5,7))/3):today.slice(0,4));
-    savePeriodRule(id,{...defaults,first_period:first}); syncPeriods(id);
+    savePeriodRule(id,{...defaults,first_period:first});
+    run('UPDATE work_period_rule SET source_config_version_id=? WHERE workbench_id=?',[published.id,id]); syncPeriods(id);
   }
   if(input.historical) run("UPDATE workbench SET status='done',actual_end_date=? WHERE id=?",[input.actualEndDate||null,id]);
   return getWorkbench(id) as Workbench;
- });
+ }); } catch(e) { for(const dir of createdDirectories.reverse()){try{rmdirSync(dir);}catch{/* Nonempty/external content is never removed. */}}throw e;}
 }
 
 /**
@@ -1454,7 +1466,9 @@ export function setBoundTemplateIds(workbenchId:number,ids:number[],requiredIds:
  if(requiredIds.some(id=>!clean.includes(id)))throw new ApiError('BAD_TEMPLATES','必备模板必须在选定模板范围内');
  const wb=getWorkbench(workbenchId)!;
  if(clean.some(id=>!Number.isSafeInteger(id)||id<=0||!getTemplate(id)||getTemplate(id)?.archived_at||!templateSupportsWorkType(getTemplate(id)!,wb.work_type_id)))throw new ApiError('BAD_TEMPLATES','绑定模板不存在、已归档或不属于当前工作类型');
- run("UPDATE workbench SET template_ids=?,template_requirements=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?",[JSON.stringify(clean),JSON.stringify(requiredIds),workbenchId]);return clean;
+ run("UPDATE workbench SET template_ids=?,template_requirements=?,updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=?",[JSON.stringify(clean),JSON.stringify(requiredIds),workbenchId]);
+ if(wb.source_config_version_id)run('UPDATE workbench SET template_snapshot=? WHERE id=?',[JSON.stringify(clean.map(id=>({id,digest:templateFingerprint(getTemplate(id)!)}))),workbenchId]);
+ return clean;
 }
 
 /**
@@ -1467,7 +1481,7 @@ export function listTemplatesForWorkbench(workbenchId: number): (Template & { wo
   const wb = getWorkbench(workbenchId);
   if (!wb) return [];
   const bound = getBoundTemplateIds(workbenchId);
-  const all = listTemplates({ workTypeId: wb.work_type_id });
+  const all = wb.source_config_version_id ? (bound.map(id=>getTemplate(id)).filter((t):t is Template=>!!t&&!t.archived_at).map(t=>({...t,work_type_name:null}))) : listTemplates({ workTypeId: wb.work_type_id });
   const configured=get<{template_requirements:string|null}>('SELECT template_requirements FROM workbench WHERE id=?',[workbenchId])?.template_requirements;
   const required=new Set<number>(configured?JSON.parse(configured):bound);
   if (!bound.length && wb.template_ids == null) return all.map((t) => ({ ...t, bound: false, required:false }));
@@ -1773,7 +1787,7 @@ export function listWorkbenchPositionDocs(workbenchId: number): {
 
     let source: WorkbenchPositionDoc['source'];
     let docs: { templateId: number; name: string; required: number; seq: number }[];
-    if (bound.length) {
+    if (bound.length || wb.source_config_version_id || (p as PositionInstance & {source_config_version_id?:number}).source_config_version_id) {
       source = 'position';
       docs = bound.map((b) => ({ templateId: b.templateId, name: b.name, required: b.required, seq: b.seq }));
     } else if (wbBoundIds.length) {
@@ -2256,9 +2270,10 @@ export function deleteWorkbench(id: number): {
 /* ------------------------------ 阶段实例 ------------------------------ */
 
 /** 按工作类型的阶段模板，为一个工作台生成阶段与清单（**只写库，不建任何目录**） */
-export function instantiatePositions(workbenchId: number): number {
+export function instantiatePositions(workbenchId: number, initial = false): number {
   const wb = getWorkbench(workbenchId);
   if (!wb) throw new Error('工作台不存在');
+  if(!initial)throw new ApiError('CONFIG_APPLY_PENDING','请使用工作详情中的配置差异预览并选择安全范围；现有阶段保持原快照',409);
   const positions = listPositions(wb.work_type_id);
   const rootAbs = workbenchRootAbs(wb);
   let created = 0;
@@ -2280,7 +2295,8 @@ export function instantiatePositions(workbenchId: number): number {
           [workbenchId, p.id, p.code, p.name, p.seq, idx === 0 ? 'doing' : 'pending', folderRel, p.sort_order ?? p.seq * 10],
         );
         created += 1;
-        run('UPDATE position_instance SET folder_name=?,period_dir=?,doc_requirements=? WHERE id=?', [p.folder_name,p.period_dir??null,JSON.stringify(listPositionDocBindings(p.id).map(({templateId,name,required,seq})=>({templateId,name,required,seq}))), r.lastInsertRowid]);
+        run('UPDATE position_instance SET folder_name=?,period_dir=?,doc_requirements=? WHERE id=?', [p.folder_name,p.period_dir??null,JSON.stringify(listPositionDocBindings(p.id).map(({templateId,name,required,seq})=>({templateId,name,required,seq,...wb.source_config_version_id&&getTemplate(templateId)?{digest:templateFingerprint(getTemplate(templateId)!)}:{}}))), r.lastInsertRowid]);
+        run('UPDATE position_instance SET source_config_version_id=(SELECT source_config_version_id FROM workbench WHERE id=?) WHERE id=?',[workbenchId,r.lastInsertRowid]);
         seedChecklist(r.lastInsertRowid, p);
       }
     });
@@ -2379,10 +2395,11 @@ export interface WorkbenchDetail {
   docStats?: { total: number; done: number; requiredTotal: number; requiredDone: number; shortfall: number };
 }
 
-export function getWorkbenchDetail(id: number): WorkbenchDetail | undefined {
+export function getWorkbenchDetail(id: number, refreshProgress = true): WorkbenchDetail | undefined {
   const wb = getWorkbench(id);
   if (!wb) return undefined;
-  wb.progress=recalcProgress(id);
+  // GET navigation reads stored business state; explicit command callers retain synchronization.
+  if (refreshProgress) wb.progress=recalcProgress(id);
   const wt = getWorkType(wb.work_type_id);
   const positions = all<PositionInstance>(
     `SELECT * FROM position_instance WHERE workbench_id = ? AND ${liveFilter('position_instance')} ORDER BY seq, sort_order, id`,
@@ -2687,8 +2704,8 @@ export function listTemplates(filter: { category?: string; workTypeId?: number; 
     params.push(filter.category);
   }
   if (filter.workTypeId) {
-    where.push('(t.work_type_id = ? OR (t.work_type_id IS NULL AND t.shared=1) OR EXISTS (SELECT 1 FROM position_template_doc b JOIN position_template p ON p.id=b.position_template_id WHERE b.template_id=t.id AND b.deleted_at IS NULL AND p.archived_at IS NULL AND p.work_type_id=?))');
-    params.push(filter.workTypeId,filter.workTypeId);
+    where.push("(t.work_type_id = ? OR (t.work_type_id IS NULL AND t.shared=1) OR EXISTS (SELECT 1 FROM position_template_doc b JOIN position_template p ON p.id=b.position_template_id WHERE b.template_id=t.id AND b.deleted_at IS NULL AND p.archived_at IS NULL AND p.work_type_id=?) OR EXISTS (SELECT 1 FROM work_type w, json_each(CASE WHEN json_valid(w.period_defaults) THEN w.period_defaults ELSE '{}' END, '$.material_rules') r WHERE w.id=? AND json_extract(r.value,'$.templateId')=t.id))");
+    params.push(filter.workTypeId,filter.workTypeId,filter.workTypeId);
   }
   if (filter.keyword) {
     where.push('(t.name LIKE ? OR t.code LIKE ? OR t.description LIKE ?)');
@@ -2707,7 +2724,7 @@ export function getTemplate(id: number): Template | undefined {
 export function templateGenerationScope(t:Pick<Template,'usage_note'>):'period'|'record'|undefined{return t.usage_note?.startsWith('scope:period;')?'period':t.usage_note?.startsWith('scope:record;')?'record':undefined;}
 /** Existing explicit stage bindings also express bounded business reuse. */
 export function templateSupportsWorkType(t:Template,workTypeId:number):boolean{
- return t.work_type_id===workTypeId||(t.work_type_id===null&&!!t.shared)||!!get('SELECT b.id FROM position_template_doc b JOIN position_template p ON p.id=b.position_template_id WHERE b.template_id=? AND p.work_type_id=? AND b.deleted_at IS NULL AND p.archived_at IS NULL',[t.id,workTypeId]);
+ return t.work_type_id===workTypeId||(t.work_type_id===null&&!!t.shared)||!!get('SELECT b.id FROM position_template_doc b JOIN position_template p ON p.id=b.position_template_id WHERE b.template_id=? AND p.work_type_id=? AND b.deleted_at IS NULL AND p.archived_at IS NULL',[t.id,workTypeId])||!!get("SELECT w.id FROM work_type w, json_each(CASE WHEN json_valid(w.period_defaults) THEN w.period_defaults ELSE '{}' END,'$.material_rules') r WHERE w.id=? AND json_extract(r.value,'$.templateId')=?",[workTypeId,t.id]);
 }
 
 export function templateAbsPath(t: Template): string {
@@ -3471,17 +3488,34 @@ export { canRender, saveArtifact };
 export type { Artifact };
 
 /** 配置改动只能经预览并确认后应用到指定阶段；其他实例继续使用快照。 */
-export function refreshPositionDocRequirements(positionId:number, expected?:unknown) {
+export function refreshPositionDocRequirements(positionId:number, expected?:unknown):{before:any[];after:any[];allowed:boolean;reason:string;targetVersionId?:number} {
+    if(expected!==undefined)return tx(()=>{
+      const reason=stageApplicationReason(positionId);if(reason)throw new ApiError('UNSAFE_SCOPE',reason,409);
+      const difference=refreshPositionDocRequirements(positionId);
+      if(!difference.allowed)throw new ApiError('UNSAFE_SCOPE',difference.reason,409);
+      if(JSON.stringify(expected)!==JSON.stringify(difference))throw new ApiError('STALE','配置已经变化，请重新预览',409);
+      run('UPDATE position_instance SET doc_requirements=? WHERE id=?',[JSON.stringify(difference.after),positionId]);
+      run("INSERT INTO workflow_event(action,detail) VALUES('project-doc-requirements',?)",[JSON.stringify({positionId,...difference})]);
+      updateStoredProgress(get<{workbench_id:number}>('SELECT workbench_id FROM position_instance WHERE id=?',[positionId])!.workbench_id);
+      const target=publishedPositionDocumentTarget(positionId);
+      if(target && (target.reason || target.targetVersionId!==difference.targetVersionId || JSON.stringify(target.after)!==JSON.stringify(difference.after)))
+        throw new ApiError('STALE_CONFIG',target.reason || '目标配置已变化，请重新预览',409);
+      return difference;
+    });
     const p=get<PositionInstance & {doc_requirements:string}>('SELECT * FROM position_instance WHERE id=? AND deleted_at IS NULL',[positionId]);
     if(!p) throw Object.assign(new Error('阶段不存在'),{code:'NOT_FOUND',statusCode:404});
-    const difference={before:JSON.parse(p.doc_requirements ?? '[]'),after:p.position_template_id ? listPositionDocBindings(p.position_template_id).map(({templateId,name,required,seq})=>({templateId,name,required,seq})) : []};
-    if(expected !== undefined) {
-        if(p.status==='done') throw new PeriodDoneError('请先重新打开阶段');
-        if(JSON.stringify(expected)!==JSON.stringify(difference)) throw Object.assign(new Error('配置已经变化，请重新预览'),{code:'STALE',statusCode:409});
-        tx(()=>{
-            run('UPDATE position_instance SET doc_requirements=? WHERE id=?',[JSON.stringify(difference.after),positionId]);
-            run("INSERT INTO workflow_event(action,detail) VALUES('project-doc-requirements',?)",[JSON.stringify({positionId,...difference})]);
-        });
-    }
+    const target=publishedPositionDocumentTarget(positionId);
+    const reason=stageApplicationReason(positionId) || target?.reason || '';
+    if(target)return {allowed:!reason,reason,before:JSON.parse(p.doc_requirements ?? '[]'),after:target.after,targetVersionId:target.targetVersionId};
+    const difference={allowed:!reason,reason,before:JSON.parse(p.doc_requirements ?? '[]'),after:p.position_template_id ? listPositionDocBindings(p.position_template_id).map(({templateId,name,required,seq})=>({templateId,name,required,seq,...getTemplate(templateId)?{digest:templateFingerprint(getTemplate(templateId)!)}:{}})) : []};
     return difference;
+}
+
+/** Explicit instance template changes remain separate from the original configuration version. */
+export function assertInstanceTemplate(workbenchId:number|undefined|null,positionCode:string|undefined|null,t:Template):void {
+ if(!workbenchId)return;const w=getWorkbench(workbenchId);if(!w)return;const stage=positionCode?get<{source_config_version_id:number|null}>('SELECT source_config_version_id FROM position_instance WHERE workbench_id=? AND code=? AND deleted_at IS NULL',[workbenchId,positionCode]):null;if(!w.source_config_version_id&&!stage?.source_config_version_id)return;
+ let refs:{id?:number;templateId?:number;digest?:string}[]=JSON.parse(w.template_snapshot??'[]');
+ if(positionCode){const row=get<{doc_requirements:string|null}>('SELECT doc_requirements FROM position_instance WHERE workbench_id=? AND code=? AND deleted_at IS NULL',[workbenchId,positionCode]);refs=JSON.parse(row?.doc_requirements??'[]');}
+ const ref=refs.find(r=>(r.templateId??r.id)===t.id);if(!ref)throw new ApiError('WRONG_TEMPLATE','请先为当前工作或阶段明确选择此模板',409);
+ if(ref.digest&&ref.digest!==templateFingerprint(t))throw new ApiError('TEMPLATE_CHANGED','模板或字段映射已变化，请先在当前范围核对模板选择；旧定稿不会改变',409);
 }

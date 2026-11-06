@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "086d2993980dffec4db62a3a1b14bf0e3e29c7ac",
+  "committedBase": "db6984ffb4e44c3fb3beb8b441165292adb1eafb",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -61,15 +61,15 @@
   "files": [
     {
       "path": "package-lock.json",
-      "sha256": "675c2151297e79f96fb6acb5e926d1bc81fa01ec69200eda0060ff2a7be9a9dc"
+      "sha256": "67303d35c4cbc34914944eca2d1904836ac78352550c45c9bf480f11776abf5a"
     },
     {
       "path": "package.json",
-      "sha256": "ac9643b4ba6da2c4df0df64e772b86a505aa13e5122bb167af5bda182de8ca7e"
+      "sha256": "b41e3a0eed17fd3991d5bb66c8d334cff94925ceae164944538fe4f91ae4129f"
     },
     {
       "path": "packages/server/package.json",
-      "sha256": "362db8fd28b1cef2e9e157e0364bcdb99172bc0dc725edf2dba039f0be67e1a9"
+      "sha256": "4c498464e0aa9f6d90c649987418f6e46b16a801e10eb7995fe1bee57685931c"
     },
     {
       "path": "packages/server/src/ai/consent.ts",
@@ -109,15 +109,15 @@
     },
     {
       "path": "packages/server/src/api/routes-core.ts",
-      "sha256": "fb110c77a79e8baa52a1bfd9652263b61279614983c5f61cd6da96d7f269bc88"
+      "sha256": "8e624e592a4cda723f87a613a26cd16efb8da498bf0385fb7866d99092b019b1"
     },
     {
       "path": "packages/server/src/api/routes-files.ts",
-      "sha256": "497a421b3a54414af7be5f677e22c9e6987b9c7004b8af25bccb38881990ba03"
+      "sha256": "1fee65a1b067ba7466b52dce5b414eede3b24906357b3aef830c8c67f34e1f5b"
     },
     {
       "path": "packages/server/src/api/routes-generate.ts",
-      "sha256": "9bca54a24224247a158a1b3d11e50c6d2e892665449ed05f5b0f4fcc452ac8b2"
+      "sha256": "26829cf57ab36efdfff860743b91a0528c1f972c3e6734dd460cf895ab0751ac"
     },
     {
       "path": "packages/server/src/api/routes-inspection-drafts.ts",
@@ -133,7 +133,7 @@
     },
     {
       "path": "packages/server/src/api/routes-preview.ts",
-      "sha256": "11e2ab3f3c1ea4524651be219260d8ff5dd710924385868b60be0a42ff1ec47f"
+      "sha256": "10660d6f9513d7787c474d936b196902527a36e8302cee6966b83620404191b2"
     },
     {
       "path": "packages/server/src/api/routes-records.ts",
@@ -145,11 +145,11 @@
     },
     {
       "path": "packages/server/src/api/routes-template.ts",
-      "sha256": "ac6b3bb2488f3a321d3d77da8c4c1d4959850ff3df1e314ea9990fc1e15bf87f"
+      "sha256": "9699e730f00e36cb57dc560f2d055ec577b4dc03aa7f1a9454e7c7d4bc15a08e"
     },
     {
       "path": "packages/server/src/api/routes-timesheets.ts",
-      "sha256": "b502fa238d0cb8314cd09d22b05ad5e1d8caa7ea62b55da650e35bfbd1f439df"
+      "sha256": "32c0d2ddd7aadb1bf85c3a77096afcc6b206da6638a6ddce6e20372dcbcb7a59"
     },
     {
       "path": "packages/server/src/api/routes-vision.ts",
@@ -157,11 +157,15 @@
     },
     {
       "path": "packages/server/src/api/routes-work.ts",
-      "sha256": "6777c2e89892cb1f1b9d9600f764bf3e914752232e908853a43beb22ff1c8490"
+      "sha256": "6b8e972d294f6aff6cae011ca0663404c003e23652deff5d6e67b6883459fcfb"
+    },
+    {
+      "path": "packages/server/src/api/routes-workflow-config.ts",
+      "sha256": "a900fed01c8f4719eb46dbefa62da219069d8a2bc74c94a2b8abf529ca106a76"
     },
     {
       "path": "packages/server/src/api/routes-workflow.ts",
-      "sha256": "804f355a29f0f417fb5afce4b66b8a8f8cd3abedf517e95268930382a7ebb78c"
+      "sha256": "4810f3e5f50cf1020cd6e2291b8b4e93c586b80da851222d1cb75eb716eadd33"
     },
     {
       "path": "packages/server/src/api/upload.ts",
@@ -181,15 +185,15 @@
     },
     {
       "path": "packages/server/src/cli/upgrade-business.ts",
-      "sha256": "000d24b8124ddb0c78bdb601537d0d4bd3e0170422422ebec9fcefe131509f63"
+      "sha256": "06d474748ea3482fb3dad5e52be65d834076086c39f22bdc32480ba16e6cf11a"
     },
     {
       "path": "packages/server/src/core/backup.ts",
-      "sha256": "90cddd6d623b25f90d637541cc94b0c8404f906360f8ca21f35921d860861702"
+      "sha256": "409f08cb0fb1d88083bc24aae8c81f766674235ac9d7556f836998b025fcf5fc"
     },
     {
       "path": "packages/server/src/core/bootstrap.ts",
-      "sha256": "1e648bd8d74f3c7094045b326c8b52ecbd0b0c2f15ee0a081df7af740139321e"
+      "sha256": "6a1663aec9d12315ccd91544d07af98119373479c4174e1693a61b61979f05a9"
     },
     {
       "path": "packages/server/src/core/build-identity.ts",
@@ -197,11 +201,11 @@
     },
     {
       "path": "packages/server/src/core/checklist.ts",
-      "sha256": "f1d8ca84663246657d8bcb67c84ac74bd74f910c532bd431cfc5361bbe2c7868"
+      "sha256": "58e1d546149a71f821561c27a408fa427d0342dba232b8ede637828e35c79c15"
     },
     {
       "path": "packages/server/src/core/config.ts",
-      "sha256": "498b6cbe2d8d0b395a2efcf7e5d82a2dff865f97596e03f11f29b112f036ce83"
+      "sha256": "ab8a29313d99c64e18be205a8121c18768b26d8538aa9d4159678b127495d7d4"
     },
     {
       "path": "packages/server/src/core/convert-legacy-excel.ps1",
@@ -245,11 +249,11 @@
     },
     {
       "path": "packages/server/src/core/ocr.ts",
-      "sha256": "241fcba261187e5b010f36734b0c1356565d6cab92445ec74d490b5bacf62104"
+      "sha256": "312b16fe2ce1ceec4e10fd8b2fa43987ba1e353ad19708336dccf8bd69ab5c1d"
     },
     {
       "path": "packages/server/src/core/office-import.ts",
-      "sha256": "a9f9d90cecf9cc9bcc20fc689c677301e8c5c76c8b7d9e0530c519ad6ef2c670"
+      "sha256": "7856cdd8ca0b70e39bc515e0c630f97da5ccd0e634f40a31b0fb735a9f45878e"
     },
     {
       "path": "packages/server/src/core/office-package.ts",
@@ -277,19 +281,19 @@
     },
     {
       "path": "packages/server/src/core/runtime-layout.ts",
-      "sha256": "e2b0df21bc5180474bf0668544a442d0b1a89f0da31bd623ec9d5a9e4139a678"
+      "sha256": "83efad649d41ae53a0b59c29ddf3d1291862eb4684be19780e24f6642296f0b3"
     },
     {
       "path": "packages/server/src/core/search-all.ts",
-      "sha256": "077a8cde82093aa0d57ba8a4cefc76ee7ac8f26fbe901abc7192d3e06e330002"
+      "sha256": "b71169a4851da0d1207a15dd8601fcd9077614904814ab3d354daea37b90bef3"
     },
     {
       "path": "packages/server/src/core/search.ts",
-      "sha256": "150780956de4ad11246bf1713e2c778245a4a3ddf362f8ba8f3d0e4ee4d58c7e"
+      "sha256": "c28b00d65452d8e49fa143cef05cb1adf77afe63e95771556d7a408f5ec38340"
     },
     {
       "path": "packages/server/src/core/server-lock.ts",
-      "sha256": "5d77439ed968cf631d0d55f2b4f37701971de22e214e77390683ddf6c529d248"
+      "sha256": "f02c00d9906bec569947231ba8dd853b8151f179ce0e48e2e32f11e737450cf6"
     },
     {
       "path": "packages/server/src/core/startup-repair.ts",
@@ -297,7 +301,7 @@
     },
     {
       "path": "packages/server/src/core/store.ts",
-      "sha256": "244556a829d98f5e64b48e0fe21c0b3478f2aa581da61c6f582d8d9eb242e8e1"
+      "sha256": "676b8451de9310c1b0f410946b4a4589c8bd03ec1c33aa2ef45de4683b018c5c"
     },
     {
       "path": "packages/server/src/core/template-fields.ts",
@@ -305,15 +309,15 @@
     },
     {
       "path": "packages/server/src/core/template.ts",
-      "sha256": "e1acc06ad04fd2be968ddf3736c7975e4573daf3f330e3c2204c4922256c1b51"
+      "sha256": "091ecc041071af1cf35703d312a890f08a1d853ee440da4a9f588c22b316ac49"
     },
     {
       "path": "packages/server/src/core/test-isolation.ts",
-      "sha256": "6fa60e08d94ec16e6974f2a25378f914af6b6d5021e4a68eaba146b1413c0402"
+      "sha256": "f7441c56b40e4ce20f63e72c420476f20e76720b5f95cb4faf5b21e6e8a5c3b3"
     },
     {
       "path": "packages/server/src/core/trash.ts",
-      "sha256": "c10098b4e7baa1db54d0e65f68f5fcff58ec24bd672937f28101eb725a637561"
+      "sha256": "c995fa2114d8a2433b85b59ff6a63aa0a0a138809e2a83614f3255a57273bb90"
     },
     {
       "path": "packages/server/src/core/vision.ts",
@@ -488,8 +492,16 @@
       "sha256": "fcf19e6c13a5dd8fe97967b9c6f14f20811ca69ccf85b885d2a9f440a6e2840e"
     },
     {
+      "path": "packages/server/src/db/migrations/041_workflow_config.sql",
+      "sha256": "c02c127542a2097de94afc870238e452b3ed43db4bc45f83c753145dcf6a25d7"
+    },
+    {
+      "path": "packages/server/src/db/migrations/042_workflow_application.sql",
+      "sha256": "0e7dd122fb4178867ce60a19b7b4add5c5562fdbbc941c5009e2023675fa6cf4"
+    },
+    {
       "path": "packages/server/src/domain/agent.ts",
-      "sha256": "0eda596a9ba7ba9cec7c07e185bb1a45d46261d6091c9258aaa532e215a77e4c"
+      "sha256": "2f0dff4fc0828bf49c9f407f01cc96d2349da718f349918bb85593fa5878d34f"
     },
     {
       "path": "packages/server/src/domain/annual-ledger.ts",
@@ -505,7 +517,7 @@
     },
     {
       "path": "packages/server/src/domain/business-evidence.ts",
-      "sha256": "617fc8c8db54f4f0fc09b1e484a557561b41a6180407de7f7668418969a1ffe1"
+      "sha256": "c030a8190d4ceec22079c429c8fad2dd5bce92d4d9ef422ed634f114bd78232e"
     },
     {
       "path": "packages/server/src/domain/document-source.ts",
@@ -541,23 +553,23 @@
     },
     {
       "path": "packages/server/src/domain/finalization.ts",
-      "sha256": "fce5fec64d2cf2d873b1019e76b482d01b4bf6173748132b775b34c1dc3a8595"
+      "sha256": "bf463d45c6ddd306adbc01feb977011666b6077a2b89a37db2205314289f51be"
     },
     {
       "path": "packages/server/src/domain/generate.ts",
-      "sha256": "62e7c309423deefe7a73119fbf968bb04c0d5885f41f304c8cf40416fe200ca7"
+      "sha256": "e1ae741668f14aa947c8b6d5c705736de1d9c29dfb9e6fa99d76a3d0ce9556a9"
     },
     {
       "path": "packages/server/src/domain/inspection-drafts.ts",
-      "sha256": "82f06a03cb2fe40826ed7512cae9efe18f4a97e8c9a78e23da81432a0a89b014"
+      "sha256": "073458d4ee7983951db0858b4d09a4387aaf8ab7c9a5b1fce1e6c354958b9b12"
     },
     {
       "path": "packages/server/src/domain/inspections.ts",
-      "sha256": "9d9360a51e2e7abdf9b1fd96c275bfe4e20bbe6de1baf220098f1871a0421b52"
+      "sha256": "e4584293879be5b0385b5ad6e7448037e1293f92e98369458ba565acb32fff7b"
     },
     {
       "path": "packages/server/src/domain/integrity-config.ts",
-      "sha256": "3dfeac30816d819701d58abda886bddf3ff666366bed0d8161f40451ba30d483"
+      "sha256": "f61b4a3636663543255f4ef7e51fffd315f6028bb5b7209745c27368b5bbd48b"
     },
     {
       "path": "packages/server/src/domain/kb-cite.ts",
@@ -573,11 +585,11 @@
     },
     {
       "path": "packages/server/src/domain/memory-facts.ts",
-      "sha256": "d91b2f283cd832adb69e12344d55f6b3ad491e0d9094f88d5d203fb4d690532e"
+      "sha256": "1b67bc76f7dea9670622a20c2092fb6101cde8ebab40bb45053aaecd168a7d25"
     },
     {
       "path": "packages/server/src/domain/periods.ts",
-      "sha256": "23ede8a6172f4c2d5653f19fc25256cac55a5aabf8219346815c30714a2424a6"
+      "sha256": "dc09e7cac1857f7f8ab19c4dbf1216aa9b101fe532ded074f83b897eb5b5db14"
     },
     {
       "path": "packages/server/src/domain/policy-reference.ts",
@@ -593,11 +605,11 @@
     },
     {
       "path": "packages/server/src/domain/seed.ts",
-      "sha256": "f552618c7624dfeb2e96a2e45fc266e80cb69359608dbde43750a60ea43dd672"
+      "sha256": "1c8ffb7eff2443a7beb54d84af36f007103fb5cf30043e09107354a6d6e58a63"
     },
     {
       "path": "packages/server/src/domain/service.ts",
-      "sha256": "7464cd24a690afabd65535324a45ca89e378c77d17a9355863fa725a1110b3a6"
+      "sha256": "f8f75759df865a5104981efe3eeffb99790685efb7919095dcaa24db03b5a446"
     },
     {
       "path": "packages/server/src/domain/template-autofill.ts",
@@ -617,19 +629,19 @@
     },
     {
       "path": "packages/server/src/domain/timesheet-workspace.ts",
-      "sha256": "a808989a4966ce838079f340df69d3f5960055d3526381fe888592f55f3bcbfd"
+      "sha256": "9fb68e8a45042ae58c26aa4aaada7720b7cd641f8b358dbbafd7580c3881cd72"
     },
     {
       "path": "packages/server/src/domain/timesheets.ts",
-      "sha256": "a78ca338908b668ed7cfbb69d97b8d0f7bbaa2ecb3ba0a734a347152d570ad05"
+      "sha256": "4f72e35d1fb995afa5e3c2c5621a92048701f63db82fd7552b189b8e2a181652"
     },
     {
       "path": "packages/server/src/domain/versions.ts",
-      "sha256": "7d3838828a5b386f79cd8e40dc9cca8501a7561635c47206b571ec2e91ccd580"
+      "sha256": "045f5e42f28492bc07f09cab0f0dd518048a1a60d32c994b2e14819d4646fb38"
     },
     {
       "path": "packages/server/src/domain/work-context.ts",
-      "sha256": "8196b6e21f97df3d0b1e3072ce6dd11ce7e1bcaa4e767528e5400a2231ff8344"
+      "sha256": "35f5719388aa8525be6c482b1747c799ba0ce203637b39e52818d11fe84fcaf8"
     },
     {
       "path": "packages/server/src/domain/work-record-chat.ts",
@@ -644,12 +656,24 @@
       "sha256": "807851d5c4a2e7827f683653afebd43b20ecacf71078a875ee48fad80bc5c59d"
     },
     {
+      "path": "packages/server/src/domain/workflow-application.ts",
+      "sha256": "13b4bd93691ec1f755a408a2fade4338b313678f0b125659621f03b82c170be4"
+    },
+    {
+      "path": "packages/server/src/domain/workflow-config-types.ts",
+      "sha256": "4450f0806a7582161d69df508758c199ba10e21c1ed27b388e2f78ff82d98f8a"
+    },
+    {
+      "path": "packages/server/src/domain/workflow-config.ts",
+      "sha256": "511a8dd1cdc69841c637a15c920253e630523dcb57151a66e4899be15915a7a4"
+    },
+    {
       "path": "packages/server/src/domain/workflow.ts",
-      "sha256": "698316716afb9f4bc0b96a9e2d3678e5497b0100e2a5ad9d7b64d2dea66ab932"
+      "sha256": "30c225e330919819a9aa0885a41c24ecc9ff23c7c24e3005c86a0869c5643c05"
     },
     {
       "path": "packages/server/src/index.ts",
-      "sha256": "4e009d13691acfebaaee0b183be5336eea17b8aa4528c0d0dd8f1de4512e65fe"
+      "sha256": "9696f8ba846964060739a9f69118e0a3dada2dd69708c90d184f35939ed5fab2"
     },
     {
       "path": "packages/web/package.json",
@@ -661,15 +685,15 @@
     },
     {
       "path": "packages/web/src/api.ts",
-      "sha256": "2e3afc8407e6d38c18dfa1c25a77d18bc74237ebe787015eefabe3ba4e2b2d28"
+      "sha256": "4b88844872216ea0d3ea25591faf9bb34e3c11b6fa6ef78f956c2844e7ee1ffd"
     },
     {
       "path": "packages/web/src/compact.css",
-      "sha256": "e27325259d58ed4af6fa3f3466469159c705fdeced803cb0943999dc057b300e"
+      "sha256": "053b84ba0d6b05e585483a063725b8ba6dfb5b36b6dd92e865a7f7ae6647541a"
     },
     {
       "path": "packages/web/src/components/AnnualLedger.tsx",
-      "sha256": "6460b7f899973f9ac74f2252c32bd4cf77970535484d572276494dd3fdc5d9cd"
+      "sha256": "832054811ebafe3270390b6cba061bd5676b3f25e86007467f1e874c27c384b8"
     },
     {
       "path": "packages/web/src/components/AnnualLedgerWorkspace.tsx",
@@ -697,7 +721,7 @@
     },
     {
       "path": "packages/web/src/components/ImportResult.tsx",
-      "sha256": "254bd512203ad765b0ddd2d6751f9260e1ee91b679eb8e9c767f58f6d91af61f"
+      "sha256": "31ba9331cf7670a4774e0c8ea6b62359b5eafa17d8d12fc31b442daaf4a470e0"
     },
     {
       "path": "packages/web/src/components/InspectionDrafts.tsx",
@@ -705,7 +729,7 @@
     },
     {
       "path": "packages/web/src/components/InspectionRecords.tsx",
-      "sha256": "de425550ae5afd031b2beefc6756b243493ebc20e59fbf0d586add38266d98c3"
+      "sha256": "141609327a5e6fa74e9b76a03e5b18fb082e72fb5c559ef155796ae97d9ad4cb"
     },
     {
       "path": "packages/web/src/components/LocalModelSettings.tsx",
@@ -717,11 +741,11 @@
     },
     {
       "path": "packages/web/src/components/PeriodAttachments.tsx",
-      "sha256": "85d523b7ff24699b31edb9a32cd846078d0629f548b490101da7b106ace79e0d"
+      "sha256": "6ea311c712c4630b270b3ec4915759b90e19a25f004749839a7621ac83c19b72"
     },
     {
       "path": "packages/web/src/components/PeriodExecution.tsx",
-      "sha256": "e4c9fc3317f98b8e2dedc935af5aee3bd1dddc93527ab4a17845bc220d74fab4"
+      "sha256": "81b2e3abf7937a988bd6d206356633713f4507ba4a948108c17449e76129eb1a"
     },
     {
       "path": "packages/web/src/components/ReferenceFolder.tsx",
@@ -737,23 +761,27 @@
     },
     {
       "path": "packages/web/src/components/WorkDocuments.tsx",
-      "sha256": "be92b9168acdbcee168652194b2f1f96dd70373919460a218a22f1c2ba1f594c"
+      "sha256": "396ff6ad2dbbceb7f62feee2a6bec7dc751456fa19062f524285492640e26c7d"
     },
     {
       "path": "packages/web/src/components/WorkExecution.tsx",
-      "sha256": "450e43e6f0d3c74dc9d3f6cbd893273276ce5eb41d9777211161552a1882b71b"
+      "sha256": "fe18a9c6f0404ba5aced833857604a1a587ebc48cd8159aeff6cb5fe79915ef4"
     },
     {
       "path": "packages/web/src/components/WorkTypeEditor.tsx",
-      "sha256": "171c0a93782e503f96532d62b627b147d8767878a25df9c0bbe867fdeee435c8"
+      "sha256": "abe6f2132009d15f209e2e6add0699fa71834cff16439d3fe4c2c5c55c245254"
     },
     {
       "path": "packages/web/src/components/WorkbenchSelect.tsx",
       "sha256": "ea0ca2d2fed9c3b60a2ac62a5feab6c338eee2510c4fd7c6ba0d969d3eb35e00"
     },
     {
+      "path": "packages/web/src/components/WorkflowApplication.tsx",
+      "sha256": "572892b0fcbe048c6dfa216ef46993668b7b28fb915764013c92455d9bad19c1"
+    },
+    {
       "path": "packages/web/src/components/WorkflowPanels.tsx",
-      "sha256": "2162f02e83010e9880e0df92ab778891e66d6fcc70ac4ffe4a850c6001f788de"
+      "sha256": "e9c0a84edde5552a8e0a24ed42167f00a69fe9936e4ae05cf062708fae7a7805"
     },
     {
       "path": "packages/web/src/components/useUnsavedClose.ts",
@@ -773,7 +801,7 @@
     },
     {
       "path": "packages/web/src/main.tsx",
-      "sha256": "b06c682c656e531e8561187876c93ce533fdbe9278559f1d44b4aa84e3fa6255"
+      "sha256": "fedf9e8c460932815eef00d2de4c46ebdb5e8def8705c26db9ed13a1ccf55325"
     },
     {
       "path": "packages/web/src/pages/Agent.tsx",
@@ -781,7 +809,7 @@
     },
     {
       "path": "packages/web/src/pages/Dashboard.tsx",
-      "sha256": "52f4362ea42fb11f768592daa8bcf191abd42dc9c0ac0e834780df24a0e76965"
+      "sha256": "75eb53ea5f89bfe53fc24b23fe19df46846c521638ecab29c89a8e1ac946374d"
     },
     {
       "path": "packages/web/src/pages/DocVersions.tsx",
@@ -793,7 +821,7 @@
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
-      "sha256": "5605669bf935cf159c29cf18c891d86abe881e4f619ba9e1c05c6d9b23700d5b"
+      "sha256": "e02850b48d23294fcaa8baf74fd86a29390ee99c66c6f0a50d21b3857f022035"
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
@@ -801,15 +829,15 @@
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
-      "sha256": "20b1161d55cd433daab6ebd11a5396339c78be8fa722bdcb00b3b4f5310a0d6b"
+      "sha256": "42514536dd4c3afa5a9c7b4197b52020f663093dad3f022a6dffa1926a6c6ccf"
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "9bccdac30b906f625b7411d6f74384d13bf413fd67e912c5e8e7c8863502644d"
+      "sha256": "72aa5fe5eb838272ff7d45aaede6b6aa1ac9da819a06de2336dd859347cfb62f"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
-      "sha256": "871ae18bfaeee0b1178636e48718e117fe62112e8675ff0d60240d51f2d3e52d"
+      "sha256": "34cfbf6b6f67ce8640162c7e15c9e0bfe099ca0ae1e87f812bf4b2f9e06e6baa"
     },
     {
       "path": "packages/web/src/pages/ProjectInfo.tsx",
@@ -821,15 +849,15 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "586f45489f0d5016822cdef2d9e4eaa6bc862913d2d7c0ead00fe16c5ccc7330"
+      "sha256": "30d4521ff74c6a46b3afa08e82d44779f72ee115c3ab27250b7e3084ea87272c"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
-      "sha256": "bd7f646f50e7f8e39c9a28b07adb2a5106655f9fe80b796a473fb7c616f6a668"
+      "sha256": "acaba144f147b8c92d067a04d3582957111ab41757d807f08baebc57d5b8ead1"
     },
     {
       "path": "packages/web/src/pages/Timesheets.tsx",
-      "sha256": "3b35f5ee881e60d29442945183b6aedfad1649b1970d96936b54df5df793867f"
+      "sha256": "bcb57d9fb5b13fbf649a04f20dbdc96c20450ffb8915437e73f234b6c99bf3ff"
     },
     {
       "path": "packages/web/src/pages/Trash.tsx",
@@ -837,19 +865,19 @@
     },
     {
       "path": "packages/web/src/pages/WorkRecords.tsx",
-      "sha256": "b6aff5440735dbb86f5f26b2ecb1714ae346b945b3400d13c9d61e12984fcb9c"
+      "sha256": "ff1547d9d060b8c07da5dbda47d40a7084e69ace663cc93bdd2239a401dfa213"
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "e80e813d7f73790b4e4b7639d0ebe590fb9a5838d167382a3b1b90f525745e63"
+      "sha256": "6d867b15fe3c246bc246239165087c7a464f121625543e849b9f88c91b946201"
     },
     {
       "path": "packages/web/src/styles.css",
-      "sha256": "e1101bf1ca3dc936929e7305068f1890ee3b687ad29aa5d704a3da20a763b047"
+      "sha256": "4f97d5b783c39b8246325b00ed9dfea5cf28d3e51257d1c16eeb0d6398f5fd9a"
     },
     {
       "path": "packages/web/src/ui.tsx",
-      "sha256": "a845f2900e690a7734fce25e76b5b0acdb6510f36574b6665bdebcc8eeae36fb"
+      "sha256": "75df7bfff464eb184bcc63c66ec6a958ca2edb3389278b8a93a29966e6150528"
     },
     {
       "path": "packages/web/src/work-type-navigation.css",
@@ -865,7 +893,7 @@
     },
     {
       "path": "packages/web/vite.config.ts",
-      "sha256": "d07a8b99ccced087e3ddc2e063dccf902d473682b9fa7eb6b3ef3cc576f94c6e"
+      "sha256": "102a3c7d7a8df18a59c844ba54b948b24947aada7a9a5bf437f4774502019e80"
     },
     {
       "path": "scripts/backup.mjs",
@@ -877,7 +905,7 @@
     },
     {
       "path": "scripts/dev-monthly.mjs",
-      "sha256": "d35ffd6c3158f00761ba4ec7616b5fad2ab05d0720ff8131d10443c0a7d80dbc"
+      "sha256": "987b6764798dd73a2010a1455aedfd916e0b7e2e9c9f47382c78918c9e0315ff"
     },
     {
       "path": "scripts/dev-server.mjs",
@@ -897,11 +925,11 @@
     },
     {
       "path": "scripts/pack.mjs",
-      "sha256": "00e8c89c75555111175968f8c5160c142e3a2b935488579df8d971929c539ab7"
+      "sha256": "a2927050eb9ca54712bb15ead00c29bec03e64c7a79145f51634e4dc949568c5"
     },
     {
       "path": "scripts/repository-policy.mjs",
-      "sha256": "1eb8e2817e332c3640bf780739bcdadb49216ee177ae65ae1ae407dd7cbea94e"
+      "sha256": "b6612048a8f4d8caf27cbecfaa8b8280c452c77c3f6713dc647972be971f1947"
     },
     {
       "path": "scripts/snapshot.mjs",
@@ -909,11 +937,11 @@
     },
     {
       "path": "scripts/start.mjs",
-      "sha256": "0b3b7dd529ef2073e3acd178d642f46b350447bcdb96b51a6fc53a5cc8209d32"
+      "sha256": "e140079fd7e293b88f947ebdf2384dd13ff9b2fc4e69bfd1754dd27e8901bd95"
     },
     {
       "path": "scripts/test-isolated.mjs",
-      "sha256": "c6cc3a9e7c7c651c9e2d192e799013e94480c2752f1c3f796d8d7898e1cc5810"
+      "sha256": "eb0e66631776349fe90fd6ffae32a79da449746e0a0c0c73f8b7189f3c57ae40"
     },
     {
       "path": "scripts/test-preflight.mjs",
@@ -921,7 +949,7 @@
     },
     {
       "path": "tsconfig.json",
-      "sha256": "639343c2ee1e8ca90b8984143f4027573059dc0abf0631307b78e175878d843b"
+      "sha256": "fddc13ef5ad1a0765676c89d25ca7a0f26f4bfcb7be1157b088c9586e95d10db"
     }
   ],
   "pages": [
@@ -1296,145 +1324,145 @@
       "method": "GET",
       "path": "/api/health",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 64
+      "line": 65
     },
     {
       "method": "GET",
       "path": "/api/system/info",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 76
+      "line": 77
     },
     {
       "method": "GET",
       "path": "/api/settings",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 91
+      "line": 92
     },
     {
       "method": "PUT",
       "path": "/api/settings",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 97
+      "line": 98
     },
     {
       "method": "GET",
       "path": "/api/settings/:key",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 112
+      "line": 113
     },
     {
       "method": "GET",
       "path": "/api/ai/overview",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 119
+      "line": 120
     },
     {
       "method": "GET",
       "path": "/api/ai/logs",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 129
+      "line": 130
     },
     {
       "method": "DELETE",
       "path": "/api/ai/logs",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 148
+      "line": 149
     },
     {
       "method": "GET",
       "path": "/api/generations",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 154
+      "line": 155
     },
     {
       "method": "POST",
       "path": "/api/settings/test-path",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 170
+      "line": 171
     },
     {
       "method": "POST",
       "path": "/api/settings/reset-defaults",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 187
+      "line": 188
     },
     {
       "method": "POST",
       "path": "/api/system/open-folder",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 205
+      "line": 206
     },
     {
       "method": "GET",
       "path": "/api/work-types",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 248
+      "line": 249
     },
     {
       "method": "GET",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 250
+      "line": 251
     },
     {
       "method": "POST",
       "path": "/api/work-types",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 261
+      "line": 262
     },
     {
       "method": "PUT",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 287
+      "line": 266
     },
     {
       "method": "DELETE",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 313
+      "line": 270
     },
     {
       "method": "GET",
       "path": "/api/ai/status",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 334
+      "line": 275
     },
     {
       "method": "GET",
       "path": "/api/backups",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 359
+      "line": 300
     },
     {
       "method": "POST",
       "path": "/api/backups",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 368
+      "line": 309
     },
     {
       "method": "POST",
       "path": "/api/backups/verify",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 384
+      "line": 325
     },
     {
       "method": "POST",
       "path": "/api/backups/:name/restore",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 407
+      "line": 348
     },
     {
       "method": "DELETE",
       "path": "/api/backups/:name",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 428
+      "line": 369
     },
     {
       "method": "GET",
       "path": "/api/todos/today",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 452
+      "line": 393
     },
     {
       "method": "GET",
@@ -1614,43 +1642,43 @@
       "method": "POST",
       "path": "/api/generate/draft",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 103
+      "line": 104
     },
     {
       "method": "POST",
       "path": "/api/generate/preview",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 140
+      "line": 141
     },
     {
       "method": "POST",
       "path": "/api/generate/preview/file",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 208
+      "line": 209
     },
     {
       "method": "POST",
       "path": "/api/generate/preview/open",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 244
+      "line": 245
     },
     {
       "method": "POST",
       "path": "/api/generate/save",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 288
+      "line": 289
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/gap-analysis",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 332
+      "line": 334
     },
     {
       "method": "GET",
       "path": "/api/generate/chain",
       "file": "packages/server/src/api/routes-generate.ts",
-      "line": 352
+      "line": 354
     },
     {
       "method": "GET",
@@ -2022,139 +2050,139 @@
       "method": "GET",
       "path": "/api/templates/:id/history",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 88
+      "line": 89
     },
     {
       "method": "GET",
       "path": "/api/templates/:id/history/:revision/file",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 89
+      "line": 90
     },
     {
       "method": "GET",
       "path": "/api/templates",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 108
+      "line": 109
     },
     {
       "method": "GET",
       "path": "/api/templates/:id",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 118
+      "line": 119
     },
     {
       "method": "POST",
       "path": "/api/templates/health-check",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 137
+      "line": 138
     },
     {
       "method": "POST",
       "path": "/api/templates/upload",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 147
+      "line": 148
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/reupload",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 188
+      "line": 189
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/scan",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 243
+      "line": 244
     },
     {
       "method": "GET",
       "path": "/api/templates/:id/smart-fields",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 255
+      "line": 256
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/smart-fields/apply",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 268
+      "line": 269
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/auto-fill",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 288
+      "line": 289
     },
     {
       "method": "GET",
       "path": "/api/templates/:id/preview",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 304
+      "line": 305
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/preview",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 327
+      "line": 328
     },
     {
       "method": "GET",
       "path": "/api/templates/:id/scan-preview",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 376
+      "line": 377
     },
     {
       "method": "PUT",
       "path": "/api/templates/:id/vars",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 388
+      "line": 389
     },
     {
       "method": "PUT",
       "path": "/api/templates/:id",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 416
+      "line": 417
     },
     {
       "method": "DELETE",
       "path": "/api/templates/:id",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 451
+      "line": 452
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/unarchive",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 463
+      "line": 464
     },
     {
       "method": "DELETE",
       "path": "/api/templates/:id/permanent",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 484
+      "line": 485
     },
     {
       "method": "POST",
       "path": "/api/templates/register-local",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 506
+      "line": 508
     },
     {
       "method": "GET",
       "path": "/api/templates/:id/file",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 527
+      "line": 529
     },
     {
       "method": "POST",
       "path": "/api/templates/:id/export",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 543
+      "line": 545
     },
     {
       "method": "GET",
       "path": "/api/templates/meta/info",
       "file": "packages/server/src/api/routes-template.ts",
-      "line": 568
+      "line": 570
     },
     {
       "method": "GET",
@@ -2250,211 +2278,223 @@
       "method": "PUT",
       "path": "/api/workbenches/:id/reference-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 64
+      "line": 65
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/reference-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 70
+      "line": 71
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/reference-file",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 77
+      "line": 78
     },
     {
       "method": "GET",
       "path": "/api/workbenches/count",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 86
+      "line": 87
     },
     {
       "method": "GET",
       "path": "/api/workbenches",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 96
+      "line": 97
     },
     {
       "method": "GET",
       "path": "/api/workbenches/next-code",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 108
+      "line": 109
     },
     {
       "method": "GET",
       "path": "/api/workbenches/due",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 124
+      "line": 125
     },
     {
       "method": "POST",
       "path": "/api/workbenches",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 138
+      "line": 139
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 181
+      "line": 184
     },
     {
       "method": "PUT",
       "path": "/api/workbenches/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 195
+      "line": 198
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 208
+      "line": 211
     },
     {
       "method": "PUT",
       "path": "/api/workbenches/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 218
+      "line": 221
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/archive",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 268
+      "line": 271
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/complete",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 288
+      "line": 291
     },
     {
       "method": "DELETE",
       "path": "/api/workbenches/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 311
+      "line": 314
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/instantiate",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 365
+      "line": 368
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/recalc",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 375
+      "line": 378
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 384
+      "line": 389
     },
     {
       "method": "GET",
       "path": "/api/folders/subdirs",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 439
+      "line": 444
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/bind-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 504
+      "line": 509
     },
     {
       "method": "DELETE",
       "path": "/api/workbenches/:id/bind-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 523
+      "line": 528
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/bound-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 538
+      "line": 543
     },
     {
       "method": "PUT",
       "path": "/api/workbenches/:id/output-mode",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 566
+      "line": 571
     },
     {
       "method": "PUT",
       "path": "/api/positions/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 597
+      "line": 602
     },
     {
       "method": "PUT",
       "path": "/api/checklist/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 645
+      "line": 650
     },
     {
       "method": "GET",
       "path": "/api/position-templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 663
+      "line": 668
     },
     {
       "method": "POST",
       "path": "/api/position-templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 673
+      "line": 678
     },
     {
       "method": "PUT",
       "path": "/api/position-templates/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 694
+      "line": 682
     },
     {
       "method": "DELETE",
       "path": "/api/position-templates/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 722
+      "line": 686
     },
     {
       "method": "GET",
       "path": "/api/position-templates/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 754
+      "line": 712
     },
     {
       "method": "PUT",
       "path": "/api/position-templates/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 772
+      "line": 730
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/position-docs",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 799
+      "line": 740
     },
     {
       "method": "POST",
       "path": "/api/materials",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 832
+      "line": 773
     },
     {
       "method": "POST",
       "path": "/api/evidences",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 851
+      "line": 777
     },
     {
       "method": "DELETE",
       "path": "/api/rules/:kind/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 871
+      "line": 781
+    },
+    {
+      "method": "GET",
+      "path": "/api/workflow-config/:id",
+      "file": "packages/server/src/api/routes-workflow-config.ts",
+      "line": 7
+    },
+    {
+      "method": "POST",
+      "path": "/api/workflow-config",
+      "file": "packages/server/src/api/routes-workflow-config.ts",
+      "line": 8
     },
     {
       "method": "GET",
@@ -2628,13 +2668,13 @@
       "method": "GET",
       "path": "/files/*",
       "file": "packages/server/src/index.ts",
-      "line": 165
+      "line": 167
     },
     {
       "method": "GET",
       "path": "/",
       "file": "packages/server/src/index.ts",
-      "line": 217
+      "line": 219
     }
   ],
   "registrations": [
@@ -2656,92 +2696,97 @@
     {
       "function": "registerRequestGuard",
       "file": "packages/server/src/index.ts",
-      "line": 126
+      "line": 127
     },
     {
       "function": "registerCoreRoutes",
       "file": "packages/server/src/index.ts",
-      "line": 143
-    },
-    {
-      "function": "registerConsentRoutes",
-      "file": "packages/server/src/index.ts",
       "line": 144
     },
     {
-      "function": "registerWorkflowRoutes",
+      "function": "registerWorkflowConfigRoutes",
       "file": "packages/server/src/index.ts",
       "line": 145
     },
     {
-      "function": "registerTimesheetRoutes",
+      "function": "registerConsentRoutes",
       "file": "packages/server/src/index.ts",
       "line": 146
     },
     {
-      "function": "registerLedgerRoutes",
+      "function": "registerWorkflowRoutes",
       "file": "packages/server/src/index.ts",
       "line": 147
     },
     {
-      "function": "registerWorkRoutes",
+      "function": "registerTimesheetRoutes",
       "file": "packages/server/src/index.ts",
       "line": 148
     },
     {
-      "function": "registerTemplateRoutes",
+      "function": "registerLedgerRoutes",
       "file": "packages/server/src/index.ts",
       "line": 149
     },
     {
-      "function": "registerGenerateRoutes",
+      "function": "registerWorkRoutes",
       "file": "packages/server/src/index.ts",
       "line": 150
     },
     {
-      "function": "registerArchiveRoutes",
+      "function": "registerTemplateRoutes",
       "file": "packages/server/src/index.ts",
       "line": 151
     },
     {
-      "function": "registerFileRoutes",
+      "function": "registerGenerateRoutes",
       "file": "packages/server/src/index.ts",
       "line": 152
     },
     {
+      "function": "registerArchiveRoutes",
+      "file": "packages/server/src/index.ts",
+      "line": 153
+    },
+    {
+      "function": "registerFileRoutes",
+      "file": "packages/server/src/index.ts",
+      "line": 154
+    },
+    {
       "function": "registerTrashRoutes",
-      "file": "packages/server/src/index.ts",
-      "line": 155
-    },
-    {
-      "function": "registerAiRoutes",
-      "file": "packages/server/src/index.ts",
-      "line": 156
-    },
-    {
-      "function": "registerKbRoutes",
       "file": "packages/server/src/index.ts",
       "line": 157
     },
     {
-      "function": "registerAgentRoutes",
+      "function": "registerAiRoutes",
       "file": "packages/server/src/index.ts",
       "line": 158
     },
     {
-      "function": "registerVisionRoutes",
+      "function": "registerKbRoutes",
       "file": "packages/server/src/index.ts",
       "line": 159
     },
     {
-      "function": "registerSearchRoutes",
+      "function": "registerAgentRoutes",
       "file": "packages/server/src/index.ts",
       "line": 160
     },
     {
-      "function": "registerPreviewRoutes",
+      "function": "registerVisionRoutes",
+      "file": "packages/server/src/index.ts",
+      "line": 161
+    },
+    {
+      "function": "registerSearchRoutes",
       "file": "packages/server/src/index.ts",
       "line": 162
+    },
+    {
+      "function": "registerPreviewRoutes",
+      "file": "packages/server/src/index.ts",
+      "line": 164
     }
   ],
   "unresolvedRouteDeclarations": [
@@ -2749,6 +2794,16 @@
       "file": "packages/server/src/api/routes-ledger.ts",
       "line": 24,
       "method": "get"
+    },
+    {
+      "file": "packages/server/src/api/routes-workflow-config.ts",
+      "line": 6,
+      "method": "post"
+    },
+    {
+      "file": "packages/server/src/api/routes-workflow-config.ts",
+      "line": 10,
+      "method": "post"
     }
   ],
   "migrations": [
@@ -3242,6 +3297,44 @@
         "ledger_document"
       ],
       "alterations": []
+    },
+    {
+      "version": "041_workflow_config",
+      "file": "packages/server/src/db/migrations/041_workflow_config.sql",
+      "sha256": "c02c127542a2097de94afc870238e452b3ed43db4bc45f83c753145dcf6a25d7",
+      "createdTables": [
+        "workflow_config_version",
+        "workflow_config_draft",
+        "workflow_config_write"
+      ],
+      "alterations": [
+        "ALTER TABLE work_type ADD COLUMN published_config_id INTEGER REFERENCES workflow_config_version(id);",
+        "ALTER TABLE work_type ADD COLUMN config_baseline_pending INTEGER NOT NULL DEFAULT 1;",
+        "ALTER TABLE workbench ADD COLUMN template_snapshot TEXT;",
+        "ALTER TABLE workbench ADD COLUMN source_config_version_id INTEGER REFERENCES workflow_config_version(id);",
+        "ALTER TABLE position_instance ADD COLUMN source_config_version_id INTEGER REFERENCES workflow_config_version(id);",
+        "ALTER TABLE work_period_rule ADD COLUMN source_config_version_id INTEGER REFERENCES workflow_config_version(id);",
+        "ALTER TABLE work_period_rule ADD COLUMN material_rules TEXT;",
+        "ALTER TABLE period_material ADD COLUMN config_key TEXT;",
+        "ALTER TABLE material_check ADD COLUMN config_key TEXT;",
+        "ALTER TABLE material_check ADD COLUMN requirement_kind TEXT NOT NULL DEFAULT 'legacy';",
+        "ALTER TABLE evidence_rule ADD COLUMN config_key TEXT;",
+        "ALTER TABLE workflow_event ADD COLUMN operation_id TEXT;"
+      ]
+    },
+    {
+      "version": "042_workflow_application",
+      "file": "packages/server/src/db/migrations/042_workflow_application.sql",
+      "sha256": "0e7dd122fb4178867ce60a19b7b4add5c5562fdbbc941c5009e2023675fa6cf4",
+      "createdTables": [
+        "work_period_future_rule"
+      ],
+      "alterations": [
+        "ALTER TABLE position_instance ADD COLUMN config_snapshot TEXT;",
+        "ALTER TABLE position_instance ADD COLUMN description TEXT;",
+        "ALTER TABLE checklist_item ADD COLUMN config_key TEXT;",
+        "ALTER TABLE checklist_item ADD COLUMN rule_snapshot TEXT;"
+      ]
     }
   ]
 }

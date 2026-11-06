@@ -1,3 +1,4 @@
+import {rejectLegacyConfigWrite} from '../domain/workflow-config.ts';
 import {loadedBuild} from '../core/build-identity.ts';
 /** 系统与配置相关接口 */
 import { existsSync, statSync } from 'node:fs';
@@ -258,76 +259,16 @@ export function registerCoreRoutes(app: FastifyInstance): void {
     }
   });
 
-  app.post('/api/work-types', async (req, reply) => {
-    try {
-      const b = body(req);
-      const code = requireStr(b, 'code', '编码');
-      if(get('SELECT id FROM work_type WHERE code=?',[code])) throw new ApiError('CODE_EXISTS','工作类型编码已存在，请编辑已有类型',409);
-      const id = upsertWorkType({
-        navigation_group: optStr(b,'navigationGroup') as import('../domain/work-type-navigation.ts').NavigationGroup | undefined,
-        code,
-        name: requireStr(b, 'name', '名称'),
-        mode: optStr(b,'mode')==='document'?'document':'process',
-        domain: optStr(b,'domain') as 'admin'|'project'|undefined,
-        executor: optStr(b,'executor') as 'general'|'timesheet'|undefined,
-        period_defaults: b.periodDefaults ? JSON.stringify(b.periodDefaults) : null,
-        category: optStr(b, 'category') ?? '部门综合管理',
-        description: optStr(b, 'description'),
-        color: optStr(b, 'color'),
-        icon: optStr(b, 'icon'),
-      });
-      // 重新建了同名的，就别再挡着启动自检了
-      unmarkWorkTypeDeleted(code);
-      return ok(reply, { id }, 201);
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.post('/api/work-types', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.put('/api/work-types/:id', async (req, reply) => {
-    try {
-      const id = Number((req.params as { id: string }).id);
-      const b = body(req);
-      const cur = getWorkType(id);
-      if (!cur) throw new ApiError('NOT_FOUND', '工作类型不存在', 404);
-      if(b.code!==undefined && b.code!==cur.code)throw new ApiError('IMMUTABLE_CODE','工作类型编码不可修改',409);
-      const newId = upsertWorkType({
-        navigation_group: optStr(b,'navigationGroup') as import('../domain/work-type-navigation.ts').NavigationGroup | undefined,
-        id, mode: optStr(b,'mode')??cur.mode, domain: (optStr(b,'domain')??cur.domain) as 'admin'|'project',
-        executor: (optStr(b,'executor')??cur.executor) as 'general'|'timesheet',
-        period_defaults: b.periodDefaults===undefined?cur.period_defaults:b.periodDefaults===null?null:JSON.stringify(b.periodDefaults),
-        code: cur.code,
-        name: optStr(b, 'name') ?? cur.name,
-        category: optStr(b, 'category') ?? cur.category,
-        description: optStr(b, 'description') ?? cur.description ?? undefined,
-        color: optStr(b, 'color') ?? cur.color ?? undefined,
-        icon: optStr(b, 'icon') ?? cur.icon ?? undefined,
-        sort_order: cur.sort_order,
-      });
-      return ok(reply, { id: newId });
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.put('/api/work-types/:id', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.delete('/api/work-types/:id', async (req, reply) => {
-    try {
-      const id = Number((req.params as { id: string }).id);
-      // 「还有 N 个工作台在用这个类型，不能删除」数的是**在用**的工作台：
-      // 已经移进回收站的那些不算占用（用户已经把它们删了），
-      // 否则"删了工作台却还是删不掉类型"。liveFilter 在没跑迁移 015 的老库上自动降级。
-      const used =
-        all<{ n: number }>(`SELECT COUNT(*) AS n FROM workbench WHERE work_type_id = ? AND ${liveFilter('workbench')}`, [id])[0]?.n ?? 0;
-      if (used > 0) throw new ApiError('IN_USE', `还有 ${used} 个工作台在用这个类型，不能删除。可以先归档这些工作台。`);
-      const cur = getWorkType(id);
-      if (!cur) throw new ApiError('NOT_FOUND', '工作类型不存在', 404);
-      run(`UPDATE work_type SET archived_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`, [id]);
-      // 预置类型不记下来的话，下次启动自检会把它种回来，等于删不掉
-      markWorkTypeDeleted(cur.code);
-      return ok(reply, { archived: true });
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.delete('/api/work-types/:id', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
   /** 让界面知道当前是否配好了模型 */

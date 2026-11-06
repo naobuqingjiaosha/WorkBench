@@ -186,6 +186,7 @@ export function useApi<T>(path: string | null, deps: unknown[] = []): {
 /* ------------------------------- 类型定义 ------------------------------- */
 
 export interface WorkType {
+  published_config_id: number | null;
   navigation_group: 'information'|'engineering'|'administration'|null;
   display_name: string;
   usage_hint: string;
@@ -377,6 +378,7 @@ export interface ChecklistItem {
 }
 
 export interface PositionInstance {
+  description?: string | null;
   id: number;
   code: string;
   name: string;

@@ -10,7 +10,7 @@ import {documentSourceSignature} from '../domain/document-source.ts';
  */
 import type { FastifyInstance } from 'fastify';
 import { join } from 'node:path';
-import { assertGenerationScope,assertPeriodContext,requirePeriod,assertPeriodTemplate,periodNativeFields } from '../domain/periods.ts';
+import { assertGenerationScope,assertPeriodContext,requirePeriod,assertPeriodTemplate,periodNativeFields,periodResultTargets,resolvePeriodResultTarget,periodResultHead } from '../domain/periods.ts';
 import {
   analyzeGaps,
   generateVariables,
@@ -56,7 +56,7 @@ export function registerGenerateRoutes(app: FastifyInstance): void {
       const inspectionId=Number((req.query as Record<string,string>).inspectionId)||null;
       if(inspectionId)requireInspection(inspectionId,periodId);
       assertPeriodContext(workbenchId,periodId);
-      assertGenerationScope(t,workbenchId,positionCode);
+      assertGenerationScope(t,workbenchId,positionCode,periodId);
       if(periodId&&!workbenchId)throw new ApiError('WORK_REQUIRED','期次生成必须指定工作');
       const period=periodId?requirePeriod(periodId,workbenchId):null;
       assertInspectionScope(t,period,inspectionId);
@@ -73,6 +73,7 @@ export function registerGenerateRoutes(app: FastifyInstance): void {
       const collections=scanTemplateStructure(templateAbsPath(t)).collections;
 
       return ok(reply, {
+        materialTargets:period?periodResultTargets(period,templateId).map(m=>({id:m.id,title:m.title,required:!!m.required})):[],
         sourceSignature:documentSourceSignature(workbenchId,periodId,templateId,[],inspectionId),
         inspectionRevision:inspectionId?requireInspection(inspectionId,periodId).revision:null,
         template: { id: t.id, name: t.name, category: t.category, file_format: t.file_format, description: t.description },
@@ -300,6 +301,7 @@ export function registerGenerateRoutes(app: FastifyInstance): void {
       }
       const r = await saveGeneratedDocument({
         templateId,
+        materialId:optNum(b,'materialId')??null,
         workbenchId: optNum(b, 'workbenchId') ?? null,
         periodId: optNum(b, 'periodId') ?? null,
         inspectionId: optNum(b,'inspectionId')??null,
@@ -361,6 +363,8 @@ export function registerGenerateRoutes(app: FastifyInstance): void {
       assertPeriodContext(workbenchId,businessPeriod);
       if(businessPeriod&&!workbenchId)throw new ApiError('WORK_REQUIRED','期次生成必须指定工作');
       const inspectionId=Number((req.query as Record<string,string>).inspectionId)||null;
+      const p=businessPeriod?requirePeriod(businessPeriod,workbenchId):null;
+      const target=p?resolvePeriodResultTarget(p,templateId,Number((req.query as Record<string,string>).materialId)||null):undefined;
       const explicitPeriod=documentPeriodKey(businessPeriod?requirePeriod(businessPeriod,workbenchId):null,inspectionId)??rawPeriod;
       return ok(
         reply,
@@ -370,7 +374,7 @@ export function registerGenerateRoutes(app: FastifyInstance): void {
           checklistItemId,
           positionCode,
           periodKey: explicitPeriod,
-        }),
+        },target&&p?periodResultHead(p,templateId,target):undefined),
       );
     } catch (e) {
       return fail(reply, e);

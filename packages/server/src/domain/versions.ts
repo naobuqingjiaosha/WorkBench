@@ -1,3 +1,4 @@
+import {syncEvidence} from '../core/checklist.ts';
 import { requirePeriod } from './periods.ts';
 import {assertDocumentIdle,withDocumentWrite} from './document-write.ts';
 /**
@@ -395,7 +396,7 @@ export interface ChainSummary {
   schemaReady: boolean;
 }
 
-export function chainSummary(t: VersionTarget): ChainSummary {
+export function chainSummary(t: VersionTarget, selectedHead?:VersionedArtifact|null): ChainSummary {
   if (!ensureDocVersionSchema()) {
     return {
       exists: false,
@@ -412,7 +413,7 @@ export function chainSummary(t: VersionTarget): ChainSummary {
     };
   }
   const periodKey = t.periodKey === undefined ? resolvePeriodKey(t) : t.periodKey;
-  const head = findChainHead({ ...t, periodKey });
+  const head = selectedHead===undefined?findChainHead({ ...t, periodKey }):selectedHead;
   if (!head) {
     return {
       exists: false,
@@ -1017,7 +1018,16 @@ export interface MarkFinalResult {
  * 不是"什么都不用做"）。真正已经完整的定稿才回 `changed:false`。
  */
 export function markFinal(id: number, final: boolean): MarkFinalResult {
+  // Keep legacy schema initialization outside the business savepoint/cache.
   if (!ensureDocVersionSchema()) throw new VersionRuleError(NO_SCHEMA_MESSAGE);
+  return tx(() => {
+    const result = markFinalInner(id, final);
+    const workbenchId = get<{workbench_id:number|null}>('SELECT workbench_id FROM artifact WHERE id=?', [id])?.workbench_id;
+    if (workbenchId) syncEvidence(workbenchId);
+    return result;
+  });
+}
+function markFinalInner(id: number, final: boolean): MarkFinalResult {
   const a = get<VersionedArtifact>(`SELECT * FROM artifact WHERE id = ? AND ${liveFilter('artifact')}`, [id]);
   if (!a) throw new VersionRuleError('文件不存在（也可能已在回收站里）');
   assertDocumentIdle(a.workbench_id,a.template_id);

@@ -1,3 +1,4 @@
+import {assertTemplateNotVersioned} from '../domain/workflow-config.ts';
 import {checkedOfficeBytes,readOfficeBytes} from '../core/office-package.ts';
 /** 模板库接口：上传、扫描变量、编辑变量说明、下载、删除 */
 import { readFileSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -486,6 +487,7 @@ export function registerTemplateRoutes(app: FastifyInstance): void {
       const id = intParam(req, 'id');
       const t = getTemplate(id);
       if (!t) throw new ApiError('NOT_FOUND', '模板不存在', 404);
+      assertTemplateNotVersioned(id);
       const used = pluck1<number>('SELECT COUNT(*) FROM generation_log WHERE template_id = ?', [id]) ?? 0;
       if (used > 0) throw new ApiError('IN_USE', `这个模板已经生成过 ${used} 次文件，为保证可追溯不建议删除。可以先归档。`);
       try {

@@ -26,6 +26,9 @@ interface Material {
     status: string;
     note: string;
     artifact_id: number | null;
+    required:number;
+    requirement_kind:string;
+    config_key:string|null;
 }
 interface Detail extends Period {
     materials: Material[];
@@ -121,6 +124,9 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
         generation_scope?:'period'|'record';
     }[];
     const monthly=workTypeCode==='integrity-monthly-inspection';
+    const rawRules=JSON.parse(p.snapshot).material_rules;
+    const resultRules=(typeof rawRules==='string'?JSON.parse(rawRules):rawRules??[]) as {key:string;kind:string;templateId:number|null}[];
+    const resultRequirements=p.materials.flatMap(m=>{const rule=resultRules.find(r=>r.kind==='generated'&&r.key===m.config_key);return rule?[{...m,templateId:rule.templateId}]:[];});
     const readiness=p.readiness;
     const nextSection=!readiness.recordDocumentsReady?'checks':!readiness.recordsReady?'documents':'attachments';
     const goToSection=()=>{const section=document.getElementById(`period-${id}-${nextSection}`);if(section instanceof HTMLDetailsElement)section.open=true;section?.scrollIntoView({behavior:'smooth',block:'start'});section?.querySelector<HTMLElement>('button:not(:disabled),input:not(:disabled)')?.focus({preventScroll:true});};
@@ -130,7 +136,7 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
 
  {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary>已有检查记录与其他模板</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
  <div id={`period-${id}-documents`}>
- <WorkDocuments validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={v=>{contentDirty.current=true;setContent(v);}} onSaveContent={async()=>{await api.put(`/api/periods/${id}`,{content});contentDirty.current=false;}} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={false} onChanged={refresh}/>
+ <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={v=>{contentDirty.current=true;setContent(v);}} onSaveContent={async()=>{await api.put(`/api/periods/${id}`,{content});contentDirty.current=false;}} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={false} onChanged={refresh}/>
  </div>
  {timesheet&&<p><a className="btn btn-primary" href={`#/workbench?task=timesheets&id=${workbenchId}&periodId=${id}&month=${p.report_period}`}>办理本期部门工时</a></p>}
  {p.reported_on&&<details><summary>历史报送记录（只读）</summary><p>{p.reported_on}；历史记录保留，不影响当前材料制作。</p></details>}

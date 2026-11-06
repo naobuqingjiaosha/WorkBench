@@ -1,5 +1,5 @@
 import {useEditorGuard} from './NavigationGuard';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {api,useApi,type Artifact,type Template} from '../api';
 import {Button,Card,Field,Textarea,Select,Tag,useAction,useToast} from '../ui';
 import {GenerateModal} from '../pages/GenerateModal';
@@ -7,7 +7,8 @@ import {DocVersionsModal} from '../pages/DocVersions';
 import {FilePreviewButton} from './FilePreview';
 
 type Choice={inspectionId?:number;id:number;name:string;required?:boolean;materialId?:number|null;generation_scope?:'period'|'record'};
-export function WorkDocuments({workbenchId,workTypeId,periodId,content,onContentChange,onSaveContent,templates,validFinalIds,materials=[],inspectionRevisions=[],inspectionMode=false,refreshKey,contentLabel="本次业务内容",disabled=false,onChanged}:{
+export function WorkDocuments({workbenchId,workTypeId,periodId,content,onContentChange,onSaveContent,templates,validFinalIds,materials=[],resultRequirements=[],inspectionRevisions=[],inspectionMode=false,refreshKey,contentLabel="本次业务内容",disabled=false,onChanged}:{
+ resultRequirements?:{id:number;title:string;required:number;requirement_kind:string;status:string;artifact_id:number|null;templateId:number|null}[];
  validFinalIds?:number[];workbenchId:number;workTypeId:number;periodId?:number;content:string;onContentChange:(s:string)=>void;
  onSaveContent:()=>Promise<void>;templates:Choice[];refreshKey?:string;inspectionMode?:boolean;inspectionRevisions?:{id:number;revision:number;project?:string;date?:string}[];contentLabel?:string;materials?:{id:number;title:string}[];disabled?:boolean;onChanged:()=>void;
 }){
@@ -21,7 +22,25 @@ export function WorkDocuments({workbenchId,workTypeId,periodId,content,onContent
  const [choosing,setChoosing]=useState(false),[picked,setPicked]=useState<number[]>([]),[required,setRequired]=useState<number[]>([]);
  const [resultMaterials,setResultMaterials]=useState<Record<string,number|null>>({});
  const [generating,setGenerating]=useState<(Choice&{values?:Record<string,string>})|null>(null),[versions,setVersions]=useState<number|null>(null);
- const {busy,run}=useAction(),toast=useToast();
+ const {busy:actionBusy,run}=useAction(),toast=useToast();
+ type LinkEdit={material:typeof resultRequirements[number];value:string;error:string};
+ const [linkEdit,setLinkEdit]=useState<LinkEdit|null>(null),[linkBusy,setLinkBusy]=useState(false);
+ const linkLock=useRef(false),busy=actionBusy||linkBusy;
+ const saveLink=async(edit:LinkEdit)=>{
+  if(linkLock.current)throw Error('关联正在保存，请等待完成');
+  linkLock.current=true;setLinkBusy(true);setLinkEdit({...edit,error:''});
+  const m=edit.material;
+  try{
+   await api.put(`/api/periods/${periodId}/materials/${m.id}`,{status:'provided',artifact_id:Number(edit.value),expected:{artifact_id:m.artifact_id,status:m.status,title:m.title,required:m.required,requirement_kind:m.requirement_kind}});
+   setLinkEdit(null);refresh();toast('已关联所选成果，仅更新此项要求','ok');
+  }catch(e){setLinkEdit({...edit,error:(e as Error).message||'关联保存失败'});throw e;}
+  finally{linkLock.current=false;setLinkBusy(false);}
+ };
+ useEditorGuard({dirty:!!linkEdit,busy:linkBusy,save:async()=>{if(linkEdit)await saveLink(linkEdit);},discard:()=>setLinkEdit(null)});
+ const chooseLink=(m:typeof resultRequirements[number],value:string)=>{
+  if(!value||linkLock.current||actionBusy)return;
+  void saveLink({material:linkEdit?.material.id===m.id?linkEdit.material:m,value,error:''}).catch(()=>{});
+ };
  useEffect(()=>{if(!choosing){setPicked(templates.map(t=>t.id));setResultMaterials(Object.fromEntries(templates.map(t=>[String(t.id),t.materialId??null])));setRequired(templates.filter(t=>t.required).map(t=>t.id));}},[templates,choosing]);
  const refresh=()=>{files.reload();onChanged();};
  const saveTemplates=()=>void run(async()=>{
@@ -52,6 +71,7 @@ export function WorkDocuments({workbenchId,workTypeId,periodId,content,onContent
    {!templates.length&&!choosing&&<p>暂未选择模板。可先填写内容，再选择适用的 Word / Excel 模板。</p>}
    <div className="template-actions">{inspectionMode&&<span className="small muted">单次表册从上方检查记录生成；下方汇总与累计台账使用本期或本年度全部检查记录，记录变化后请重新生成。</span>}{templates.filter(t=>!inspectionMode||t.generation_scope==='period').map(t=><Button kind="primary" key={t.id} disabled={disabled||busy} onClick={()=>open(t)}>{t.name} · 生成</Button>)}</div>
   </Card>
+  {resultRequirements.length>0&&<Card title="逐项成果要求"><p className="small muted">同一模板的不同要求分别核对。生成时选择对应要求；导入或已有成果须在此逐项明确关联，不会自动替代其他材料。</p>{resultRequirements.map(m=><div key={m.id} className="col"><strong>{m.title}{m.required?'（必备）':'（选备）'} · {m.artifact_id&&validFinalIds?.includes(m.artifact_id)&&(files.data?.items??[]).some(a=>a.id===m.artifact_id&&a.work_period_id===periodId&&(m.templateId===null||a.template_id===m.templateId))&&['provided','verified'].includes(m.status)?'已有有效成果':'待提供有效成果'}</strong><Field label={'明确关联已有成果：'+m.title}><Select disabled={disabled||busy||!!linkEdit&&linkEdit.material.id!==m.id} value={linkEdit?.material.id===m.id?linkEdit.value:m.artifact_id?String(m.artifact_id):''} onChange={v=>chooseLink(m,v)} options={[{value:'',label:'请选择本期有效成果'},...((files.data?.items??[]).filter(a=>a.work_period_id===periodId&&validFinalIds?.includes(a.id)&&(m.templateId===null||a.template_id===m.templateId)).map(a=>({value:String(a.id),label:a.file_name}))),...m.artifact_id&&!(files.data?.items??[]).some(a=>a.id===m.artifact_id&&validFinalIds?.includes(a.id)&&a.work_period_id===periodId&&(m.templateId===null||a.template_id===m.templateId))?[{value:String(m.artifact_id),label:'原关联成果已失效，请重新核对'}]:[]]}/></Field>{linkEdit?.material.id===m.id&&<div className="notice" role={linkEdit.error?"alert":"status"}><p>{linkBusy?"正在保存关联，请等待完成。":"所选关联尚未保存，选择已保留；可重试或明确放弃。"}</p>{linkEdit.error&&<p>{linkEdit.error}</p>}<Button disabled={busy} onClick={()=>void saveLink(linkEdit).catch(()=>{})}>重试关联</Button><Button disabled={busy} onClick={()=>{setLinkEdit(null);refresh();}}>放弃未保存选择</Button></div>}</div>)}</Card>}
   <Card title={`生成成果（${results.length}）`}>
    {files.error&&<p role="alert">成果加载失败：{files.error.message} <Button onClick={files.reload}>重试</Button></p>}
    {files.loading&&!files.data&&<p>正在加载成果…</p>}

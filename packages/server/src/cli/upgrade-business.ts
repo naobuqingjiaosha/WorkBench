@@ -1,3 +1,4 @@
+import {initializeWorkflowBaselines} from '../domain/workflow-config.ts';
 /** Explicit, local metadata upgrade. No business source files are scanned, moved or deleted. */
 import {DatabaseSync,backup} from 'node:sqlite';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
@@ -27,6 +28,7 @@ if(existsSync(DB_FILE)){
 try{
  initDatabase(DB_FILE);
  seedWorkTypesAndPositions();
+ initializeWorkflowBaselines();
  if(all('PRAGMA foreign_key_check').length)throw new Error('升级后存在外键异常，请保留升级前备份进行核查');
  if(Object.values(get('PRAGMA integrity_check')??{})[0]!=='ok')throw new Error('数据库完整性检查失败');
  console.log(JSON.stringify({database:DB_FILE,backup:backupPath,migrations:all('SELECT version FROM schema_migration ORDER BY version DESC LIMIT 3'),integrity:'ok',foreignKeyErrors:0},null,2));

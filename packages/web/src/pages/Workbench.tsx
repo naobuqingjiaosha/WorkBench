@@ -1,5 +1,6 @@
+import {WorkflowApplication} from '../components/WorkflowApplication';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
-import {useNavigationGuard} from '../components/NavigationGuard';
+import {useEditorGuard,useNavigationGuard} from '../components/NavigationGuard';
 import {ReferenceFolder} from '../components/ReferenceFolder';
 import { TYPE_GROUPS } from '../work-type-navigation';
 import {WorkDocuments} from '../components/WorkDocuments';
@@ -48,7 +49,7 @@ export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Re
 /* ============================== 列表 ============================== */
 
 function WorkbenchList({ go, autoCreate }: { go: (k: RouteKey, p?: Record<string, string>) => void; autoCreate?: boolean }) {
-  const toast=useToast(),types=useApi<{items:WorkType[]}>('/api/work-types');
+  const toast=useToast(),types=useApi<{items:WorkType[]}>('/api/work-types?includeArchived=1');
   const [keyword,setKeyword]=useState(''),[group,setGroup]=useState(''),[filterType,setFilterType]=useState(''),[view,setView]=useState('active'),[page,setPage]=useState(0),[creating,setCreating]=useState(Boolean(autoCreate));
   const list=useWorkbenchCollection(view==='archived');
   useEffect(()=>{setPage(0);},[keyword,group,filterType,view]);
@@ -61,7 +62,7 @@ function WorkbenchList({ go, autoCreate }: { go: (k: RouteKey, p?: Record<string
       {list.error?<div className="notice notice-err" role="alert">{list.error.message}<Button onClick={list.reload}>重试</Button></div>:list.loading?<Loading/>:!rows.length?<Empty text={keyword||group||filterType?'没有符合筛选条件的工作。':'当前视图还没有工作。'} action={<Button onClick={()=>{if(keyword||group||filterType){setKeyword('');setGroup('');setFilterType('');}else setCreating(true);}}>{keyword||group||filterType?'清除筛选':'新建工作'}</Button>}/>:<table className="table"><thead><tr><th>工作</th><th>分类 / 办理范围</th><th>下一步</th><th>状态</th><th>操作</th></tr></thead><tbody>{rows.map(w=><tr key={w.id}><td><a href={'#/workbench?id='+w.id}><strong>{w.name}</strong></a><div className="small muted">{w.code} · 更新 {fmtTime(w.updated_at)}</div></td><td>{TYPE_GROUPS.find(g=>g.value===types.data?.items.find(t=>t.id===w.work_type_id)?.navigation_group)?.label??'待确认分类'}<div className="small muted">{w.work_type_name} · {w.work_type_mode==='process'?'阶段 '+(w.position_done??0)+' / '+(w.position_total??0):w.period_frequency?'独立期次':'单次办理'}</div></td><td className="small">{w.period_due?'待办期次截止 '+w.period_due:'打开工作查看'}</td><td><Tag kind={statusKind(w.status)}>{w.status==='done'?'已结束':STATUS_TEXT[w.status]??w.status}</Tag></td><td><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>{view==='active'?'继续办理':'查看工作'}</Button></td></tr>)}</tbody></table>}
       <div className="row mt16"><span className="muted small">第 {page+1} 页 · 每页 20 项</span><div className="spacer"/><Button size="sm" disabled={!page} onClick={()=>setPage(p=>p-1)}>上一页</Button><Button size="sm" disabled={(page+1)*20>=filtered.length} onClick={()=>setPage(p=>p+1)}>下一页</Button></div>
     </Card>
-    <CreateWorkbenchModal open={creating} types={types.data?.items??[]} onClose={()=>setCreating(false)} onCreated={wb=>{setCreating(false);toast('工作已创建','ok');go('workbench',{id:String(wb.id)});}}/>
+    <CreateWorkbenchModal open={creating} types={types.data?.items??[]} refreshTypes={types.reload} onClose={()=>setCreating(false)} onCreated={wb=>{setCreating(false);toast('工作已创建','ok');go('workbench',{id:String(wb.id)});}}/>
   </div>;
 }
 
@@ -70,7 +71,7 @@ function WorkbenchList({ go, autoCreate }: { go: (k: RouteKey, p?: Record<string
  *
  * 建工作时先选好这份工作用哪几份模板 —— 因为一个工作类型下模板可能很多
  * （行政管理下既有清廉工程的表，也可能有别的），全列出来容易拿错。
- * 选定后「出文书」页只显示这几份；一份都不选则回退到该类型的全部模板。
+ * 选定后「出文书」页只显示这几份；新工作一份都不选则保留明确的空选择。
  */
 function TemplatePicker({
   templates,
@@ -154,11 +155,13 @@ function TemplatePicker({
 function CreateWorkbenchModal({
   open,
   types,
+  refreshTypes,
   onClose,
   onCreated,
 }: {
   open: boolean;
   types: WorkType[];
+  refreshTypes: () => void;
   onClose: () => void;
   onCreated: (wb: Workbench) => void;
 }) {
@@ -184,8 +187,8 @@ function CreateWorkbenchModal({
   const [pickedTemplates, setPickedTemplates] = useState<number[]>([]);
   const { busy, run } = useAction();
 
-  const adminTypes = types.filter((t) => t.domain === 'admin' && t.navigation_group === 'administration' && !t.archived_at && !['temporary-task','integrity-temporary'].includes(t.code));
-  const projectTypes = types.filter((t) => t.domain === 'project' && !t.archived_at);
+  const adminTypes = types.filter((t) => t.domain === 'admin' && t.navigation_group === 'administration' && !!t.published_config_id && !t.archived_at && !['temporary-task','integrity-temporary'].includes(t.code));
+  const projectTypes = types.filter((t) => t.domain === 'project' && !!t.published_config_id && !t.archived_at);
   const adminType = adminTypes[0];
   const availableTypes = kind==='admin'?adminTypes:kind==='project'?projectTypes.filter(t=>t.navigation_group===projectGroup):[];
   const firstTypeId=availableTypes[0]?.id;
@@ -233,13 +236,14 @@ function CreateWorkbenchModal({
         name: name.trim(),
         historical: kind==='project'&&historical, actualEndDate: historical?actualEndDate:undefined,
         workTypeId: effectiveTypeId,
+        publishedConfigId: selected?.published_config_id,
         code: code.trim() || undefined,
         counterpart: kind === 'project' ? counterpart.trim() || undefined : undefined,
         startDate,
         planEndDate: kind === 'project' && planEndDate ? planEndDate : undefined,
         summary: summary.trim() || undefined,
         recurrence: 'once',
-        periodRule: isRecurring && !selected?.period_defaults ? {frequency:recurrence,due_day:Number(recurDay),due_month_offset:0,remind_days:Number(remindDays),requirements:[]} : undefined,
+
         recurDay: isRecurring ? Number(recurDay) : undefined,
         recurMonth: recurrence === 'yearly' ? Number(recurMonth) : undefined,
         remindDays: isRecurring ? Number(remindDays) : undefined,
@@ -272,6 +276,7 @@ function CreateWorkbenchModal({
         </>
       }
     >
+      {kind && <div className="notice notice-info">新工作采用所选类型当前已发布配置。若提示版本已变化，请刷新后核对所选类型再创建；已填基础信息保留。<Button disabled={busy} onClick={()=>{refreshTypes();tplList.reload();}}>刷新可用配置</Button></div>}
       {pendingSwitch && <div className="notice notice-warn"><p>切换将清除已选的 {pickedTemplates.length} 份模板。名称、甲方等基础信息会保留。</p><div className="row"><Button onClick={()=>setPendingSwitch(null)}>保留当前选择</Button><Button kind="primary" onClick={()=>applyType(pendingSwitch.id,pendingSwitch.group,!!pendingSwitch.back)}>确认切换</Button></div></div>}
       {tplList.error && kind && <div className="notice notice-warn">模板加载失败：{tplList.error.message} <Button size="sm" onClick={tplList.reload}>重试</Button></div>}
       {/* ---------------- 第一段：选性质 ---------------- */}
@@ -316,54 +321,7 @@ function CreateWorkbenchModal({
             <Input value={name} onChange={setName} placeholder="例如：清廉工程月度监督检查" />
           </Field>
 
-          {selected?.mode!=='process' && !selected?.period_defaults && <Field
-            label="频率"
-            required
-            hint={
-              recurrence === 'once'
-                ? '单次工作：做完后直接归档结束'
-                : '持续工作：每到这个时间就会在首页提醒你填一份'
-            }
-          >
-            <Select
-              value={recurrence}
-              onChange={(v) => setRecurrence(v as typeof recurrence)}
-              options={[
-                { value: 'monthly', label: '每月一次' },
-                { value: 'quarterly', label: '每季度一次' },
-                { value: 'yearly', label: '每年一次' },
-              ]}
-            />
-          </Field>}
-
-          {selected?.period_defaults && <p>将继承类型的周期、材料与提醒默认设置，可在工作中调整后续期次。</p>}
-          {isRecurring && !selected?.period_defaults && (
-            <div className="inline-fields">
-              {recurrence === 'yearly' && (
-                <Field label="月份">
-                  <Select
-                    value={recurMonth}
-                    onChange={setRecurMonth}
-                    options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} 月` }))}
-                  />
-                </Field>
-              )}
-              <Field label="日号" hint="1–31；当月没有该日期时，按当月最后一天到期">
-                <Select
-                  value={recurDay}
-                  onChange={setRecurDay}
-                  options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: `${i + 1} 号` }))}
-                />
-              </Field>
-              <Field label="提前几天提醒" hint="到点前几天开始在首页提醒">
-                <Select
-                  value={remindDays}
-                  onChange={setRemindDays}
-                  options={[0, 1, 2, 3, 5, 7, 10].map((n) => ({ value: String(n), label: n === 0 ? '当天才提醒' : `提前 ${n} 天` }))}
-                />
-              </Field>
-            </div>
-          )}
+          <p>{selected?.period_defaults?'按所选发布版本建立周期、材料与提醒规则。':'此发布配置没有默认周期；如需周期工作，请先在流程规范配置并发布。'}</p>
 
           <Field label="编号" hint="留空自动生成">
             <Input value={code} onChange={setCode} placeholder="自动" />
@@ -470,6 +428,16 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
   const toast = useToast();
   const { busy, run } = useAction();
   const detail = useApi<WorkbenchDetail>(`/api/workbenches/${id}`);
+  const recheckLock=useRef(false);
+  const [rechecking,setRechecking]=useState(false),[recheckError,setRecheckError]=useState(''),[rechecked,setRechecked]=useState(false);
+  useEditorGuard({dirty:false,busy:rechecking});
+  const recheck=async()=>{
+    if(recheckLock.current)return;
+    recheckLock.current=true;setRechecking(true);setRecheckError('');setRechecked(false);
+    try{await api.post(`/api/workbenches/${id}/recalc`,{});detail.reload();setRechecked(true);}
+    catch(e){setRecheckError((e as Error).message);}
+    finally{recheckLock.current=false;setRechecking(false);}
+  };
   const periods = useApi<{ rule: unknown | null; items: {status:string}[] }>(`/api/workbenches/${id}/periods`);
   const periodEnabled = !!periods.data?.rule;
   const [selectedPeriod,setSelectedPeriod]=useState(initialPeriodId);
@@ -539,6 +507,13 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
         <p>{periodEnabled?'选择期次，填写本期内容并生成文书':isDocMode?'填写业务内容，选择模板生成文书':`当前阶段：${d.positions.find(p=>p.status==='doing')?.name??d.positions.find(p=>p.status!=='done')?.name??'阶段已完成'}`}</p>
         <div className="row small muted"><span>{wb.code}</span><span>已有文件 {stats.artifactCount} 份</span></div>
       </Card>
+      <Card title="材料与进度核对">
+        <p className="small muted">从当前磁盘文件重新核对影像数量、清单状态及完成时间，并更新工作进度；不改变阶段、期次的办理状态或历史定稿。仅刷新页面不会执行核对。未保存的表单输入不参与核对。</p>
+        <Button disabled={busy||rechecking} onClick={()=>void recheck()}>{rechecking?'正在核对…':'重新核对材料与进度'}</Button>
+        {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
+        {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
+      </Card>
+      <WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/>
       {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading && <details open={isDocMode} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
         行政管理是「文书驱动」：这份工作的内容就是填那几张表，
@@ -1097,6 +1072,7 @@ function FlowTab({
                 {idx < detail.positions.length - 1 && <div className="step-connector" />}
               </div>
               <div className="step-main">
+                {p.description&&<p className="small muted">配置说明：{p.description}</p>}
                 <div className="row" style={{ gap: 10 }}>
                   <strong className="clickable" onClick={() => setOpenPos(p.id)}>
                     {p.name}

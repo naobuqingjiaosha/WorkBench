@@ -1,10 +1,11 @@
+import type {ConfigPeriodMaterial} from './workflow-config-types.ts';
 import {isMonthlyInspection,inspectionDocuments,listInspections,inspectionText,inspectionCollectionFields} from './inspections.ts';
 import {invalidateLegacyDocumentSources,materialArtifactCurrent} from './document-source.ts';
 import { assertPeriodTimesheet } from './timesheets.ts';
 import { recalcProgress } from './service.ts';
 import { assertFinalArtifact } from './finalization.ts';
 import { all, get, run, tx } from '../db/index.ts';
-import { getWorkbench, listTemplatesForWorkbench, templateAbsPath, varsAbsPath, templateGenerationScope,templateSupportsWorkType,type Template } from './service.ts';
+import { assertInstanceTemplate, getTemplate, getWorkbench, listTemplatesForWorkbench, templateAbsPath, varsAbsPath, templateGenerationScope,templateSupportsWorkType,type Template } from './service.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { artifactAbsPath, type Artifact } from '../core/store.ts';
@@ -19,6 +20,8 @@ export interface PeriodRule {
     requirements: string;
     version: number;
     steps: string;
+    material_rules: string | null;
+    source_config_version_id: number | null;
 }
 export interface WorkPeriod {
     completed_at:string|null;
@@ -72,6 +75,25 @@ export function assertPeriodTemplate(period: WorkPeriod, t: Template) { const en
     id: number;
 }) => x.id === t.id); if (!entry) throw new ApiError('WRONG_TEMPLATE','请先为本期选择此模板',409); if (entry?.digest && entry.digest !== templateFingerprint(t))
     throw new ApiError('TEMPLATE_CHANGED', '模板或填写规则已变更。请先查看本期模板差异并确认更新，历史定稿不会改变。', 409); }
+export type PeriodResultTarget = {id:number;config_key:string;title:string;required:number;artifact_id:number|null;status:string;period_id:number};
+/** Resolve only explicit stable keys from the saved rule; never guess by title. */
+export function periodResultRules(p:WorkPeriod):ConfigPeriodMaterial[]{
+ const raw=JSON.parse(p.snapshot).material_rules;
+ return (typeof raw==='string'?JSON.parse(raw):raw??[]) as ConfigPeriodMaterial[];
+}
+export function periodResultTargets(p:WorkPeriod,templateId:number):PeriodResultTarget[]{
+ const rules=periodResultRules(p).filter(m=>m.kind==='generated'&&m.templateId===templateId);
+ return rules.map(rule=>{const m=get<PeriodResultTarget>("SELECT * FROM period_material WHERE period_id=? AND config_key=? AND requirement_kind='generated'",[p.id,rule.key]);if(!m)throw new ApiError('MATERIAL_MAPPING','本期材料身份缺失，请核对配置；未自动补写历史快照',409);return m;});
+}
+export function resolvePeriodResultTarget(p:WorkPeriod,templateId:number,materialId?:number|null){
+ const targets=periodResultTargets(p,templateId);
+ if(materialId!=null){const target=targets.find(m=>m.id===materialId);if(!target)throw new ApiError('WRONG_MATERIAL','请选择当前期次、当前模板对应的成果要求',409);return target;}
+ if(targets.length>1)throw new ApiError('MATERIAL_REQUIRED','此模板对应多项成果要求，请明确选择本次生成对应的材料',409);
+ return targets[0];
+}
+export function periodResultHead(p:WorkPeriod,templateId:number,target:PeriodResultTarget){
+ return target.artifact_id?get<import('./versions.ts').VersionedArtifact>("SELECT * FROM artifact WHERE id=? AND workbench_id=? AND work_period_id=? AND template_id=? AND kind='generated' AND deleted_at IS NULL",[target.artifact_id,p.workbench_id,p.id,templateId])??null:null;
+}
 export const todayShanghai = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 export function validDate(s: unknown): string {
     if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s) || !Number.isFinite(Date.parse(s + 'T00:00:00Z')) || new Date(s + 'T00:00:00Z').toISOString().slice(0, 10) !== s)
@@ -95,7 +117,9 @@ export function periodDue(start: string, offset: number, day: number): string {
 export function requireWorkbench(id: number) { const w = getWorkbench(id); if (!w || w.deleted_at)
     throw new ApiError('NOT_FOUND', '工作不存在', 404); return w; }
 export function savePeriodRule(id: number, b: Record<string, unknown>): PeriodRule {
+ return tx(()=>{
     const wb=requireWorkbench(id);
+    if(get('SELECT id FROM work_period_future_rule WHERE workbench_id=?',[id]))throw new ApiError('FUTURE_RULE_SCHEDULED','已有明确生效的未来规则，请通过配置差异入口安排后续规则，不能覆盖原规则',409);
     if(get<{mode:string}>('SELECT mode FROM work_type WHERE id=?',[wb.work_type_id])?.mode==='process' || get('SELECT id FROM position_instance WHERE workbench_id=? AND deleted_at IS NULL',[id]))throw new ApiError('STAGE_PERIOD_CONFLICT','阶段式工作暂不支持每期独立阶段，请另建周期报送工作');
     if(get<{executor:string}>('SELECT executor FROM work_type WHERE id=?',[wb.work_type_id])?.executor==='timesheet' && b.frequency!=='monthly')throw new ApiError('BAD_RULE','部门工时只支持月度期次');
     const frequency = String(b.frequency) as PeriodRule['frequency'];
@@ -117,9 +141,16 @@ export function savePeriodRule(id: number, b: Record<string, unknown>): PeriodRu
     run(`INSERT INTO work_period_rule(workbench_id,frequency,first_period,due_month_offset,due_day,remind_days,requirements) VALUES(?,?,?,?,?,?,?)
  ON CONFLICT(workbench_id) DO UPDATE SET frequency=excluded.frequency,first_period=excluded.first_period,due_month_offset=excluded.due_month_offset,due_day=excluded.due_day,remind_days=excluded.remind_days,requirements=excluded.requirements,version=work_period_rule.version+1`, [id, frequency, first, offset, day, remind, JSON.stringify(requirements)]);
     run("UPDATE workbench SET recurrence='once',schedule_due_date=NULL WHERE id=?",[id]);
-    run('UPDATE work_period_rule SET steps=? WHERE workbench_id=?',[JSON.stringify(steps),id]);
+    // A plain legacy rule edit does not silently retain mappings for renamed requirements.
+    const materialRules=b.material_rules;
+    if(materialRules!==undefined && (!Array.isArray(materialRules)||materialRules.length!==requirements.length||materialRules.some((m:any,i:number)=>!m||typeof m.key!=='string'||m.title!==requirements[i]||!['external','reference','generated','legacy'].includes(m.kind)||typeof m.required!=='boolean'||m.templateId!==null&&!Number.isSafeInteger(m.templateId))))throw new ApiError('BAD_RULE','材料用途配置与材料列表不一致');
+    if(materialRules===undefined && old?.material_rules && JSON.stringify(requirements)!==old.requirements)throw new ApiError('CONFIG_MATERIALS','此工作有明确材料用途，请保留材料标题；对在办要求的新版应用将在独立入口办理',409);
+    if(old)run('UPDATE work_period_rule SET source_config_version_id=NULL WHERE workbench_id=?',[id]);
+    run('UPDATE work_period_rule SET steps=?,material_rules=? WHERE workbench_id=?',[JSON.stringify(steps),materialRules===undefined?old?.material_rules??null:JSON.stringify(materialRules),id]);
     return get<PeriodRule>('SELECT * FROM work_period_rule WHERE workbench_id=?', [id])!;
+ });
 }
+function getTemplateForRule(id:number){const t=getTemplate(id);if(!t||t.archived_at)throw new ApiError('BAD_TEMPLATE','已配置的成果模板失效，请核对配置',409);return t;}
 export function syncPeriods(id: number, through = todayShanghai()): WorkPeriod[] {
     const wb=requireWorkbench(id);
     if(wb.status==='done'||wb.archived_at)return listPeriods(id);
@@ -128,18 +159,35 @@ export function syncPeriods(id: number, through = todayShanghai()): WorkPeriod[]
     if (!rule)
         return [];
     const start = new Date(periodStart(rule.first_period, rule.frequency) + 'T00:00:00Z'), end = new Date(through + 'T00:00:00Z'), step = rule.frequency === 'monthly' ? 1 : rule.frequency === 'quarterly' ? 3 : 12;
-    const templates = periodTemplates(id);
+    const baseTemplates = periodTemplates(id);
+    const scheduled=all<{effective_from:string;payload:string}>('SELECT effective_from,payload FROM work_period_future_rule WHERE workbench_id=? ORDER BY effective_from',[id]);
     return tx(() => {
         for (let n = 0; start <= end; n++, start.setUTCMonth(start.getUTCMonth() + step)) {
             if (n > 2400)
                 throw new ApiError('TOO_MANY_PERIODS', '起始期次过早');
             const key = reportKey(start, rule.frequency), date = start.toISOString().slice(0, 10);
-            const r = run('INSERT OR IGNORE INTO work_period(workbench_id,report_period,report_date,due_date,snapshot) VALUES(?,?,?,?,?)', [id, key, date, periodDue(date, rule.due_month_offset, rule.due_day), JSON.stringify({ ...rule, templates })]);
+            if(get('SELECT id FROM work_period WHERE workbench_id=? AND report_period=?',[id,key]))continue;
+            const future=scheduled.filter(r=>r.effective_from<=date).at(-1);
+            const effective:PeriodRule=future?JSON.parse(future.payload):rule;
+            if(!future&&wb.source_config_version_id)for(const t of listTemplatesForWorkbench(id))assertInstanceTemplate(id,null,t);
+            const materialRules:ConfigPeriodMaterial[]|null=effective.material_rules?JSON.parse(effective.material_rules):null;
+            const templates: (ReturnType<typeof periodTemplates>[number]&{materialId?:number;materialBindings?:{materialId:number;key:string;title:string;required:boolean}[]})[] = future?[]:[...baseTemplates];
+            const r = run('INSERT OR IGNORE INTO work_period(workbench_id,report_period,report_date,due_date,snapshot) VALUES(?,?,?,?,?)', [id, key, date, periodDue(date, effective.due_month_offset, effective.due_day), JSON.stringify({ ...effective, templates })]);
             if (r.changes) {
-                run('UPDATE work_period SET steps=? WHERE id=?',[JSON.stringify(parsePeriodSteps(JSON.parse(rule.steps))),r.lastInsertRowid]);
-                for (const title of JSON.parse(rule.requirements) as string[])
-                    run('INSERT INTO period_material(period_id,title,requirement_kind) VALUES(?,?,?)', [r.lastInsertRowid, title,defaultMaterialKind(wb.work_type_id,title)]);
-                event(r.lastInsertRowid, 'created', `规则版本 ${rule.version}`);
+                run('UPDATE work_period SET steps=? WHERE id=?',[JSON.stringify(parsePeriodSteps(JSON.parse(effective.steps))),r.lastInsertRowid]);
+                for (const [i,title] of (JSON.parse(effective.requirements) as string[]).entries()) {
+                    const m=materialRules?.[i];
+                    const mid=run('INSERT INTO period_material(period_id,title,requirement_kind,required,config_key) VALUES(?,?,?,?,?)', [r.lastInsertRowid,title,m&&m.kind!=='legacy'?m.kind:defaultMaterialKind(wb.work_type_id,title),m?.required===false?0:1,m?.key??null]).lastInsertRowid;
+                    if(m?.kind==='generated'&&m.templateId){
+                      const t=getTemplateForRule(m.templateId);if(m.templateDigest&&m.templateDigest!==templateFingerprint(t))throw new ApiError('TEMPLATE_CHANGED','未来期次引用的模板已变化，请先核对本工作的模板规则',409);const mapped={id:t.id,name:t.name,required:m.required,file_rel:t.file_rel,digest:templateFingerprint(t),generation_scope:templateGenerationScope(t),materialId:mid};
+                      const index=templates.findIndex(t=>t.id===mapped.id), prior=index<0?undefined:templates[index];
+                      const materialBindings=[...(prior?.materialBindings??[]),{materialId:mid,key:m.key,title,required:m.required}];
+                      const combined={...mapped,required:materialBindings.some(x=>x.required),materialBindings,materialId:materialBindings.length===1?mid:undefined};
+                      if(index<0)templates.push(combined);else templates[index]=combined;
+                    }
+                }
+                run('UPDATE work_period SET snapshot=? WHERE id=?',[JSON.stringify({...effective,templates}),r.lastInsertRowid]);
+                event(r.lastInsertRowid, 'created', `规则版本 ${effective.version}`);
             }
         }
         recalcProgress(id);
@@ -188,8 +236,10 @@ export function periodReadiness(id:number){
   for(const r of inspections.records)if(!r.ready)missing.push(`${r.project}（${r.inspection_date}）待生成：${r.missing.join('、')}`);
   missing.push(...inspections.aggregateMissing);
  }else{
-  for(const t of templates.filter(t=>t.required!==false))if(!validFinals.some(a=>a.template_id===t.id))missing.push(`文书待生成：${t.name}`);
-  if(materials.some(m=>m.required&&m.requirement_kind==='generated')&&!validFinals.some(a=>templates.some(t=>t.id===a.template_id)))missing.push('请使用适用模板生成文件（也可导入已有成果）');
+  const rules=periodResultRules(p).filter(m=>m.kind==='generated'), explicitKeys=new Set(rules.map(m=>m.key)), explicitTemplateIds=new Set(rules.map(m=>m.templateId));
+  for(const rule of rules.filter(m=>m.required)){const material=get<{artifact_id:number|null;status:string}>("SELECT artifact_id,status FROM period_material WHERE period_id=? AND config_key=? AND requirement_kind='generated'",[p.id,rule.key]);if(!material||!['provided','verified'].includes(material.status)||!validFinals.some(a=>a.id===material.artifact_id&&(rule.templateId===null||a.template_id===rule.templateId)))missing.push(`成果要求待提供有效文件：${rule.title}`);}
+  for(const t of templates.filter(t=>t.required!==false&&!explicitTemplateIds.has(t.id)))if(!validFinals.some(a=>a.template_id===t.id))missing.push(`文书待生成：${t.name}`);
+  if(materials.some(m=>m.required&&m.requirement_kind==='generated'&&!explicitKeys.has(get<{config_key:string|null}>('SELECT config_key FROM period_material WHERE id=?',[m.id])?.config_key??''))&&!validFinals.some(a=>templates.some(t=>t.id===a.template_id)))missing.push('请使用适用模板生成文件（也可导入已有成果）');
  }
  return {monthly,missing,canComplete:!missing.length,external,finalCount:validFinals.length,recordCount:inspections?.records.length??0,draftCount:inspections?.drafts.length??0,recordDocumentsReady:!!inspections&&(inspections.records.length+inspections.drafts.length)>0&&inspections.records.every(r=>r.ready)&&inspections.drafts.every(d=>d.ready),validFinalIds:validFinals.map(a=>a.id),inspectionRevisions:inspections?.records.map(r=>({id:r.id,revision:r.revision,project:r.project,date:r.inspection_date}))??[],recordsReady:inspections?.ready??false,reported:inspections?.reported??false};
 }
@@ -251,9 +301,10 @@ export function closePeriodSeries(id:number) {
 }
 
 /** Validate the business relation at every generation entry, independent of UI filters. */
-export function assertGenerationScope(template:Template,workbenchId?:number|null,positionCode?:string|null) {
+export function assertGenerationScope(template:Template,workbenchId?:number|null,positionCode?:string|null,periodId?:number|null) {
  if(!workbenchId)return;
  const w=requireWorkbench(workbenchId);
- if(template.archived_at || !templateSupportsWorkType(template,w.work_type_id))throw new ApiError('WRONG_TEMPLATE','模板不适用于当前工作类型，请先配置适用类型',409);
+ if(w.source_config_version_id){if(template.archived_at)throw new ApiError('TEMPLATE_ARCHIVED','模板已归档，请核对当前范围选择',409);if(periodId)assertPeriodTemplate(requirePeriod(periodId,w.id),template);else assertInstanceTemplate(w.id,positionCode,template);}
+ if(!w.source_config_version_id && (template.archived_at || !templateSupportsWorkType(template,w.work_type_id)))throw new ApiError('WRONG_TEMPLATE','模板不适用于当前工作类型，请先配置适用类型',409);
  if(positionCode && !get('SELECT id FROM position_instance WHERE workbench_id=? AND code=? AND deleted_at IS NULL',[w.id,positionCode]))throw new ApiError('BAD_STAGE','阶段不属于当前工作',409);
 }

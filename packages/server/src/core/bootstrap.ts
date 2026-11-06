@@ -1,3 +1,4 @@
+import {initializeWorkflowBaselines} from '../domain/workflow-config.ts';
 /**
  * 启动引导：初始化数据库 → 建目录 → 写默认配置 → 灌预置数据
  */
@@ -22,6 +23,7 @@ export function bootstrap(): { dbFile: string; migrated: number } {
   applyDefaultSettings();
   seedProviders();
   seedWorkTypesAndPositions();
+  initializeWorkflowBaselines();
   seedArchiveFields();
   repairStoredState();
   /**

@@ -1,7 +1,8 @@
+import {useEditorGuard} from './NavigationGuard';
 import {useWorkbenchCollection} from './useWorkbenchCollection';
 import {WorkbenchSelect} from './WorkbenchSelect';
 import { ImportResult } from './ImportResult';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { api, useApi } from '../api';
 import { Button, Card, Field, Input, Select, Textarea, useAction } from '../ui';
 export interface Inbox {
@@ -72,13 +73,15 @@ export function ProjectReadiness({ workbenchId, onChanged }: {
     return <Card title={`工作材料核对 · ${data.data.missing} 项必备材料未确认`} collapsible><p>上传文件只代表已提供。确认符合要求后才能完成阶段；不适用须记录原因。</p>{data.data.items.map(i => <CheckRow key={`${i.id}-${i.review_status}-${i.files.length}`} workbenchId={workbenchId} item={i} reload={()=>{data.reload();onChanged?.();}}/>)}{data.data.documents.map(d => <StageDocumentRequirements workbenchId={workbenchId} key={d.positionId} stage={d} reload={data.reload}/>)}</Card>;
 }
 function StageDocumentRequirements({stage, reload,workbenchId}: {workbenchId:number;stage:{positionId:number;positionCode:string;shortfall:number;items:{templateId:number;name:string;required:number;finalized:boolean}[]};reload:()=>void}) {
-    const {busy,run}=useAction();
-    const [difference,setDifference]=useState<{before:{name:string;required:number}[];after:{name:string;required:number}[]}|null>(null);
+    const {busy,run}=useAction(),lock=useRef(false);
+    const act=async(fn:()=>Promise<void>)=>{if(lock.current)return;lock.current=true;try{await run(fn);}finally{lock.current=false;}};
+    const [difference,setDifference]=useState<{allowed:boolean;reason:string;before:{name:string;required:number}[];after:{name:string;required:number}[]}|null>(null);
+    useEditorGuard({dirty:!!difference,busy,discard:()=>setDifference(null)});
     return <div className="col" style={{borderTop:'1px solid var(--border)',padding:10}}>
         <strong>{stage.positionCode} · 必备文书尚缺 {stage.shortfall} 份定稿</strong>
         {stage.items.map((d,i)=><div key={i}><p>{d.name} · {d.required?'必备':'可选'} · {d.finalized?'已定稿':'尚未定稿'}</p><ImportResult name={d.name} workbenchId={workbenchId} templateId={d.templateId} positionCode={stage.positionCode} onSaved={reload}/></div>)}
-        <Button disabled={busy} onClick={()=>void run(async()=>setDifference(await api.post(`/api/positions/${stage.positionId}/doc-requirements`,{})))}>预览阶段模板要求变更</Button>
-        {difference && <div><p>当前快照：{difference.before.map(x=>`${x.name}${x.required?'（必备）':''}`).join('、')||'无绑定'}</p><p>最新配置：{difference.after.map(x=>`${x.name}${x.required?'（必备）':''}`).join('、')||'无绑定'}</p><p>确认后只改变此阶段的文书要求，已有文件保留。</p><Button disabled={busy} onClick={()=>void run(async()=>{await api.post(`/api/positions/${stage.positionId}/doc-requirements`,{apply:true,expected:difference});setDifference(null);reload();})}>确认应用到此阶段</Button><Button onClick={()=>setDifference(null)}>取消</Button></div>}
+        <Button disabled={busy} onClick={()=>void act(async()=>setDifference(await api.post(`/api/positions/${stage.positionId}/doc-requirements`,{})))}>预览阶段模板要求变更</Button>
+        {difference && <div><p>当前快照：{difference.before.map(x=>`${x.name}${x.required?'（必备）':''}`).join('、')||'无绑定'}</p><p>最新配置：{difference.after.map(x=>`${x.name}${x.required?'（必备）':''}`).join('、')||'无绑定'}</p><p>确认后只改变此阶段的文书要求，已有文件保留。</p>{!difference.allowed&&<p role="status">不可应用：{difference.reason}</p>}<Button disabled={busy||!difference.allowed} onClick={()=>void act(async()=>{await api.post(`/api/positions/${stage.positionId}/doc-requirements`,{apply:true,expected:difference});setDifference(null);reload();})}>确认应用到此阶段</Button><Button disabled={busy} onClick={()=>setDifference(null)}>取消</Button></div>}
     </div>;
 }
 function CheckRow({ item: i, reload,workbenchId }: {

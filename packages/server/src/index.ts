@@ -1,3 +1,4 @@
+import {registerWorkflowConfigRoutes} from './api/routes-workflow-config.ts';
 /**
  * HTTP 服务入口
  *   node packages/server/src/index.ts
@@ -141,6 +142,7 @@ await app.register(multipart, {
 });
 
 registerCoreRoutes(app);
+registerWorkflowConfigRoutes(app);
 registerConsentRoutes(app);
 registerWorkflowRoutes(app);
 registerTimesheetRoutes(app);

@@ -148,6 +148,7 @@ export function GenerateModal({
   templateName,
   workbenchId,
   periodId,
+  materialId,
   inspectionId,
   initialInstruction,
   initialValues,
@@ -159,6 +160,7 @@ export function GenerateModal({
   templateName?: string;
   workbenchId: number;
   periodId?: number;
+  materialId?:number;
   inspectionId?:number;
   initialInstruction?: string;
   initialValues?: Record<string,string>;
@@ -170,6 +172,7 @@ export function GenerateModal({
   const { busy, run } = useAction();
 
   const fields = useApi<{
+    materialTargets:{id:number;title:string;required:boolean}[];
     sourceSignature:string;
     template: { id: number; name: string; file_format: string; description: string | null };
     inspectionRevision:number|null;
@@ -184,6 +187,10 @@ export function GenerateModal({
     }).toString()}`,
   );
 
+  const [selectedMaterial,setSelectedMaterial]=useState(materialId?String(materialId):'');
+  const resultTargets=fields.data?.materialTargets??[];
+  const effectiveMaterial=selectedMaterial?Number(selectedMaterial):resultTargets.length===1?resultTargets[0]!.id:undefined;
+  const materialMissing=resultTargets.length>1&&!effectiveMaterial;
   const [values, setValues] = useState<Record<string, string>>({});
   const [factConflicts,setFactConflicts] = useState<{field:string;value:string;candidates:{id:number;value:string;source:string|null}[]}[]>([]);
   const [factChoices,setFactChoices] = useState<Record<string,{value:string;reason:string}>>({});
@@ -220,7 +227,8 @@ export function GenerateModal({
     message: string;
     schemaReady: boolean;
   }>(
-    `/api/generate/chain?${new URLSearchParams({
+    materialMissing?null:`/api/generate/chain?${new URLSearchParams({
+      ...(effectiveMaterial?{materialId:String(effectiveMaterial)}:{}),
       templateId: String(templateId),
       workbenchId: String(workbenchId),
       ...(periodId ? { periodId: String(periodId) } : {}),
@@ -312,6 +320,7 @@ export function GenerateModal({
         complianceExceptions?: number;
       }>('/api/generate/save', {
         templateId,
+        materialId:effectiveMaterial,
         workbenchId,
         periodId,
         inspectionId,
@@ -506,14 +515,16 @@ export function GenerateModal({
               : ''}
             {draft ? `　·　模型 ${draft.model}，${draft.usage.total} tokens` : ''}
           </span>
-          <Button onClick={doPreview} disabled={busy || !variables.length} title="在页面里看内容（变量已替换），不下载文件">
+          <Button onClick={doPreview} disabled={busy || materialMissing || chain.loading || !!chain.error || !variables.length} title="在页面里看内容（变量已替换），不下载文件">
             {busy ? '预览中…' : '预览'}
           </Button>
-          <Button onClick={() => doSave(undefined,saveMode==='new'?'new':'update')} disabled={busy || !variables.length}>保存草稿</Button>
-          <Button kind="primary" onClick={() => doSave(undefined,'final')} disabled={busy || !variables.length || !!chain.data?.blocked}>核对无误并定稿</Button>
+          <Button onClick={() => doSave(undefined,saveMode==='new'?'new':'update')} disabled={busy || materialMissing || chain.loading || !!chain.error || !variables.length}>保存草稿</Button>
+          <Button kind="primary" onClick={() => doSave(undefined,'final')} disabled={busy || materialMissing || chain.loading || !!chain.error || !variables.length || !!chain.data?.blocked}>核对无误并定稿</Button>
         </>
       }
     >
+      {resultTargets.length>0&&<Field label="本次对应成果要求" hint="只关联明确选择的这一项；共用模板不自动满足其他要求。"><Select disabled={busy} value={effectiveMaterial?String(effectiveMaterial):''} onChange={setSelectedMaterial} options={[{value:'',label:'请选择成果要求'},...resultTargets.map(m=>({value:String(m.id),label:m.title+(m.required?'（必备）':'（选备）')}))]}/></Field>}
+      {chain.error&&<p role="alert">{chain.error.message}<Button onClick={chain.reload}>重新核对版本</Button></p>}
       {chain.data?.blocked&&<p className="notice">已有定稿不能覆盖。若需修改，请先保存新草稿，再从成果的“修改 / 定稿”入口核对新版本；旧定稿会保留。</p>}
       {fields.loading ? (
         <Loading text="正在读取模板变量…" />

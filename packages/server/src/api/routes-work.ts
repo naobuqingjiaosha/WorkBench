@@ -1,3 +1,4 @@
+import {rejectLegacyConfigWrite} from '../domain/workflow-config.ts';
 import {realpathSync,createReadStream} from 'node:fs';
 import {isAbsolute,relative,resolve} from 'node:path';
 import {isPlatformProtected} from '../core/paths.ts';
@@ -147,6 +148,8 @@ export function registerWorkRoutes(app: FastifyInstance): void {
       const workTypeId = optNum(b, 'workTypeId') ?? 0;
       if (!getWorkType(workTypeId)) throw new ApiError('NOT_FOUND', `工作类型不存在：#${workTypeId}`, 404);
       const wb = createWorkbench({
+        instantiatePositions: b.instantiatePositions===false?false:undefined,
+        publishedConfigId: optNum(b,'publishedConfigId'),
         navigationGroup: optStr(b,'navigationGroup'), domain: optStr(b,'domain'),
         periodRule: b.periodRule && typeof b.periodRule==='object' && !Array.isArray(b.periodRule) ? b.periodRule as Record<string,unknown>:undefined,
         historical: b.historical===true, actualEndDate: optStr(b,'actualEndDate'), firstPeriod: optStr(b,'firstPeriod'),
@@ -207,7 +210,7 @@ export function registerWorkRoutes(app: FastifyInstance): void {
 
   app.get('/api/workbenches/:id', async (req, reply) => {
     try {
-      const detail = getWorkbenchDetail(intParam(req, 'id'));
+      const detail = getWorkbenchDetail(intParam(req, 'id'), false);
       if (!detail) throw new ApiError('NOT_FOUND', '工作台不存在', 404);
       return ok(reply, detail);
     } catch (e) {
@@ -374,7 +377,9 @@ export function registerWorkRoutes(app: FastifyInstance): void {
 
   app.post('/api/workbenches/:id/recalc', async (req, reply) => {
     try {
-      return ok(reply, { progress: recalcProgress(intParam(req, 'id')) });
+      const id = intParam(req, 'id');
+      if (!getWorkbench(id) || getWorkbench(id)?.deleted_at) throw new ApiError('NOT_FOUND', '工作台不存在或已删除', 404);
+      return ok(reply, { progress: recalcProgress(id) });
     } catch (e) {
       return fail(reply, e);
     }
@@ -670,63 +675,16 @@ export function registerWorkRoutes(app: FastifyInstance): void {
     }
   });
 
-  app.post('/api/position-templates', async (req, reply) => {
-    try {
-      const b = body(req);
-      if(get('SELECT id FROM position_template WHERE work_type_id=? AND code=?',[optNum(b,'workTypeId')??0,requireStr(b,'code')]))throw new ApiError('CODE_EXISTS','阶段编码已存在，请编辑已有阶段',409);
-      const id = upsertPosition({
-        work_type_id: optNum(b, 'workTypeId') ?? 0,
-        code: requireStr(b, 'code', '阶段编码'),
-        name: requireStr(b, 'name', '阶段名称'),
-        seq: optNum(b, 'seq'),
-        folder_name: optStr(b, 'folderName'),
-        description: optStr(b, 'description'),
-        duration_hint: optStr(b, 'durationHint'),
-        // 期次目录规则：'month' | 'quarter' | 'year' 或自定义格式串；null/'' = 不分期次
-        period_dir: 'periodDir' in b ? (b.periodDir === null ? null : String(b.periodDir).trim()) : undefined,
-      });
-      return ok(reply, { id }, 201);
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.post('/api/position-templates', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.put('/api/position-templates/:id', async (req, reply) => {
-    try {
-      const id = intParam(req, 'id');
-      const b = body(req);
-      const cur = getPosition(id);
-      if (!cur) throw new ApiError('NOT_FOUND', '阶段不存在', 404);
-      const newId = upsertPosition({
-        id,
-        work_type_id: optNum(b, 'workTypeId') ?? cur.work_type_id,
-        code: optStr(b, 'code') ?? cur.code,
-        name: optStr(b, 'name') ?? cur.name,
-        seq: optNum(b, 'seq') ?? cur.seq,
-        folder_name: optStr(b, 'folderName') ?? cur.folder_name ?? undefined,
-        description: optStr(b, 'description') ?? cur.description ?? undefined,
-        duration_hint: optStr(b, 'durationHint') ?? cur.duration_hint ?? undefined,
-        /**
-         * periodDir 与别的字段不同：这里要能**显式关掉**期次目录。
-         * 'periodDir' in b 才动它，传 null / '' 表示改回「不按期次分目录」；
-         * 完全不传 = 保持原值（不然界面只改个目录名就会把期次配置清掉）。
-         */
-        period_dir: 'periodDir' in b ? (b.periodDir === null ? null : String(b.periodDir).trim()) : undefined,
-      });
-      return ok(reply, { id: newId });
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.put('/api/position-templates/:id', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.delete('/api/position-templates/:id', async (req, reply) => {
-    try {
-      const id = intParam(req, 'id');
-      run(`UPDATE position_template SET archived_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`, [id]);
-      return ok(reply, { archived: true });
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.delete('/api/position-templates/:id', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
   /* --------------------- 阶段↔文书模板绑定（B2-7，迁移 018） --------------------- */
@@ -769,25 +727,8 @@ export function registerWorkRoutes(app: FastifyInstance): void {
    * 「该类型全部模板」（与改造前完全一致，不报错）。
    * 校验不过 → 400 + 人话原因（模板不存在/已归档/坏模板/不属于该工作类型），不静默丢弃。
    */
-  app.put('/api/position-templates/:id/templates', async (req, reply) => {
-    try {
-      const id = intParam(req, 'id');
-      const b = body(req);
-      if (!Array.isArray(b.items)) throw new ApiError('BAD_FIELD', 'items 必须是数组（空数组 = 清空本阶段的模板绑定）');
-      const items = (b.items as unknown[])
-        .filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === 'object')
-        .map((x) => ({
-          templateId: Number(x.templateId),
-          required: x.required === true || Number(x.required) === 1 ? 1 : 0,
-          seq: x.seq === undefined || x.seq === null ? null : Number(x.seq),
-          note: x.note === undefined || x.note === null ? null : String(x.note),
-        }));
-      const saved = setPositionDocTemplates(id, items);
-      return ok(reply, { items: saved, boundIds: saved.map((s) => s.templateId) });
-    } catch (e) {
-      // 用户选错了（坏模板 / 跨类型 / 模板已归档）→ 400 + 中文原文，不是 500 INTERNAL
-      return fail(reply, binding400(e));
-    }
+  app.put('/api/position-templates/:id/templates', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
   /**
@@ -829,54 +770,16 @@ export function registerWorkRoutes(app: FastifyInstance): void {
 
   /* ------------------------------ 材料 / 影像规则 ------------------------------ */
 
-  app.post('/api/materials', async (req, reply) => {
-    try {
-      const b = body(req);
-      const id = upsertMaterial({
-        id: optNum(b, 'id'),
-        position_template_id: optNum(b, 'positionTemplateId') ?? 0,
-        name: requireStr(b, 'name', '材料名称'),
-        category: optStr(b, 'category'),
-        template_id: optNum(b, 'templateId') ?? null,
-        required: optBool(b, 'required'),
-        retention: optStr(b, 'retention'),
-        hint: optStr(b, 'hint'),
-      });
-      return ok(reply, { id }, 201);
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.post('/api/materials', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.post('/api/evidences', async (req, reply) => {
-    try {
-      const b = body(req);
-      const id = upsertEvidence({
-        id: optNum(b, 'id'),
-        position_template_id: optNum(b, 'positionTemplateId') ?? 0,
-        title: requireStr(b, 'title', '影像要求'),
-        min_count: optNum(b, 'minCount'),
-        max_count: optNum(b, 'maxCount') ?? null,
-        shooting_points: optStr(b, 'shootingPoints'),
-        angles: optStr(b, 'angles'),
-        required: optBool(b, 'required'),
-        hint: optStr(b, 'hint'),
-      });
-      return ok(reply, { id }, 201);
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.post('/api/evidences', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 
-  app.delete('/api/rules/:kind/:id', async (req, reply) => {
-    try {
-      const kind = (req.params as { kind: string }).kind;
-      if (kind !== 'material' && kind !== 'evidence') throw new ApiError('BAD_PARAM', 'kind 只能是 material 或 evidence');
-      deleteRule(kind, intParam(req, 'id'));
-      return ok(reply, { deleted: true });
-    } catch (e) {
-      return fail(reply, e);
-    }
+  app.delete('/api/rules/:kind/:id', async (_req, reply) => {
+    try { rejectLegacyConfigWrite(); } catch (e) { return fail(reply,e); }
   });
 }
 

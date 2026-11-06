@@ -34,6 +34,10 @@ export function evidenceCount(id:number):number {
 export function syncEvidence(workbenchId:number):number {
  const rows=all<{id:number;min_count:number;status:string}>('SELECT c.id,c.min_count,c.status FROM checklist_item c JOIN position_instance p ON p.id=c.position_instance_id WHERE p.workbench_id=? AND c.kind=? AND p.deleted_at IS NULL',[workbenchId,'evidence']);
  for(const c of rows) {const n=evidenceCount(c.id);const status=c.status==='na'?'na':n>=c.min_count?'done':n>0?'doing':'todo';run("UPDATE checklist_item SET done_count=?,status=?,done_at=CASE WHEN ?='done' THEN COALESCE(done_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ELSE NULL END WHERE id=?",[n,status,status,c.id]);}
+ return updateStoredProgress(workbenchId);
+}
+/** Recompute gates without rewriting existing evidence rows or completion timestamps. */
+export function updateStoredProgress(workbenchId:number):number {
  const gates:boolean[]=[];
  const historical=!!get<{historical:number}>('SELECT historical FROM workbench WHERE id=?',[workbenchId])?.historical;
  const stages=all<{id:number;code:string;status:string;note:string|null;doc_requirements:string|null}>('SELECT * FROM position_instance WHERE workbench_id=? AND deleted_at IS NULL',[workbenchId]);
