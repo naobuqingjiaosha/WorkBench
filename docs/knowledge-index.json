@@ -101,7 +101,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一业务术语词典，不承担运行状态",
-      "sha256": "56ef73e7008b17690ecfd911596dffbea432f6485384481cff26be9fd49846d1",
+      "sha256": "c3c4dfeefd9f6184bcb8b835060cdcc6011a1b8eba9318033cd7fe757572ae4e",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "PRODUCT_REQUIREMENTS.md"
@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "ce87c5fabb781d5d6e084eea6dd4029fad33d1195d26cc19c2b9b4a478b095b5",
+      "sha256": "70487d68a1588b8276645935545704f3a4f5c5a610c6e0d883fa43541af85b3a",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -201,6 +201,12 @@
           "exists": true
         },
         {
+          "target": "docs/guides/DEVELOPMENT.md#31-rk-11rk-12限定回归的重复执行",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
           "target": "docs/management/PROJECT_PLAN.md",
           "path": "docs/management/PROJECT_PLAN.md",
           "availability": "repository",
@@ -215,7 +221,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "b64fe39ab30be85dd5bb72f7bec58d6fdc37e91f3696ccb87334b67061467dda",
+      "sha256": "0af29bb5ff426440c82f38eb04b7fa62e450bc5e07939c16f17da909f3ec4608",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -290,6 +296,12 @@
           "exists": true
         },
         {
+          "target": "DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
           "target": "docs/management/QUALITY_AND_ACCEPTANCE.md",
           "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
           "availability": "repository",
@@ -340,7 +352,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前需求、业务规则、场景及代码验证追溯",
-      "sha256": "025724c17e3c5e701905d460027424add3ee1b5a4436f50e765b0a4446245348",
+      "sha256": "490a129297b03c1c2c64942ad16e8e7cc6a9ea5950ed6c5e7f54377dbafdb2bf",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -604,7 +616,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "e46b4d3eb7bfb9ee815e80f57307b7a5fbf085f58a45b2144c63f69c90b6b843",
+      "sha256": "bd0b823d22f73251dfaec4c5e783a4d348651e2c2f284f0b0e16bbda79052c8c",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -921,7 +933,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "开发环境、隔离验证、构建和交付",
-      "sha256": "3f51b84a0d4fd800817598b4b3df32a825de476e062f3fb168d36bdbc98b678e",
+      "sha256": "df42ca1ab417b8555b7d7a69d9c232eaf2866d3e2db4162373924487c06685f8",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -1002,7 +1014,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次任务收尾、换机移交范围、新机验证与现有打包限制",
-      "sha256": "f7305d0dfe6088352f79e6f4af920793f1b5ce4f7d1d05ecc20762bd78db4487",
+      "sha256": "c42c6f79b31e86bd7210f12e79c9a58f15d6615d04473147964e97184c61c54f",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DATA_BOUNDARIES.md",
@@ -1052,6 +1064,12 @@
         {
           "target": "../management/PROJECT_PLAN.md",
           "path": "docs/management/PROJECT_PLAN.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "DEVELOPMENT.md#31-rk-11rk-12限定回归的重复执行",
+          "path": "docs/guides/DEVELOPMENT.md",
           "availability": "repository",
           "exists": true
         },
@@ -1298,7 +1316,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前日常版操作、异常处理及反馈",
-      "sha256": "59e7f907a53428870b1768d3a984c6ba0b176cef985bfd26ba5fc6847553ca94",
+      "sha256": "202b1d184f76dc3067a15d459569254b7b8200d54eb44fbed6f6741da57c3f80",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1612,7 +1630,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "df9e4cf789bc6cff80c9831c67f26aa6889f2ba14b46d2844456d98ff032922b",
+      "sha256": "f210a0b385f2b31bed7dfcdb176aa7f044aac15e32fb19ea0e463782013e869b",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVICE_HANDOFF.md",
@@ -1711,7 +1729,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "d1cb4cad052894685583e323ccbfb8559b986e129b8bbd80b223e06e219622f4",
+      "sha256": "3d04da41e89df7f07fdb0c4da8aa56308a8cf4b62d9f7352a05d1ed087b6241e",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1754,6 +1772,12 @@
           "path": "docs/management/RISKS_AND_DECISIONS.md",
           "availability": "repository",
           "exists": true
+        },
+        {
+          "target": "../guides/DEVELOPMENT.md#31-rk-11rk-12限定回归的重复执行",
+          "path": "docs/guides/DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
         }
       ]
     },
@@ -1764,7 +1788,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "风险、问题、业务未定项与已有决策",
-      "sha256": "fd7495a30925100aa56e10113a6580db232e978b1c204f10797fbad291cb0641",
+      "sha256": "e7fb1fde15baf5af779e2b7cde6343ff0ff759a4bf91f909189b52a86e0d2728",
       "linksTo": [
         "docs/management/PROJECT_PLAN.md"
       ],
@@ -1790,7 +1814,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "38d361c776635dd95569c4b3427d81ce6c97ee809b92f41a11542d2b23291345",
+      "sha256": "6318b149005f9683b23d2795057e4a426d8b98a9f37ba0c43023c94303e9d1a5",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

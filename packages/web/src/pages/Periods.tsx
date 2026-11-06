@@ -1,4 +1,4 @@
-import {useNavigationGuard} from '../components/NavigationGuard';
+import {useEditorGuard,useNavigationGuard} from '../components/NavigationGuard';
 import {InspectionRecords} from '../components/InspectionRecords';
 import {AnnualLedger} from '../components/AnnualLedger';
 import {PeriodAttachments,type ExternalMaterial} from '../components/PeriodAttachments';
@@ -7,7 +7,7 @@ import { ImportResult } from '../components/ImportResult';
 import {PeriodExecution} from '../components/PeriodExecution';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi, type Artifact } from '../api';
-import { Button, Card, Field, Input, Select, Textarea, useAction } from '../ui';
+import { Button, Card, Field, Input, Select, Textarea, useAction, useToast } from '../ui';
 import { GenerateModal } from './GenerateModal';
 interface Period {
     id: number;
@@ -107,12 +107,28 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
     const detail = useApi<Detail>(`/api/periods/${id}`), files = useApi<{
         items: Artifact[];
     }>(`/api/artifacts?workbenchId=${workbenchId}&limit=500`), { busy, run } = useAction();
-    const contentDirty=useRef(false);
+    const monthly=workTypeCode==='integrity-monthly-inspection';
+    const toast=useToast();
+    const contentDirty=useRef(false),savingContent=useRef(false);
+    const [contentBusy,setContentBusy]=useState(false),[savedContent,setSavedContent]=useState('');
     const [content,setContent]=useState(''),[due,setDue]=useState('');
     useEffect(() => { if (detail.data) {
-        if(!contentDirty.current)setContent(detail.data.content);
+        if(!contentDirty.current&&!savingContent.current){setContent(detail.data.content);setSavedContent(detail.data.content);}
         setDue(detail.data.due_date);
     } }, [detail.data]);
+    const changeContent=(value:string)=>{contentDirty.current=value!==savedContent;setContent(value);};
+    const saveContent=async()=>{
+        if(savingContent.current)throw Error('补充说明正在保存，请等待完成后再操作');
+        savingContent.current=true;setContentBusy(true);
+        const snapshot=content;
+        try {
+            await api.put(`/api/periods/${id}`,{content:snapshot});
+            setSavedContent(snapshot);contentDirty.current=false;
+            // Refresh readiness/file validity after changing the source content.
+            detail.reload();onChange();files.reload();
+        } finally {savingContent.current=false;setContentBusy(false);}
+    };
+    useEditorGuard({dirty:monthly&&content!==savedContent,busy:monthly&&contentBusy,save:saveContent,discard:()=>{setContent(savedContent);contentDirty.current=false;}});
     const p = detail.data;
     if (!p)
         return <p role={detail.error?'alert':undefined}>{detail.error?.message ?? '加载期次…'}{detail.error&&<Button onClick={detail.reload}>重试</Button>}</p>;
@@ -123,7 +139,6 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
         name: string;
         generation_scope?:'period'|'record';
     }[];
-    const monthly=workTypeCode==='integrity-monthly-inspection';
     const rawRules=JSON.parse(p.snapshot).material_rules;
     const resultRules=(typeof rawRules==='string'?JSON.parse(rawRules):rawRules??[]) as {key:string;kind:string;templateId:number|null}[];
     const resultRequirements=p.materials.flatMap(m=>{const rule=resultRules.find(r=>r.kind==='generated'&&r.key===m.config_key);return rule?[{...m,templateId:rule.templateId}]:[];});
@@ -136,12 +151,12 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
 
  {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary>已有检查记录与其他模板</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
  <div id={`period-${id}-documents`}>
- <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={v=>{contentDirty.current=true;setContent(v);}} onSaveContent={async()=>{await api.put(`/api/periods/${id}`,{content});contentDirty.current=false;}} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={false} onChanged={refresh}/>
+ <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={changeContent} onSaveContent={saveContent} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={contentBusy} onChanged={refresh}/>
  </div>
  {timesheet&&<p><a className="btn btn-primary" href={`#/workbench?task=timesheets&id=${workbenchId}&periodId=${id}&month=${p.report_period}`}>办理本期部门工时</a></p>}
  {p.reported_on&&<details><summary>历史报送记录（只读）</summary><p>{p.reported_on}；历史记录保留，不影响当前材料制作。</p></details>}
  <details id={`period-${id}-attachments`} className="secondary-panel"><summary>参考资料与附件{readiness.external.some(m=>m.required&&!m.ready)?' · 有必要附件待确认':''}</summary>
- {monthly&&<Field label="本月补充说明（可选）"><Textarea value={content} onChange={v=>{contentDirty.current=true;setContent(v);}} disabled={false}/><Button disabled={busy} onClick={()=>void update({content})}>保存补充说明</Button></Field>}
+ {monthly&&<Field label="本月补充说明（可选）"><Textarea value={content} onChange={changeContent} disabled={contentBusy}/><Button disabled={contentBusy||content===savedContent} onClick={()=>void saveContent().then(()=>toast('补充说明已保存','ok')).catch(e=>toast((e as Error).message,'err'))}>保存补充说明</Button></Field>}
  <PeriodAttachments periodId={id} workbenchId={workbenchId} materials={readiness.external} files={p.files} disabled={false} onChanged={refresh}/>
  <PeriodExecution period={p} purpose={monthly?'inspection':workTypeCode==='integrity-quarter-summary'?'summary':'general'} onSaved={refresh}/>
  {!monthly&&templates.map(t=><ImportResult key={t.id} name={t.name} workbenchId={workbenchId} periodId={id} templateId={t.id} disabled={false} onSaved={refresh}/>)}

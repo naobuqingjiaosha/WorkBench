@@ -4,7 +4,7 @@ import {loadedBuild} from '../core/build-identity.ts';
 import { existsSync, statSync } from 'node:fs';
 import { isAbsolute, resolve as resolvePath } from 'node:path';
 import type { FastifyInstance } from 'fastify';
-import { all, get, run } from '../db/index.ts';
+import { all, get, run, tx } from '../db/index.ts';
 import { DATA_ROOT, DIRS, CONFIG_FILE, RUNTIME_LAYOUT, DEFAULT_SETTINGS, WEB_DIST, listSettings, markWorkTypeDeleted, setSetting, unmarkWorkTypeDeleted } from '../core/config.ts';
 import { getBoundRoots, isInsideRoot } from '../core/paths.ts';
 import { PURPOSES, getProfile, listProfiles, listProviders, maskProvider } from '../ai/providers.ts';
@@ -98,12 +98,32 @@ export function registerCoreRoutes(app: FastifyInstance): void {
   app.put('/api/settings', async (req, reply) => {
     try {
       const b = body(req) as Record<string, unknown>;
-      const entries = Object.entries(b);
+      const entries = Object.entries(b).filter(([key]) => key !== '_expected');
       if (!entries.length) throw new ApiError('EMPTY', '没有要保存的配置');
-      for (const [key, value] of entries) {
-        const def = DEFAULT_SETTINGS.find((d) => d.key === key);
-        setSetting(key, value, { type: def?.type, label: def?.label, description: def?.description });
+      const protectedKeys = ['app.org', 'app.operator', 'ai.writing_style'];
+      const guarded = entries.some(([key]) => protectedKeys.includes(key));
+      const expected = b._expected;
+      if (guarded) {
+        if (expected === undefined) throw new ApiError('SETTINGS_PRECONDITION_REQUIRED', '请重新打开应用与导出设置，核对最新值后再保存', 428);
+        if (!expected || typeof expected !== 'object' || Array.isArray(expected)
+          || Object.keys(expected).length !== protectedKeys.length
+          || protectedKeys.some(key => typeof (expected as Record<string, unknown>)[key] !== 'string')
+          || entries.some(([key, value]) => protectedKeys.includes(key) && typeof value !== 'string')) {
+          throw new ApiError('BAD_SETTINGS_SNAPSHOT', '应用设置与原值必须是完整的文本快照');
+        }
       }
+      tx(() => {
+        if (guarded) {
+          const current = Object.fromEntries(protectedKeys.map(key => [key, get<{value:string|null}>('SELECT value FROM app_setting WHERE key=?', [key])?.value ?? '']));
+          if (protectedKeys.some(key => current[key] !== (expected as Record<string, unknown>)[key])) {
+            throw new ApiError('SETTINGS_CONFLICT', '另一窗口已修改应用设置，请核对最新值后再保存', 409, {current});
+          }
+        }
+        for (const [key, value] of entries) {
+          const def = DEFAULT_SETTINGS.find((d) => d.key === key);
+          setSetting(key, value, { type: def?.type, label: def?.label, description: def?.description });
+        }
+      });
       return ok(reply, { saved: entries.length });
     } catch (e) {
       return fail(reply, e);

@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "053964ec3b87c9f0c2b4df493348a5da7edd0612",
+  "committedBase": "681b22f3314737c4d644db5aa3b129501c58b09e",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -109,7 +109,7 @@
     },
     {
       "path": "packages/server/src/api/routes-core.ts",
-      "sha256": "8e624e592a4cda723f87a613a26cd16efb8da498bf0385fb7866d99092b019b1"
+      "sha256": "833055e31d575e9f9d9b4a843150947a37fac793ed14d5d1d8b4ea5169fc29af"
     },
     {
       "path": "packages/server/src/api/routes-files.ts",
@@ -313,7 +313,7 @@
     },
     {
       "path": "packages/server/src/core/test-isolation.ts",
-      "sha256": "f7441c56b40e4ce20f63e72c420476f20e76720b5f95cb4faf5b21e6e8a5c3b3"
+      "sha256": "bd16146a16dc05728f5f771e88bc41317abad437e73f48fc78b2f2c459e3c210"
     },
     {
       "path": "packages/server/src/core/trash.ts",
@@ -768,6 +768,10 @@
       "sha256": "fe18a9c6f0404ba5aced833857604a1a587ebc48cd8159aeff6cb5fe79915ef4"
     },
     {
+      "path": "packages/web/src/components/WorkRecordLinks.tsx",
+      "sha256": "6b14bc1c9440b20ab4f138c6dae4bc2251fa17d6eb7e71eef261aa47f2ad5f24"
+    },
+    {
       "path": "packages/web/src/components/WorkTypeEditor.tsx",
       "sha256": "abe6f2132009d15f209e2e6add0699fa71834cff16439d3fe4c2c5c55c245254"
     },
@@ -833,7 +837,7 @@
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "72aa5fe5eb838272ff7d45aaede6b6aa1ac9da819a06de2336dd859347cfb62f"
+      "sha256": "0330250d8504a7bb54c4ab7c1b5624472e476c947d79fd906567bb9084d0e808"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
@@ -849,7 +853,7 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "30d4521ff74c6a46b3afa08e82d44779f72ee115c3ab27250b7e3084ea87272c"
+      "sha256": "af2b0d879b82ed654a0c2841a4f217ed18bd4f07d1d5660e20118d4c24576f5b"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
@@ -865,11 +869,11 @@
     },
     {
       "path": "packages/web/src/pages/WorkRecords.tsx",
-      "sha256": "ff1547d9d060b8c07da5dbda47d40a7084e69ace663cc93bdd2239a401dfa213"
+      "sha256": "a464d0f5f203a7444ff5c34571dd76f10ba1fcecd0c345fa69e151e6d98fa490"
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "6d867b15fe3c246bc246239165087c7a464f121625543e849b9f88c91b946201"
+      "sha256": "a59922097c2e245cb6ccb95aa0a484c089c0afd8c6a9f09891b7fd637dca3291"
     },
     {
       "path": "packages/web/src/styles.css",
@@ -941,7 +945,7 @@
     },
     {
       "path": "scripts/test-isolated.mjs",
-      "sha256": "eb0e66631776349fe90fd6ffae32a79da449746e0a0c0c73f8b7189f3c57ae40"
+      "sha256": "9e9c9b867e1c0bf3e70575ec0c78658bdb0c1101a2f30d528d762a5085eb4a80"
     },
     {
       "path": "scripts/test-preflight.mjs",
@@ -1348,121 +1352,121 @@
       "method": "GET",
       "path": "/api/settings/:key",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 113
+      "line": 133
     },
     {
       "method": "GET",
       "path": "/api/ai/overview",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 120
+      "line": 140
     },
     {
       "method": "GET",
       "path": "/api/ai/logs",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 130
+      "line": 150
     },
     {
       "method": "DELETE",
       "path": "/api/ai/logs",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 149
+      "line": 169
     },
     {
       "method": "GET",
       "path": "/api/generations",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 155
+      "line": 175
     },
     {
       "method": "POST",
       "path": "/api/settings/test-path",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 171
+      "line": 191
     },
     {
       "method": "POST",
       "path": "/api/settings/reset-defaults",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 188
+      "line": 208
     },
     {
       "method": "POST",
       "path": "/api/system/open-folder",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 206
+      "line": 226
     },
     {
       "method": "GET",
       "path": "/api/work-types",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 249
+      "line": 269
     },
     {
       "method": "GET",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 251
+      "line": 271
     },
     {
       "method": "POST",
       "path": "/api/work-types",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 262
+      "line": 282
     },
     {
       "method": "PUT",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 266
+      "line": 286
     },
     {
       "method": "DELETE",
       "path": "/api/work-types/:id",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 270
+      "line": 290
     },
     {
       "method": "GET",
       "path": "/api/ai/status",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 275
+      "line": 295
     },
     {
       "method": "GET",
       "path": "/api/backups",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 300
+      "line": 320
     },
     {
       "method": "POST",
       "path": "/api/backups",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 309
+      "line": 329
     },
     {
       "method": "POST",
       "path": "/api/backups/verify",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 325
+      "line": 345
     },
     {
       "method": "POST",
       "path": "/api/backups/:name/restore",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 348
+      "line": 368
     },
     {
       "method": "DELETE",
       "path": "/api/backups/:name",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 369
+      "line": 389
     },
     {
       "method": "GET",
       "path": "/api/todos/today",
       "file": "packages/server/src/api/routes-core.ts",
-      "line": 393
+      "line": 413
     },
     {
       "method": "GET",

@@ -34,10 +34,24 @@ export function RecordComposer({onSaved}:{onSaved?:(record:RecordItem)=>void}) {
 }
 
 export default function WorkRecordsPage({params={}}:{params?:Record<string,string>}){
+ return <ScopedRecords key={params.workbenchId||'all'} params={params}/>;
+}
+function ScopedRecords({params}:{params:Record<string,string>}){
+ const scope=params.workbenchId||'';
+ const validScope=!scope||(/^[1-9]\d*$/.test(scope)&&Number.isSafeInteger(Number(scope)));
+ const works=useWorkbenchCollection();
+ const archivedWorks=useWorkbenchCollection(true);
+ const scopeWork=[...(works.data?.items??[]),...(archivedWorks.data?.items??[])].find(w=>w.id===Number(scope));
+ const scopeLoading=works.loading||archivedWorks.loading;
+ const scopeError=works.error||archivedWorks.error;
+ const unavailable=!!scope&&!scopeLoading&&(!!scopeError||!scopeWork);
+ const scopeReady=!scope||(validScope&&!scopeLoading&&!unavailable);
+ const reloadScope=()=>{works.reload();archivedWorks.reload();};
+ const changeScope=(value:string)=>{window.location.hash=value?`#/records?workbenchId=${encodeURIComponent(value)}`:'#/records';};
  const [q,setQ]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[nature,setNature]=useState(''),[status,setStatus]=useState('active');
  const [query,setQuery]=useState(''),[page,setPage]=useState(1),[selected,setSelected]=useState(params.id||'');const {busy,run}=useAction();const toast=useToast();
  useEffect(()=>setSelected(params.id||''),[params.id]);
- const data=useApi<Result>(`/api/work-records?${query}&page=${page}&pageSize=30`);
+ const data=useApi<Result>(scopeReady?`/api/work-records?${query}&page=${page}&pageSize=30${scope?`&workbenchId=${scope}`:''}`:null);
  const detail=useApi<{record:RecordItem;history:RecordItem[]}>(selected?`/api/work-records/${selected}`:null,[selected]);
  const [editing,setEditing]=useState<RecordItem|null>(null);
  const editBaseline=useRef(''),editPending=useRef(false);const [editBusy,setEditBusy]=useState(false);
@@ -55,13 +69,16 @@ export default function WorkRecordsPage({params={}}:{params?:Record<string,strin
  const requestEdit=useEditorGuard({dirty:!!editing&&JSON.stringify(editing)!==editBaseline.current,busy:editBusy,save:saveEdit,discard:()=>setEditing(null)});
  const closeEdit=()=>requestEdit(()=>setEditing(null));
  const changeStatus=(r:RecordItem)=>void run(async()=>{await api.put(`/api/work-records/${r.id}`,{revision:r.revision,status:r.status==='active'?'withdrawn':'active'});refresh();},r.status==='active'?'已撤回，后续查询和总结不再使用':'已恢复');
- const draw=(r:RecordItem)=><article key={r.id} className="card" style={{padding:16,marginTop:10}}><div className="row" style={{justifyContent:'space-between',flexWrap:'wrap'}}><strong>记录 #{r.id} · {labels[r.nature]}{r.status==='withdrawn'?' · 已撤回':''}</strong><span className="muted small">{dateText(r)} · v{r.revision}</span></div><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{r.text}</p><p className="muted small">来源：{r.source} · 告知时间：{fmtTime(r.created_at)}{r.workbench_id&&<> · <a href={`#/workbench?id=${r.workbench_id}`}>关联工作 #{r.workbench_id}</a></>}</p><div className="row"><Button size="sm" onClick={()=>setSelected(String(r.id))}>查看来源与历史</Button>{r.status==='active'&&<Button size="sm" disabled={busy} onClick={()=>openEdit(r)}>更正</Button>}<Button size="sm" disabled={busy} onClick={()=>changeStatus(r)}>{r.status==='active'?'撤回':'恢复'}</Button></div></article>;
+ const draw=(r:RecordItem)=><article key={r.id} className="card" style={{padding:16,marginTop:10}}><div className="row" style={{justifyContent:'space-between',flexWrap:'wrap'}}><strong>记录 #{r.id} · {labels[r.nature]}{r.status==='withdrawn'?' · 已撤回':''}</strong><span className="muted small">{dateText(r)} · v{r.revision}</span></div><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{r.text}</p><p className="muted small">来源：{r.source} · 告知时间：{fmtTime(r.created_at)}{!r.workbench_id&&<> · 未关联工作</>}{r.workbench_id&&<> · <a href={`#/workbench?id=${r.workbench_id}`}>{works.data?.items.find(w=>w.id===r.workbench_id)?.name??`关联工作 #${r.workbench_id}`}</a></>}</p><div className="row"><Button size="sm" onClick={()=>setSelected(String(r.id))}>查看来源与历史</Button>{r.status==='active'&&<Button size="sm" disabled={busy} onClick={()=>openEdit(r)}>更正</Button>}<Button size="sm" disabled={busy} onClick={()=>changeStatus(r)}>{r.status==='active'?'撤回':'恢复'}</Button></div></article>;
  return <div className="col" style={{gap:14}}><RecordComposer onSaved={refresh}/>
-  <Card title="工作记录" extra={<a href="#/agent">向助手查询或整理总结 →</a>}>
+  <Card title={scope&&scopeWork&&!unavailable?`${scopeWork.name} · 工作记录`:"工作记录"} extra={<a href="#/agent">向助手查询或整理总结 →</a>}>
    <p className="muted small">按事情发生时间查找。没有找到记录不代表没有开展工作；记录条数不代表已完成事项数。</p>
+   {scope&&<p>{validScope&&!unavailable&&scopeWork?<a href={`#/workbench?id=${scope}`}>返回 {scopeWork.name} →</a>:null}　<a href="#/records">查看全部工作记录</a></p>}
+   <p className="small muted">筛选只影响下面的列表；新记录的关联工作仍需在上方补充信息中明确选择。切换工作会重置其他筛选与页码。</p>
+   <Field label="按关联工作筛选"><WorkbenchSelect collection={works} value={scope} onChange={changeScope} placeholder="全部工作（含未关联记录）"/></Field>
    <div className="grid grid-3"><Field label="关键词"><Input value={q} onChange={setQ} onEnter={search}/></Field><Field label="发生时间从"><Input type="date" value={from} onChange={setFrom}/></Field><Field label="发生时间至"><Input type="date" value={to} onChange={setTo}/></Field><Field label="性质筛选"><Select value={nature} onChange={setNature} options={[{value:'',label:'全部性质'},...options]}/></Field><Field label="记录范围"><Select value={status} onChange={setStatus} options={[{value:'active',label:'有效记录'},{value:'withdrawn',label:'已撤回（可恢复）'}]}/></Field></div>
    <div className="row"><Button kind="primary" onClick={search}>查询记录</Button><Button onClick={data.reload}>刷新</Button></div>
-   {data.loading?<Loading/>:data.error?<p role="alert" className="notice notice-warn">查询失败：{data.error.message} <Button onClick={data.reload}>重试</Button></p>:<>
+   {!validScope?<p role="alert">关联工作编号无效，请选择工作或查看全部记录。</p>:unavailable?<p role="alert">关联工作不可用，可能已删除或暂时无法读取。记录不会自动改关联。<Button onClick={reloadScope}>重试</Button></p>:!scopeReady||data.loading?<Loading/>:data.error?<p role="alert" className="notice notice-warn">查询失败：{data.error.message} <Button onClick={data.reload}>重试</Button></p>:<>
     <p>符合条件 {data.data?.total??0} 条 · 第{page}页</p>
     {data.data?.items.length?data.data.items.map(draw):<Empty text="没有符合条件的记录。可以调整筛选，或在上方记一句。"/>}
     {data.data?.unknownDateCount!==undefined&&query.includes('from=')&&(new URLSearchParams(query).get('from')||new URLSearchParams(query).get('to'))&&<><p className="notice notice-info">另有 {data.data.unknownDateCount} 条发生日期未说明，未计入期间结果；以下单列同页记录。</p>{data.data.unknownItems.map(draw)}</>}
@@ -69,7 +86,7 @@ export default function WorkRecordsPage({params={}}:{params?:Record<string,strin
    </>}
   </Card>
   {selected&&<Card title={`记录 #${selected} · 来源与更正历史`} extra={<Button onClick={()=>setSelected('')}>关闭详情</Button>}>
-   {detail.loading?<Loading/>:detail.error?<p role="alert">{detail.error.message} <Button onClick={detail.reload}>重试</Button></p>:detail.data&&<>{draw(detail.data.record)}{detail.data.history.length?<details><summary>查看历史版本（不参与当前查询）</summary>{detail.data.history.map(r=><div key={r.revision}><h4>v{r.revision} · {dateText(r)} · {labels[r.nature]} · {r.status==='withdrawn'?'已撤回':'有效'}</h4><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{r.text}</p></div>)}</details>:<p className="muted small">尚无更正历史。</p>}</>}
+   {detail.loading?<Loading/>:detail.error?<p role="alert">{detail.error.message} <Button onClick={detail.reload}>重试</Button></p>:detail.data&&scope&&detail.data.record.workbench_id!==Number(scope)?<p role="alert">这条记录不属于当前筛选工作。<a href={`#/records?id=${selected}`}>单独查看记录</a></p>:detail.data&&<>{draw(detail.data.record)}{detail.data.history.length?<details><summary>查看历史版本（不参与当前查询）</summary>{detail.data.history.map(r=><div key={r.revision}><h4>v{r.revision} · {dateText(r)} · {labels[r.nature]} · {r.status==='withdrawn'?'已撤回':'有效'}</h4><p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{r.text}</p></div>)}</details>:<p className="muted small">尚无更正历史。</p>}</>}
   </Card>}
   <Modal open={Boolean(editing)} title="更正工作记录" onClose={closeEdit} footer={<><Button disabled={editBusy} onClick={closeEdit}>取消</Button><Button kind="primary" disabled={editBusy||!editing?.text.trim()} onClick={()=>void saveEdit().catch(e=>toast((e as Error).message,'err'))}>保存更正</Button></>}>
    {editing&&<><Field label="原话／更正内容"><Textarea value={editing.text} onChange={text=>setEditing({...editing,text})} disabled={editBusy}/></Field><div className="grid grid-2"><Field label="发生日期／范围开始"><Input type="date" value={editing.occurred_from??''} onChange={occurred_from=>setEditing({...editing,occurred_from:occurred_from||null,occurred_to:occurred_from?editing.occurred_to||occurred_from:null})} disabled={editBusy}/></Field><Field label="范围结束"><Input type="date" value={editing.occurred_to??''} onChange={occurred_to=>setEditing({...editing,occurred_to:occurred_to||editing.occurred_from})} disabled={editBusy}/></Field></div><Field label="内容性质（请核对）"><Select value={editing.nature} onChange={nature=>setEditing({...editing,nature:nature as Nature})} options={options} disabled={editBusy}/></Field><p className="muted small">保存前请核对发生时间和性质。修改保留旧版本，不改动关联工作的办理状态。</p></>}

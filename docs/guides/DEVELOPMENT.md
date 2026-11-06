@@ -1,6 +1,6 @@
 # 开发与验证指南
 
-文档ID：GUIDE-DEVELOPMENT。版本：1.4。更新：2026-11-06。适用：本仓库开发工作区；不会自动授权日常发布。
+文档ID：GUIDE-DEVELOPMENT。版本：1.11。更新：2026-11-06。适用：本仓库开发工作区；不会自动授权日常发布。
 
 共享范围为源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例、夹具、tsconfig.test.json及历史验证产物均保留本机、不上传。具体见[源码与资料边界](DATA_BOUNDARIES.md)，跨机阅读与资源缺项处理见[换机清单](DEVICE_HANDOFF.md)。
 
@@ -8,7 +8,7 @@
 
 ## 1. 开工检查
 
-读AGENTS、GPT_CONTEXT、当前需求及对应GOV任务；检查Git状态和已有变更。当前大量文件有其他任务修改，禁止重置或把全部差异当作自己的成果。
+读AGENTS、GPT_CONTEXT、当前需求及对应GOV任务；检查Git状态和已有变更。若存在其他任务修改，禁止重置或把全部差异当作自己的成果。
 
 Node.js要求≥24，根package.json使用npm workspaces。检查本机版本和依赖状态后，在新环境按锁文件安装：
 
@@ -40,13 +40,92 @@ node scripts/test-isolated.mjs --unit inspection-drafts
 
 隔离启动器在子进程执行前设置数据库、文件、运行、备份、OCR、前端等绝对路径，并预加载test-preflight。不要直接运行业务测试文件，也不要先静态import应用再设置隔离变量。
 
+macOS测试入口先解析系统临时目录的真实路径，以兼容/var系统别名；专属隔离子目录中的链接、越界和重叠仍会拒绝。不要关闭路径守卫或将任意业务路径realpath化来规避检查。
+
 测试使用匿名样例；真实资料只在授权范围复制，不能把日常模型密钥带入测试。模型mock和真实调用分开记录。
 
-本次精确提交候选未纳入旧Mac临时目录别名兼容补丁。Mac验证在已解析的真实系统临时父目录运行：`TMPDIR=/private/tmp node scripts/test-isolated.mjs --unit <用例名>`；仍检查专属根、标记、链接与数据隔离，不关闭保护。测试用例须单独获准接续，缺失不等于通过。以下原混合候选的UI证据只作步骤依据，拆分候选需另行复验。
+### 3.1 RK-11/RK-12限定回归的重复执行
+
+以下运行方法适用于本机存在`packages/server/test/rk-repair.ts`、`rk-isolation.ts`、`rk-ui-replay.mjs`的开发环境。用例和证据按用户约定不随Git分发；新克隆只会取得本指南、正式风险表和通用隔离入口。接续者应先核对文件，缺失时经当前授权私下接续这三份本机用例，或按下列验收条件重建匿名验证；不能把缺文件或仅API退出0当作页面已通过。已有本机测试类型配置可单独接续，应用构建不依赖它。不得把测试复制进共享源码目录绕过交付边界。
+
+仅自动API验证可运行`node scripts/test-isolated.mjs --unit rk-repair`。需要页面回放时，在macOS/POSIX终端运行：
+
+```sh
+RK_MODE=final RK_HOLD=1 node scripts/test-isolated.mjs --unit rk-repair
+```
+
+每次从控制台读取新的`RK_RUN_DIR`，再等`UI_READY`；即使mode相同，也会在`outputs/rk-repair-20261105/runs/`内生成独立目录。目录中的`ui.json`包含本次`ui`、`base`、`runDir`、`controlFile`和`doneFile`。不要使用旧根目录的ui/control/final-done，也不要删除其他运行的标记。运行日志不跨目录混合；停止只读取本次`doneFile`。一小时无人结束会报超时并清理，不算页面通过。
+
+`rk-ui-replay.mjs`复用现有`cua_repl`浏览器工具，不新增Playwright依赖，不是裸Node或CI浏览器驱动。已初始化浏览器工具并阅读其当前文档后，使用实际检出绝对路径、本次`RK_RUN_DIR`和浏览器ID加载：
+
+```js
+let rkReplayModule = await import('/<checkout>/packages/server/test/rk-ui-replay.mjs');
+let rkReplay = await rkReplayModule.openReplay(cua, '<本次RK_RUN_DIR>', '<浏览器ID>');
+```
+
+分别在浏览器工具中执行以下调用，每步失败就停止后续测试，运行`await rkReplay.abort()`回收该脚本创建的页面并请求停止服务，保留失败记录：
+
+```js
+await rkReplay.monthly();
+await rkReplay.conflict();
+await rkReplay.busy();
+await rkReplay.finish();
+```
+
+这是三组可重放页面断言：月度切期取消/503失败保留/重试与A/B归属；两个独立设置页面的旧快照冲突、输入保留和明确核对保存；普通保存慢请求与离开保存的互斥。动作通过真实页面执行，故障只由本次匿名代理提供。脚本保存`ui-results.json`、关键DOM和冲突截图；只有三组都通过才标记complete=true。普通API运行器的`uiAutomation=not-run-by-api-runner`不是页面检查结果。
+
+没有浏览器工具时，保持API与页面结果分开，可按以下人工步骤核验，并保存实际期次/设置值、错误状态和结果：
+
+1. 匿名A期输入说明后切B：选择继续应留在A并保留输入；模拟原期PUT返回503后选择保存并离开，应仍在A且显示错误；恢复后重试应到B，B原值不变，返回A读到已保存值。
+2. 两页面读同一设置基线：A改单位保存，B只改经办人保存或保存并离开应冲突并保留输入；明确保留自己的修改后，未改单位采用A最新值，再保存成功。
+3. 将本次代理的`controlFile`设为`{"mode":"hold","path":"/api/settings"}`，普通保存期间输入、离开弹窗的放弃/保存按钮均应禁用；改回`{}`释放后才可离开，成功基线不再提示脏输入。月度故障同理使用`/api/periods/<本次A编号>`和`mode=fail`，结束时恢复`{}`。
+
+手工验收完成或中止时，先关闭本次页面、释放本次hold，再在本次`doneFile`写入任意文本；等待隔离命令退出，检查`cleanup.json`中的后端退出和代理关闭，再核对`ui.json`记录的临时数据根已被外层隔离入口删除。证据目录保留供复核，不作运行数据。重复完全相同的启动命令，应得到另一个独立目录；上次done文件不得影响新服务。
+
+三组脚本不覆盖原生beforeunload、真实断网、所有模板和设置子表单，也不等同旧全套测试。缺浏览器工具时记页面回放未执行，不安装额外工具来掩盖缺项；后续扩展仍沿GOV-13处理。正式覆盖说明可随源码获取，脚本和合成用例需按上述本机资源流程接续，不能声称新克隆具备自动UI测试。
+
+### 3.2 工作关联视图与记录筛选限定回归
+
+本机用例为`packages/server/test/record-links.ts`和`record-links-ui.mjs`；按共享边界只留本机。新克隆须先核对资源，按授权私下接续或依本节重建匿名测试。没有脚本或浏览器工具时标记未执行，不创建空用例或连接真实数据替代。
+
+API专项通过`node scripts/test-isolated.mjs --unit record-links`执行。需要实际页面回放时运行：
+
+```sh
+RECORD_LINKS_HOLD=1 node scripts/test-isolated.mjs --unit record-links
+```
+
+入口每次创建独立临时数据根和随机端口，构建前端到临时根。读取本次`UI_READY`目录（outputs/record-links-20261105/run-*），在已初始化并阅读说明的cua_repl中执行：
+
+```js
+let recordReplay = await import('/<checkout>/packages/server/test/record-links-ui.mjs');
+await recordReplay.replay(cua, '<本次UI_READY绝对目录>', '<浏览器ID>');
+```
+
+复用现有浏览器工具，无新增依赖；模块有变更时使用新工具会话，或把最终模块逐字复制至本次证据目录后导入该副本，避免旧模块缓存。跨范围详情先等待当前范围列表结果完成并读取DOM，再点击“单独查看记录”，避免异步列表展开导致目标位置变化；失败保存DOM/截图，API保存table-differences.json逐表差异。七组结果分别覆盖：工作卡片/记录深链接/重载；返回工作和全部关联记录；分页后切换范围重置页码；空列表与默认未关联兼容；非法/不存在/删除工作不回退全部；跨工作详情提示和旧记录链接；归档工作深链接。结束关闭自身页面并写本次done，即使失败也会请求清理，因此只有ui-results.json明确passed=true才代表页面通过。30分钟无人结束会报错，不算页面通过。
+
+API还检查日期筛选与未知日期单列、撤回记录、关联隔离及已删除关联不被改写。匿名库故意设置非当前文件推导的进度和影像清单值，逐表比较GET与实际浏览前后的行内容，防止“只是看一下”自动写回进度/清单/完成时间。该哨兵是虚构测试，不能放进真实库。显式recalc命令保留原写入行为，与浏览检查分开。
+
+没有浏览器工具时可人工复现：建立A/B及空项目，A放33条有效记录、另有撤回和未知日期，B放1条，另放1条未关联；再设归档和删除工作。由工作卡片进入记录并刷新，核对归属；返回后去第二页切B，应回第1页且无A记录；切空项目应空，回全部应包含未关联；分别打开错误、缺失、删除工作范围应明确报错；跨范围记录深链接应提示不属于当前工作，旧单记录链接仍可用；归档深链接可查。记录截图/DOM及实际HTTP、匿名数据库前后比较结果，不能据API成功代替页面通过。
+
+人工结束时仅在本次UI_READY目录写done，等待隔离运行器退出；检查cleanup.json的exitCode、ui.json记录的临时根已删除且本次端口无监听，保留证据目录。不操作其他运行标记。验证范围不含完整npm test、真实模型/数据、Office、所有响应式尺寸、跨窗口关联变化或所有新建/更正表单；应用与测试的类型检查分别报告。
+
+### 3.3 材料重新核对与恢复同步回归
+
+本机`record-links-p2.ts`从隔离入口运行：`RECORD_LINKS_HOLD=1 node scripts/test-isolated.mjs --unit record-links-p2`。用例真实multipart上传合成PNG，依次软删、回收站恢复，断言计数1→0→1；移动本次临时图片后GET保持原存储状态，显式recalc才更新。定稿/取消定稿及已有定稿快照保护另行断言。没有HOLD时仅API，不算页面通过。文件与脚本均为本机资源，不随Git提供。
+
+真实页面操作在本次UI_READY的工作rw上执行：从工作详情可见“重新核对材料与进度”；仅移动该临时文件，刷新后计数不自动写回，点击核对应变0；恢复文件，点击核对应变1。使用仅连接本次后端的故障代理令POST /recalc返回503，确认错误和重试；挂起请求时核对按钮及离开弹窗放弃/保存均禁用，继续编辑后释放请求恢复成功。比较阶段/期次及artifact定稿标记、时间、哈希前后不变；影像计数改变不代表人工核对状态verified或业务办结。截图与数据库断言分别保留。
+
+本机代理例程保存在outputs/record-links-p2-20261105/proxy.mjs，以当前run目录为参数，随机端口和专属proxy-control.json（method=POST、path=/recalc、mode=fail/hold，释放为{}）、proxy-stop；不要复用旧目录或面向日常端口。结束关闭自有页，释放hold，写本次done和proxy-stop，检查服务退出、端口关闭和临时根删除。环境中断时先核对归属，不能以连接恢复推定旧进程仍在或已退出。此说明可共享，脚本缺失时按上述条件重建授权隔离验证，不能伪造通过。
+
+### 3.4 恢复与定稿同步失败回归
+
+本机`record-sync-atomic.ts`通过`node scripts/test-isolated.mjs --unit record-sync-atomic`执行。只在隔离合成SQLite创建触发器，在目标工作progress更新或影像清单done_count更新时RAISE(ABORT)，覆盖文件/阶段/工作恢复及定稿/取消定稿共10组。收到400时逐表比较全部业务行和原文件字节不变，移除触发器后原请求200；成功后重复恢复保持原有“不在回收站”400且不改状态，同值定稿200 changed=false且无额外写入。另覆盖正常上传/删除/恢复、绑定目录恢复、非空期次/定稿保护及80→100→80门槛，不将故障复现退出0当修复通过。
+
+用例/夹具仅本机，获取方式沿3.2；输出atomic-results.json和每组恢复失败响应，构建及隔离清理由原根入口执行。数据库触发器故障不代表真实磁盘故障或所有I/O故障，未模拟硬断电、网络结果未知。页面需独立验证，Mac锁屏且工具不能交互时停下，待手动解锁或工具可靠确认可交互后再继续，不以DOM可读取代替点击成功。
 
 ### 3.5 流程配置第一段限定回归
 
-本机资源为packages/server/test/workflow-config-phase1.ts、workflow-config-fresh.ts、workflow-material-mapping.ts。按本节资源边界在明确授权下接续或重建；源码不附测试/夹具/原始截图，新克隆不能自动重放。入口：
+本机资源为packages/server/test/workflow-config-phase1.ts、workflow-config-fresh.ts、workflow-material-mapping.ts。按3.1/3.2规则私下接续或在明确授权下重建；源码不附测试/夹具/原始截图，新克隆不能自动重放。入口：
 
 ```sh
 node scripts/test-isolated.mjs --unit workflow-config-phase1
@@ -69,7 +148,7 @@ HOLD输出本轮UI_READY目录，ui.json包含随机base、专属临时根和don
 
 ### 3.6 在办配置差异与显式应用限定回归
 
-本机用例workflow-config-application.ts仍只经根隔离入口运行，不随源码上传。缺失时按本节资源边界接续或经授权重建，不能用真实库补齐。运行：
+本机用例workflow-config-application.ts仍只经根隔离入口运行，不随源码上传。缺失时按3.1私下接续或经授权重建，不能用真实库补齐。运行：
 
 ```sh
 node scripts/test-isolated.mjs --unit workflow-config-application
@@ -90,7 +169,7 @@ HOLD生成专属UI_READY、ui.json和doneFile。用GPT内置浏览器打开本�
 
 ### 3.7 旧文书入口发布指纹保护定向回归
 
-本机workflow-legacy-fingerprint.ts与夹具不随源码交付。缺少该文件不能宣称已经通过；按本节资源边界在获准范围接续。正常运行及保留隔离页面：
+本机workflow-legacy-fingerprint.ts与夹具不随源码交付。缺少该文件不能宣称已经通过；按3.1在获准范围接续。正常运行及保留隔离页面：
 
 ```sh
 node scripts/test-isolated.mjs --unit workflow-legacy-fingerprint

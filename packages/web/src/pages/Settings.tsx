@@ -28,6 +28,10 @@ const PURPOSE_TEXT: Record<string, { name: string; usage: string; wired: boolean
   embedding: { name: '向量化', usage: '知识库语义检索', wired: true },
 };
 
+type AppForm = {org:string;operator:string;style:string};
+const appSettings = (form:AppForm) => ({'app.org':form.org,'app.operator':form.operator,'ai.writing_style':form.style});
+const appForm = (values:Record<string,string>):AppForm => ({org:values['app.org']??'',operator:values['app.operator']??'',style:values['ai.writing_style']??''});
+
 export default function SettingsPage() {
   const toast = useToast();
   const [section,setSection]=useState('runtime');
@@ -63,6 +67,7 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [system.data]);
 
+  const [conflict,setConflict]=useState<AppForm|null>(null);
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const savedForm={org:setting('app.org'),operator:setting('app.operator'),style:setting('ai.writing_style')};
@@ -71,14 +76,19 @@ export default function SettingsPage() {
   const dirty=!!baseline&&JSON.stringify(form)!==baseline;
   const saveForm=async()=>{
     if(saving.current)throw Error('设置正在保存，请等待完成后再操作');
+    if(conflict)throw Error('请先核对另一窗口的最新设置，再保存');
     saving.current=true;setBusy(true);
     const snapshot={...form};
     try {
-      await api.put('/api/settings',{'app.org':snapshot.org,'app.operator':snapshot.operator,'ai.writing_style':snapshot.style});
+      await api.put('/api/settings',{...appSettings(snapshot),_expected:appSettings(JSON.parse(baseline) as AppForm)});
       setBaseline(JSON.stringify(snapshot));toast('本栏目已保存','ok');
+    } catch(e) {
+      const error=e as {code?:string;detail?:{current:Record<string,string>}};
+      if(error.code==='SETTINGS_CONFLICT'&&error.detail?.current)setConflict(appForm(error.detail.current));
+      throw e;
     } finally {saving.current=false;setBusy(false);}
   };
-  const request=useEditorGuard({dirty,busy,save:saveForm,discard:()=>setForm(JSON.parse(baseline))});
+  const request=useEditorGuard({dirty,busy,save:saveForm,discard:()=>{setForm(conflict??JSON.parse(baseline));if(conflict)setBaseline(JSON.stringify(conflict));setConflict(null);}});
 
 
   return (
@@ -219,6 +229,19 @@ export default function SettingsPage() {
 
       </div><div className="settings-panel" hidden={section!=='app'}>
       <Card title="应用设置">
+        {conflict&&<div className="notice notice-err" role="alert">
+          <p>另一窗口已修改设置。本页输入已保留，请先比较，再决定如何保存。</p>
+          <table className="table"><thead><tr><th>设置</th><th>最新已保存值</th><th>本页输入</th></tr></thead><tbody>
+            {([['org','单位名称'],['operator','默认经办人'],['style','写作风格约束']] as const).map(([key,label])=><tr key={key}><td>{label}</td><td style={{whiteSpace:'pre-wrap'}}>{conflict[key]||'（空）'}</td><td style={{whiteSpace:'pre-wrap'}}>{form[key]||'（空）'}</td></tr>)}
+          </tbody></table>
+          <Button disabled={busy} onClick={()=>{
+            const original=JSON.parse(baseline) as AppForm;
+            setForm({org:form.org===original.org?conflict.org:form.org,operator:form.operator===original.operator?conflict.operator:form.operator,style:form.style===original.style?conflict.style:form.style});
+            setBaseline(JSON.stringify(conflict));setConflict(null);
+          }}>保留我的修改，重新核对</Button>
+          <Button disabled={busy} onClick={()=>{setForm(conflict);setBaseline(JSON.stringify(conflict));setConflict(null);}}>使用最新设置，放弃本页修改</Button>
+        </div>}
+
         <div className="inline-fields">
           <Field label="单位名称" hint="出现在公文抬头、盖章处、模板变量 {单位名称}">
             <Input value={form.org} onChange={(v) => setForm({ ...form, org: v })} placeholder="某某单位" disabled={busy} />
@@ -232,7 +255,7 @@ export default function SettingsPage() {
         </Field>
         <Button
           kind="primary"
-          disabled={busy||!dirty}
+          disabled={busy||!dirty||!!conflict}
           onClick={()=>void saveForm().catch(e=>toast((e as Error).message,'err'))}
         >
           保存设置

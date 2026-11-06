@@ -1,5 +1,5 @@
 import {tmpdir} from 'node:os';
-import {writeFileSync} from 'node:fs';
+import {writeFileSync,realpathSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {isolationEnv} from './isolation-env.mjs';
 import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
@@ -9,7 +9,10 @@ import {spawn} from 'node:child_process';
 import {createServer} from 'node:net';
 import {randomBytes} from 'node:crypto';
 const ROOT=resolve(import.meta.dirname,'..');
-const tmp=mkdtempSync(join(tmpdir(),'workbench-isolated-'));writeFileSync(join(tmp,'.workbench-test-root'),'isolated test');
+// Resolve the OS-owned temp base (macOS /var -> /private/var) before creating
+// our subtree. Links inside that subtree remain forbidden by the preflight.
+const tempBase=realpathSync(tmpdir());
+const tmp=mkdtempSync(join(tempBase,'workbench-isolated-'));writeFileSync(join(tmp,'.workbench-test-root'),'isolated test');
 const net=createServer();await new Promise(r=>net.listen(0,'127.0.0.1',r));const port=net.address().port;await new Promise(r=>net.close(r));
 const env=isolationEnv(tmp,{NODE_OPTIONS:(process.env.NODE_OPTIONS||'')+' --import='+JSON.stringify(pathToFileURL(join(ROOT,'scripts/test-preflight.mjs')).href),WORKBENCH_SESSION_TOKEN:randomBytes(32).toString('hex'),PORT:String(port),HOST:'127.0.0.1',BASE:'http://127.0.0.1:'+port});
 // Optional OCR resources belong to local test fixtures, never to the daily runtime.
@@ -30,5 +33,5 @@ try {
 }
 }finally {
  if(server && server.exitCode===null){server.kill();await new Promise(r=>{server.once('exit',r);setTimeout(r,5000);});}
- const rel=relative(tmpdir(),tmp);if(rel.startsWith('..')||!rel||!rel.startsWith('workbench-isolated-'))throw Error('测试目录越界');assertNoPathLinks(tmp);rmSync(tmp,{recursive:true,force:true});
+ const rel=relative(tempBase,tmp);if(rel.startsWith('..')||!rel||!rel.startsWith('workbench-isolated-'))throw Error('测试目录越界');assertNoPathLinks(tmp);rmSync(tmp,{recursive:true,force:true});
 }

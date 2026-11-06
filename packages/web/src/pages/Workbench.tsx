@@ -1,4 +1,5 @@
 import {WorkflowApplication} from '../components/WorkflowApplication';
+import {WorkRecordLinks} from '../components/WorkRecordLinks';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {useEditorGuard,useNavigationGuard} from '../components/NavigationGuard';
 import {ReferenceFolder} from '../components/ReferenceFolder';
@@ -513,6 +514,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
         {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
         {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
       </Card>
+      <WorkRecordLinks key={id} workbenchId={id}/>
       <WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/>
       {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading && <details open={isDocMode} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
