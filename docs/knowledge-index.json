@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "eb9be893f68838c341014d8bb13c0b6b5625278d12585a8a520adeb42d81757f",
+      "sha256": "ce87c5fabb781d5d6e084eea6dd4029fad33d1195d26cc19c2b9b4a478b095b5",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -215,7 +215,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "c5ea8a122ecf20c78a9394fe31fdfad1a506b3e6e5d3a69dce65a4076c7d7b56",
+      "sha256": "b64fe39ab30be85dd5bb72f7bec58d6fdc37e91f3696ccb87334b67061467dda",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -921,7 +921,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "开发环境、隔离验证、构建和交付",
-      "sha256": "3919dbd60516b223aeae2c8629bb14b78c8a85a82977babec311c9958e9b9b82",
+      "sha256": "3f51b84a0d4fd800817598b4b3df32a825de476e062f3fb168d36bdbc98b678e",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -1612,7 +1612,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "6777b54a16bc49f22385f9d8e545e93d9502a1b19ff628c44486ff9735ec9756",
+      "sha256": "df9e4cf789bc6cff80c9831c67f26aa6889f2ba14b46d2844456d98ff032922b",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVICE_HANDOFF.md",
@@ -1711,7 +1711,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "36de608fbf1b347151f051808ef822308ff661299afd73c9bc74a3233d7fe936",
+      "sha256": "d1cb4cad052894685583e323ccbfb8559b986e129b8bbd80b223e06e219622f4",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1790,7 +1790,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "ddb28296b98e630a1c81695fe73038a33ea0d47ae922ebb0474227f80f350390",
+      "sha256": "38d361c776635dd95569c4b3427d81ce6c97ee809b92f41a11542d2b23291345",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

@@ -1,24 +1,26 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.6。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.7。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
 
-## 2026-11-05～06｜GOV-02 / GOV-13｜流程配置与精确提交范围准备
+## 2026-11-05～06｜GOV-02 / GOV-13｜流程配置与精确提交收尾
 
 **目标与授权：** 用户授权流程配置增量优化、继续及本轮完成后本地提交。交付包含草稿/不可变发布、新建复制、版本化创建、停用恢复；在办只读预览、所选安全范围显式应用、未来生效边界；共用模板要求身份、关联失败/忙碌保护及旧文书指纹修复。不会推倒业务模型、改历史定稿、自动办结或推断业务事实。
 
 **文件与变化：** 新增041/042迁移、workflow-config及types、workflow-application、routes-workflow-config和WorkflowApplication。复用bootstrap/index/升级工具、routes-core/work/template/generate、service/periods/generate/versions/checklist、web/api、Process/WorkTypeEditor/Workbench/Periods/GenerateModal/WorkDocuments/WorkflowPanels。发布有revision/基线与事务保护，新建保留实际版本/快照，旧来源未知不补；新旧应用入口共用发布指纹并在提交前复核，失败回滚。共用模板按稳定要求身份关联，不能以选备结果满足其他必备项。
 
-**拆分边界：** 基于main/db6984f和第一段开工副本，以历次增量逐块组装独立临时树。排除设置并发、月度笔记切期保护、工作记录筛选/链接及其他无关变更；没有改原工作区/索引。Periods只保留新增材料用途/要求解析与resultRequirements传递，HEAD原笔记回调保留；Workbench不含WorkRecordLinks。必要依赖保留详情只读、恢复/定稿原子同步和显式核对：没有只读依赖时，专门哨兵证明打开流程详情会重写存储影像数量/完成时间；原独立报告已证明只移除GET重算而不补恢复/外部变化核对会产生陈旧状态，且同步失败需与主操作共同事务。未扩大为记录功能。
+**拆分边界：** 基于main/db6984f和第一段开工副本，以历次增量逐块组装独立临时树。排除设置并发、月度笔记切期保护、工作记录筛选/链接及其他无关变更；准备阶段没有改原工作区/索引；验收后仅精确暂存已验证补丁。Periods只保留新增材料用途/要求解析与resultRequirements传递，HEAD原笔记回调保留；Workbench不含WorkRecordLinks。必要依赖保留详情只读、恢复/定稿原子同步和显式核对：没有只读依赖时，专门哨兵证明打开流程详情会重写存储影像数量/完成时间；原独立报告已证明只移除GET重算而不补恢复/外部变化核对会产生陈旧状态，且同步失败需与主操作共同事务。未扩大为记录功能。
 
-**验证：** 原混合候选各阶段有本机独立报告，旧入口指纹修复已获限定独立通过，两阶段原冻结候选验收完成。拆分树npm run typecheck及隔离构建通过；TMPDIR=/private/tmp加根隔离入口执行第一段15组、workflow-material-mapping 16组（含7场景）、workflow-config-application 15组、workflow-legacy-fingerprint 12组、workflow-link-ui 3组API。新增仅本机workflow-scope-readonly探针先证明缺依赖失败，再保留依赖通过。输出和用例只留本机，不共享。未占浏览器、未动原审查者资源；拆分UI必须另验，特别是Periods/Workbench组合与新建/发布路径。构建有体积提示，不是失败；完整测试资源缺失，不声称npm test通过。
+**验证：** 原混合候选各阶段有本机独立报告，旧入口指纹修复已获限定独立通过，两阶段原冻结候选验收完成。拆分树npm run typecheck及隔离构建通过；TMPDIR=/private/tmp加根隔离入口执行第一段15组、workflow-material-mapping 16组（含7场景）、workflow-config-application 15组、workflow-legacy-fingerprint 12组、workflow-link-ui 3组API。新增仅本机workflow-scope-readonly探针先证明缺依赖失败，再保留依赖通过。输出和用例只留本机，不共享。后续独立复验完成，拆分候选的三类实际UI链路已独立通过：Periods成果关联503保留、慢请求互斥和逐表/文件保护；Workbench配置预览与安全应用、详情只读及显式核对；发布配置到新建工作采用同一发布版本。删除记录链接引用后的页面加载与导航正常。自建页面、服务和临时数据已清理，未动他人资源。构建有体积提示，不是失败；完整测试资源缺失，不声称npm test通过。
 
-**五份根文档与记录：** CONTEXT保留本功能术语；PRODUCT_REQUIREMENTS加入配置/完整性要求；SYSTEM_ARCHITECTURE说明版本、快照、应用和必要同步；GPT_CONTEXT、DEVELOPMENT_PROGRESS按该提交范围区分源码/验证/未纳入任务。指南给可复现步骤，GOV和质量矩阵记录待验，索引从拆分树生成，不把原混合工作区索引整体纳入。旧无关工作日志仍留原工作区，不混入该提交。
+**五份根文档与记录：** CONTEXT保留本功能术语；PRODUCT_REQUIREMENTS加入配置/完整性要求；SYSTEM_ARCHITECTURE说明版本、快照、应用和必要同步；GPT_CONTEXT、DEVELOPMENT_PROGRESS按该提交范围区分源码/验证/未纳入任务。指南给可复现步骤，GOV和质量矩阵记录限定通过及代码已提交，索引从拆分树生成，不把原混合工作区索引整体纳入。旧无关工作日志仍留原工作区，不混入该提交。
 
-**交付与边界：** 只准备相对HEAD的精确补丁、文件/块清单、依赖与排除依据、检查和冻结证明。原工作区264项冻结哈希/HEAD/Git/index须保持不变；未暂存/提交/推送/发布。须先取得独立结论、拆分UI与明确执行指令才能使用已有提交授权。无真实数据库/文件、模型或Office操作。模板指纹不是文件系统锁或二进制冻结。建议提交标题：`feat(workflow): 增加版本化流程配置与安全范围应用`。
+**文档状态收尾与交付：** 流程配置第一、第二阶段及共享模板、关联保护、旧文书指纹P2修复已通过既定范围独立验收；精确40文件已本地提交为053964ec3b87c9f0c2b4df493348a5da7edd0612，未推送、未发布。父提交为db6984ffb4e44c3fb3beb8b441165292adb1eafb；提交全部257份文件的内容/模式与受测精确候选一致，40文件改动排除设置并发、月度笔记保护和记录筛选/链接。代码提交时原264项冻结文件保持，索引为空，另有22项工作区改动保留。独立报告及提交证明只留本机，不纳入Git。文档收尾以该代码提交为基点，逐块更新GPT_CONTEXT、DEVELOPMENT_PROGRESS、DEVELOPMENT指南、PROJECT_PLAN、QUALITY_AND_ACCEPTANCE及本任务日志，将待验/待提交改为限定通过/代码已提交；knowledge-index与source-inventory由生成器分别按提交候选和混合工作区刷新。CONTEXT、PRODUCT_REQUIREMENTS、SYSTEM_ARCHITECTURE全文复核，术语、需求和结构没有新增变化，不改正文。文档增量与代码分开，实际提交结果以Git记录为准。文档generate/check、共享边界与差异检查通过；不重跑工程验收，不启动服务/浏览器/测试数据；产品代码及其他任务改动保留。
+
+未覆盖完整npm test/typecheck:tests、Windows、Office、真实业务与迁移、真实模型、全部模板/执行器、完整响应式及跨进程文件/断电压力；专项结论不能累加为全系统通过。模板指纹不是文件系统锁或历史二进制冻结。
 
 ## 2026-11-04｜GOV-11｜正式文档与跨电脑接续闭环
 
