@@ -813,7 +813,7 @@ function purgeFilesWithCompensation(files: PurgeFile[], deleteRows: () => void):
     }
     const warnings = cleanup();
     if (warnings.length) throw new Error(`${reason}；${warnings.join('；')}`);
-    throw new Error(reason);
+    throw e instanceof SafetyRefusal ? new SafetyRefusal(reason) : new Error(reason);
   }
   const warnings = cleanup();
   for (const item of staged) pruneEmptyDirsUpTo(item.file.abs);
@@ -1111,40 +1111,103 @@ function recyclePlatformDirs(root: string, rows: { folder_rel: string | null }[]
 
 /* ============================== 清空回收站 ============================== */
 
-export interface EmptyTrashResult {
-  purged: number;
-  filesRemoved: number;
-  warnings?: string[];
-  /** 按安全阀跳过的磁盘文件（只读来源 / 内容与登记不符 / 还被在用记录引用） */
+export interface EmptyTrashItem extends Pick<TrashEntry, 'kind' | 'id' | 'title'> {
+  status: 'purged' | 'covered' | 'retained' | 'protected' | 'failed' | 'notExecuted';
+  reason?: string;
+  parent?: { kind: TrashKind; id: number };
+  filesRemoved?: number;
   skipped?: string[];
+  warnings?: string[];
 }
 
-/**
- * 清空回收站。
- *
- * @param olderThanDays 只清掉"删除时间早于 N 天"的记录（定期清理用）；不传 = 全清。
- * 按记录逐条走 `purgeFromTrash` —— 那里有全部安全阀，清空不能成为绕过安全阀的后门。
- */
+export interface EmptyTrashResult {
+  /** 实际成功调用的目标数；随父项删除的快照条目另计covered，不能累加成操作数。 */
+  purged: number;
+  covered: number;
+  retained: number;
+  protected: number;
+  failed: number;
+  notExecuted: number;
+  filesRemoved: number;
+  warnings?: string[];
+  /** 安全规则保留的磁盘文件，不等同失败目标或保留期未处理的记录。 */
+  skipped?: string[];
+  items: EmptyTrashItem[];
+  scope: { limit: number; snapshot: number; totalAtStart: number; outsideSnapshot: number; remaining: number; cutoff: string | null; olderThanDays: number | null };
+}
+
+/** 有界列表快照，逐目标提交；父项先执行，失败后不拆删本次组内子项。非整批事务。 */
 export function emptyTrash(olderThanDays?: number): EmptyTrashResult {
-  const cutoff = olderThanDays === undefined ? null : new Date(Date.now() - olderThanDays * 86400000).toISOString();
-  let purged = 0;
-  let filesRemoved = 0;
-  const skipped: string[] = [];
-  const warnings: string[] = [];
-  const entries = listTrash({ limit: 2000 });
-  for (const e of entries) {
-    if (cutoff && e.deletedAt >= cutoff) continue;
-    try {
-      const r = purgeFromTrash(e.kind, e.id, { withFile: true });
-      purged += 1;
-      filesRemoved += r.filesRemoved;
-      if (r.skipped?.length) skipped.push(...r.skipped);
-      if (r.warnings?.length) warnings.push(...r.warnings);
-    } catch (err) {
-      console.warn(`[回收站] 清空时跳过 ${e.kind} #${e.id}：${(err as Error).message}`);
-    }
+  if (olderThanDays !== undefined && (!Number.isSafeInteger(olderThanDays) || olderThanDays < 0 || olderThanDays > 365000)) {
+    throw new Error('保留天数须为0至365000的整数');
   }
-  return { purged, filesRemoved, skipped: skipped.length ? skipped : undefined, ...(warnings.length ? { warnings } : {}) };
+  const cutoff = olderThanDays === undefined ? null : new Date(Date.now() - olderThanDays * 86400000).toISOString();
+  const totalAtStart = trashCount();
+  const entries = listTrash({ limit: 2000 });
+  const eligible = (e: TrashEntry) => cutoff === null || e.deletedAt < cutoff;
+  const key = (e: { kind: string; id: number }) => `${e.kind}:${e.id}`;
+  // 只认本次快照中满足保留期的父目标，不扩大到列表外的父项。
+  const parents = new Map<string, TrashEntry>();
+  const workbenches = new Map(entries.filter(e => e.kind === 'workbench' && eligible(e)).map(e => [e.id, e]));
+  const fields = new Map(entries.filter(e => e.kind === 'field' && eligible(e)).map(e => [
+    get<{ field_key: string }>('SELECT field_key FROM archive_field WHERE id = ?', [e.id])!.field_key, e,
+  ]));
+  for (const e of entries) {
+    let parent: TrashEntry | undefined;
+    if (e.kind === 'artifact' || e.kind === 'position') {
+      const row = get<{ workbench_id: number | null }>(`SELECT workbench_id FROM ${KIND_TABLE[e.kind]} WHERE id = ?`, [e.id]);
+      if (row?.workbench_id) parent = workbenches.get(row.workbench_id);
+    } else if (e.kind === 'alias') {
+      const row = get<{ field_key: string }>('SELECT field_key FROM archive_alias WHERE id = ?', [e.id]);
+      if (row) parent = fields.get(row.field_key);
+    }
+    if (parent) parents.set(key(e), parent);
+  }
+  const results = new Map<string, EmptyTrashItem>();
+  const skipped: string[] = [], warnings: string[] = [];
+  let filesRemoved = 0;
+  // 保留原快照次序输出；执行时先完成根目标，再解释组内子项。
+  for (const e of [...entries.filter(e => !parents.has(key(e))), ...entries.filter(e => parents.has(key(e)))]) {
+    const item: EmptyTrashItem = { kind: e.kind, id: e.id, title: e.title, status: 'notExecuted' };
+    const parent = parents.get(key(e));
+    if (parent) {
+      item.parent = { kind: parent.kind, id: parent.id };
+      if (results.get(key(parent))?.status === 'purged') {
+        item.status = 'covered';
+        item.reason = '随本次父项一并删除，不重复计为独立删除；磁盘处理结果见父项';
+      } else item.reason = '本次父项未删除，未再单独处理该子项';
+    } else if (!eligible(e)) {
+      item.status = 'retained';
+      item.reason = '删除时间尚未超过本次保留期';
+    } else {
+      try {
+        const current = get<{ deleted_at: string | null }>(`SELECT deleted_at FROM ${KIND_TABLE[e.kind]} WHERE id = ?`, [e.id]);
+        if (!current || current.deleted_at !== e.deletedAt) {
+          item.reason = '记录已不存在或删除状态已变化，本次未执行';
+        } else {
+          const r = purgeFromTrash(e.kind, e.id, { withFile: true });
+          item.status = 'purged';
+          item.filesRemoved = r.filesRemoved;
+          item.skipped = r.skipped;
+          item.warnings = r.warnings;
+          filesRemoved += r.filesRemoved;
+          if (r.skipped?.length) skipped.push(...r.skipped);
+          if (r.warnings?.length) warnings.push(...r.warnings);
+        }
+      } catch (err) {
+        item.status = err instanceof SafetyRefusal ? 'protected' : 'failed';
+        item.reason = (err as Error).message || String(err);
+      }
+    }
+    results.set(key(e), item);
+  }
+  const items = entries.map(e => results.get(key(e))!);
+  const count = (status: EmptyTrashItem['status']) => items.filter(e => e.status === status).length;
+  return {
+    purged: count('purged'), covered: count('covered'), retained: count('retained'), protected: count('protected'), failed: count('failed'), notExecuted: count('notExecuted'), filesRemoved, items,
+    skipped: skipped.length ? skipped : undefined, warnings: warnings.length ? warnings : undefined,
+    scope: { limit: 2000, snapshot: entries.length, totalAtStart, outsideSnapshot: Math.max(0, totalAtStart - entries.length), remaining: trashCount(), cutoff, olderThanDays: olderThanDays ?? null },
+  };
 }
 
 /** 回收站规模（界面上的角标/概览用） */

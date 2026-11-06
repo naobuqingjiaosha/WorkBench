@@ -1,10 +1,44 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.20。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.21。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-01 / GOV-11 / GOV-13｜清空回收站逐目标结果与重复提交保护
+
+**目标、基点与范围：** 接续main/31c93bfd6f99d5fcacc4b77ed64ac181ff38384f，HEAD及实时origin/main相同，工作区干净；仓库naobuqingjiaosha/WorkBench、Linux Codex Cloud可执行，未操作Mac。读取AGENTS、根接续/术语/需求/架构/进度、docs入口、GOV/RK/质量与隔离规范；云环境运行技能核对当前环境ready、网络策略enforced，无读取凭证。仅清空回收站反馈与页面互斥，不扩展文件补偿架构；测试仅原test-isolated入口及专属匿名临时根，不读真实库/资料/模板/配置/成品，不部署。
+
+**修前证据：** 本地gov01-empty-repro在实际SQLite/原路由上让系统必备字段拒绝删除，DELETE仍200、purged=0且没有失败明细。实际Chromium加载App/Trash，绿色“已彻底删除0项”提示并关闭对话框；同一轮双击实际发出2次DELETE，请求期间保留期仍可选。字段记录仍在。before.json、before.log、before-pending.png及before-false-success.png保存在`/workspace/workbench-cloud/gov01-empty/`，退出0表示缺陷确证，不代表修复通过。
+
+**修改文件与行为：**
+
+- `packages/server/src/core/trash.ts`：清空以既有倒序列表最多2000条为快照，严格早于保留期界线的目标才进入处理。选中工作/字段先处理，快照内附件/阶段/别名随父成功标covered，父失败标notExecuted，不拆删或重复计数。items含种类/ID/标题、原因与父目标，计数区分purged/covered/retained/protected/failed/notExecuted；skipped是已提交目标中被安全规则保留的文件，warnings是清理问题；scope标快照/原总数/上限/快照外/结束剩余及界线。真正故障不再仅console.warn。补偿成功后的SafetyRefusal保留原类别用于安全拒绝分类，未改副本/数据库/删除/恢复顺序。
+- `packages/server/src/api/routes-files.ts`：沿用200响应中的分项目结果，摘要明确失败与未执行数量、范围外及剩余；保留旧warnings具体原因供原消息消费者读取。保留期无效值拒绝，不静默变全清。不把HTTP200当全部目标成功。
+- `packages/web/src/pages/Trash.tsx`：同步ref锁挡重绘前双击，锁定保留期、筛选、关闭，接入既有NavigationGuard在途离开保护。结果留在对话框，关闭后仍在页面卡片，列表刷新不清结果；失败/安全保留/警告采用非全成功提示。未收到完整响应保留选择与未知提示，不自动重试；须主动核对全部类型列表（最多2000项），实际响应持留为可读核对快照，再明确确认。单项删除warnings/skipped改为非绿色提示并持留消息；原只删记录/带文件选项保留。没有服务端幂等键或持久任务引擎。
+- `PRODUCT_REQUIREMENTS.md`将当前明确要求整合到PR-08；`SYSTEM_ARCHITECTURE.md`写计数/父子/范围与互斥边界；`GPT_CONTEXT.md`、`DEVELOPMENT_PROGRESS.md`整合当前基点/验证状态。现有`PROJECT_PLAN`、`RISKS_AND_DECISIONS`、`QUALITY_AND_ACCEPTANCE`及开发指南3.11更新；本条WORK_LOG记录过程，生成知识/源码索引，不新增任务队列或修改CHANGELOG。CONTEXT术语无变动。
+
+**采用研究：** 沿用前批已静态读取的Paperless-ngx固定a4543c03dceedafd3e588c9832306893993bffc4[成组删除契约](https://github.com/paperless-ngx/paperless-ngx/blob/a4543c03dceedafd3e588c9832306893993bffc4/src/documents/models.py#L550-L568)及[整组结果测试](https://github.com/paperless-ngx/paperless-ngx/blob/a4543c03dceedafd3e588c9832306893993bffc4/src/documents/tests/test_api_trash.py#L242-L282)，只借鉴明确父子范围与逐项验证的思路，自行实现；未复制GPL代码、未增加依赖。本项目deleted_at同批恢复保留，参考不是原子性证明，持久恢复协议未实现。
+
+**验证与证据：**
+
+- gov01-empty最终12组API通过（api-Q6r7S4/results.json、api-candidate.log）：全成功/重复、立即/提交FK全失败、混合第2文件EBUSY后父补偿且独立目标提交、单附件真实business_ai_run外键、7天精确边界/较早1ms、父级带走较新子项、文件安全跳过/清理警告、安全拒绝分类、2000快照保留最新而旧合格项留在范围外、范围外子项随父消失、无效天数及单项记录-only/缺文件兼容。逐表行和全部文件字节核对，foreign_key_check及事务退出检查；不以状态码代替一致性。
+- gov01-empty-ui最终10组实际Chromium通过（ui-vZSGaL/results.json、ui-candidate.log及截图）：同步双击仅1请求，关闭/遮罩/Escape/保留期/筛选/后退/原生刷新均保护，部分失败明细可读且刷新/筛选后保留；全部文件目标失败时库/字节不变，解除约束后仅明确重试；服务器已提交后丢响应不自动重试，关闭重开仍要求核对；核对GET失败不解锁、选择30天保留，核对成功后明确再次提交；全成功、仅保留期、安全拒绝、文件安全跳过、清理警告和2000限制非全成功呈现；单项warning一致提示。1366×900实际截图检查，未冒充完整设计视口矩阵。Vite实际App/Trash及原路由，session/AI状态为本地替身，不代表全应用鉴权。
+- 单附件原17组和整工作原22组以仅输出路径不同的本地副本回归通过（single-run-U3MNRG、run-tW0n3V）；前批证据未改。曾发现旧17组最后一项要求清空message包含具体清理警告，首轮失败保留于single-regression.log；恢复该兼容消息后原断言17组通过，不以改断言掩盖回归。API工具首轮因新建第二合成DB却复用模块schema缓存失败，调用现有resetArtifactIdentitySchema修复测试工具后通过；未改业务缓存。所有失败日志保留，不累加运行次数作覆盖。
+- npm run typecheck server/web通过；Vite78模块构建仅`/tmp/workbench-gov01-empty-build/dist`，候选日志typecheck-candidate.log/build-candidate.log。仓库/文档/差异检查按收尾执行。测试脚本、匿名夹具、截图和报告均在本地忽略路径，不上传；未修改依赖、锁文件、配置或迁移。
+
+**边界与关键口径：** 保持7天默认；清空处理全部类型，与页面筛选无关。2000条按现有最新优先快照取数后再过滤，不无限批处理；snapshot外数量不保证未被父级联带走。选中父的全部子项仍按父级删除，不按子项日期另保留；父失败不拆组。单目标可回滚/补偿，已经成功的其他目标保留，非整批原子。结果仅页面挂载期保存，强制刷新后不持久；非服务器多窗口/跨进程幂等。Windows锁/权限、跨盘/跨进程并发、崩溃/断电重启、软删withFile=true、真实资料/Office/模型未验；旧完整npm test及typecheck:tests因资源缺失未跑。GOV-01未整体关闭。
+
+**独立验收与有限修复：** 全新未参与实施审查者第一轮冻结263项/patch SHA256 b06b79d676d5208ec18ca6f7ef395bd6d89a5353870763586de9366d69bd9d7d前后一致，独立原API12/浏览器10及新API2组通过；另2组真实浏览器补证发现P2：核对GET limit=2000响应被丢弃，默认500列表可能漏第501条，或列表刷新失败仍显示核对完成并解锁。证据independent/ui-extra-fXcbzD/results.json、REPORT.md保留，其通过只表示缺陷已复现。独立先冻结末核对并完成5次临时根/服务清理，再交实施者有限修复，未边审边改。
+
+修复只改Trash页面：保存并直接展示核对GET的实际条目快照（kind/id/title/deletedAt、已读/总数/2000边界），不依赖后台列表刷新或类型筛选；再次核对先清旧快照和许可，失败不能沿用。新增作者501条、筛选、刷新失败与重新核对失败场景；完整UI11组通过（ui-T9LJKm/results.json、ui-p2-final.log），类型与78模块隔离构建重新通过（typecheck-p2-final.log、build-p2-final.log），同一独立审查者复验通过。两个服务端源码及旧17/22组回归测试未变，不因文案修复无限重跑全部矩阵。
+
+第二轮独立结论PASS、P2关闭、无本批剩余阻断，最终REPORT.md与原REPORT-first-review.md分别保留。263项前后冻结一致，第二轮patch SHA256 0d01384feeed5112a956ad9c848e0a7fec7a7a3414d46f380309399ed160fd9a；Trash.tsx SHA256 3e81426aa9790f7435489bf4e58cff0b7e2036143d59bc174273cf038ab9c6b4。独立新版原UI11组（p2-ui-ZohjqQ）及反向2组（p2-extra-p0O6PJ）通过：真实核对快照在辅助刷新失败时可读，重核对开始/失败撤销旧许可；501条跨类型快照保留最旧字段与附件，关闭/筛选/列表刷新不丢，全表与字节不变。独立仅修自身标题定位器的过严断言，失败日志保留，未修改实现。第一轮API12/独立API2仍绑定未变服务端哈希；作者17/22及类型/构建未冒充独立结果。审查者docs/check-repository/diff检查通过。独立两轮cleanup与p2-cleanup确认5+3次自建根均删、HTTP/Vite端口关闭、浏览器与数据库已关闭。最终收尾只改文档状态/索引，三份业务源码和作者专项保持冻结哈希。
+
+**五份根文档复核：** GPT_CONTEXT与DEVELOPMENT_PROGRESS更新清空范围、基点与当前证据；CONTEXT完整复核无术语变化不改正文；PRODUCT_REQUIREMENTS将本次明确验收条件整合PR-08；SYSTEM_ARCHITECTURE明确快照/父子计数/结果/互斥，未扩展为持久任务架构。
+
+**清理与交付：** 每轮finally关闭自建浏览器/Vite/HTTP/DB，原隔离入口删除专属临时根；cleanup-author.json另核对修前根、10份作者自检/回归证据对应根及P2复测根均不存在，HTTP端口已关，两份专属构建目录已删除。匿名证据与脚本保留本环境，原有资料/证据不动。当前源码文档已保存并通过限定独立验收；本条写于提交前，不预记Git结果。按用户授权精确暂存本批14份共享文件、普通提交推送main，前后核对远端并发。原钩子0600仅执行期间临时启用并恢复原权限，不强推、不跳过保护、不部署。最终SHA/Git/CI按实际执行回报，无CI记录不算通过。
 
 ## 2026-11-06｜GOV-01 / GOV-11｜整工作多文件彻底删除与逐份失败补偿
 

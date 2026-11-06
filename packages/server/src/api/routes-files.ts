@@ -830,12 +830,15 @@ export function registerTrashRoutes(app: FastifyInstance): void {
 
   app.delete('/api/trash', async (req, reply) => {
     try {
-      const r = emptyTrash(qInt(req, 'olderThanDays'));
+      let r;
+      try { r = emptyTrash(qInt(req, 'olderThanDays')); } catch (e) { throw domain400(e); }
       return ok(reply, {
         ...r,
-        message: (r.skipped?.length
-          ? `已彻底删除 ${r.purged} 项（磁盘文件 ${r.filesRemoved} 个）；另有 ${r.skipped.length} 份磁盘文件按安全规则未删除：${r.skipped.join('；')} —— 不可恢复`
-          : `已彻底删除 ${r.purged} 项（磁盘文件 ${r.filesRemoved} 个）—— 不可恢复`) + (r.warnings?.length ? `；${r.warnings.join('；')}` : ''),
+        message: `本次处理结束：独立删除 ${r.purged} 项，随父项删除 ${r.covered} 项，保留期内 ${r.retained} 项，安全拒绝 ${r.protected} 项，失败 ${r.failed} 项，未执行 ${r.notExecuted} 项；删除磁盘文件 ${r.filesRemoved} 份` +
+          (r.skipped?.length ? `；安全规则保留 ${r.skipped.length} 份磁盘文件` : '') +
+          (r.warnings?.length ? `；清理警告 ${r.warnings.length} 条：${r.warnings.join('；')}` : '') +
+          (r.scope.outsideSnapshot ? `；另有 ${r.scope.outsideSnapshot} 条未纳入本次列表快照（部分可能随父项删除）` : '') +
+          `。回收站当前剩余 ${r.scope.remaining} 项，请查看逐项结果。`,
       });
     } catch (e) {
       return fail(reply, e);

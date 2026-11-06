@@ -1,6 +1,6 @@
 # 产品需求与追溯矩阵
 
-文档ID：KB-REQUIREMENTS。版本：1.15。更新：2026-11-06。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
+文档ID：KB-REQUIREMENTS。版本：1.16。更新：2026-11-06。性质：当前需求基线；功能实现及发布状态另见[开发进度](DEVELOPMENT_PROGRESS.md)。
 
 本文维护用户已确认的功能、业务规则和可检查的验收条件。实现/验证/发布状态只在[开发进度](DEVELOPMENT_PROGRESS.md)维护；任务安排只在[项目计划](docs/management/PROJECT_PLAN.md)维护。
 
@@ -73,6 +73,8 @@ PR-01～PR-14及以上PR-15～PR-18沿用既有编号。以下源码路径均相
 | PR-12 | 模板/流程可维护，配置草稿、不可变发布版本、新建/复制类型、版本绑定、停用/恢复及显式应用有清楚边界 | domain/workflow-config.ts、api/routes-workflow-config.ts、pages/Process.tsx、domain/template-history.ts | 本机workflow-config-phase1/fresh专项及实际页面；本文及文档检查 | 第一段不含在办新版应用；文档检查不等于功能测试，专用执行器和业务事实不任意配置 |
 | PR-13 | 工作记录可持久保存、按明确关联工作筛选、查询、更正、撤回及助手引用；工作详情提供可点击关联记录 | domain/work-records.ts、work-record-chat.ts、038 | test/work-records.ts；38 | 查询、更正、撤回和引用修订均须验证；关联卡片、深链接、筛选切换、空结果、未关联记录及无效/删除工作须有明确反馈；浏览不改业务状态，不以名称猜测关联或以其他设备状态代替 |
 | PR-14 | 同工作历史参考、共享检查草稿、限定字段建议、整体采用及多模板生成 | domain/inspection-drafts.ts、api/routes-inspection-drafts.ts、039 | test/inspection-drafts.ts；41 A01～A20、43 | 真实模型、桌面Office及业务事实分别验收 |
+
+PR-08清空回收站验收：逐目标区分成功、随父项删除、保留期未处理、安全拒绝和实际失败，文件安全保留及清理警告分别可查；失败须有种类/ID与原因，部分成功不得显示全部成功。明确有界快照与父子级联范围，保持默认7天保留期及现有单项只删记录/带文件选择。清空确认同步互斥，执行中保护范围和离开，结果在列表刷新后可读；未知响应先核对再由用户明确重试，不承诺整批原子、跨窗口幂等或崩溃恢复。
 
 表中 domain/api/core 均位于 packages/server/src；test 位于 packages/server/test；pages/components 位于 packages/web/src。准确文件和接口清单见[数据与接口说明](docs/reference/DATA_AND_API.md)。
 
