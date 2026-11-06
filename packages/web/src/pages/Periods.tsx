@@ -6,9 +6,8 @@ import {WorkDocuments} from '../components/WorkDocuments';
 import { ImportResult } from '../components/ImportResult';
 import {PeriodExecution} from '../components/PeriodExecution';
 import { useEffect, useRef, useState } from 'react';
-import { api, useApi, type Artifact } from '../api';
+import { api, useApi } from '../api';
 import { Button, Card, Field, Input, Select, Textarea, useAction, useToast } from '../ui';
-import { GenerateModal } from './GenerateModal';
 interface Period {
     id: number;
     report_period: string;
@@ -104,9 +103,7 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
     onChange: () => void;
     timesheet:boolean;
 }) {
-    const detail = useApi<Detail>(`/api/periods/${id}`), files = useApi<{
-        items: Artifact[];
-    }>(`/api/artifacts?workbenchId=${workbenchId}&limit=500`), { busy, run } = useAction();
+    const detail = useApi<Detail>(`/api/periods/${id}`), { busy, run } = useAction();
     const monthly=workTypeCode==='integrity-monthly-inspection';
     const toast=useToast();
     const contentDirty=useRef(false),savingContent=useRef(false);
@@ -125,14 +122,14 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
             await api.put(`/api/periods/${id}`,{content:snapshot});
             setSavedContent(snapshot);contentDirty.current=false;
             // Refresh readiness/file validity after changing the source content.
-            detail.reload();onChange();files.reload();
+            detail.reload();onChange();
         } finally {savingContent.current=false;setContentBusy(false);}
     };
     useEditorGuard({dirty:monthly&&content!==savedContent,busy:monthly&&contentBusy,save:saveContent,discard:()=>{setContent(savedContent);contentDirty.current=false;}});
     const p = detail.data;
     if (!p)
         return <p role={detail.error?'alert':undefined}>{detail.error?.message ?? '加载期次…'}{detail.error&&<Button onClick={detail.reload}>重试</Button>}</p>;
-    const refresh = () => { detail.reload(); onChange(); files.reload(); };
+    const refresh = () => { detail.reload(); onChange(); };
     const update = (b: unknown) => run(async () => { await api.put(`/api/periods/${id}`, b); refresh(); });
     const templates = (JSON.parse(p.snapshot).templates ?? []) as {
         id: number;

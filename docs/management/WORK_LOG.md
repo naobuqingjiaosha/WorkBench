@@ -1,10 +1,45 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.15。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.18。更新：2026-11-06。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-06｜GOV-13 / GOV-11｜云端Periods冗余查询清理与限定回归
+
+**目标与基点：** 按用户“两个项目继续，按照原先计划”及本线程仅WorkBench的限定授权，执行PROJECT_PLAN第2节第3项，不重复实现已完成的流程配置两阶段及修复。当前Linux云环境/workspace/WorkBench，分支work，初始工作区干净；HEAD与实时`git ls-remote origin refs/heads/main`均为4869a7ec69b95f3d8441393b8cbc744880b69b28，origin为https://github.com/naobuqingjiaosha/WorkBench.git。环境配置绑定github-1434044454来自委派说明，当前工具未提供配置元数据查询，不把仓库远端核对写成绑定后台已独立核验。读AGENTS、GPT_CONTEXT、docs/README、五份根文档、正式计划与运行/测试/文档治理说明；checkout无.agents/skills。不操作Mac，不读取正式库/模板/成品/模型凭证，不调用模型，不迁移或发布。
+
+**修改与理由：**
+
+- `packages/web/src/pages/Periods.tsx`：删除PeriodDetail未消费的`files = useApi(...)`、saveContent/refresh中的两次`files.reload()`以及Artifact、GenerateModal无用导入。原hook的data/loading/error均无消费者，useApi状态独立无共享缓存，GET artifacts/listArtifacts只读列表且无业务刷新副作用；故不是回退入口。保留saveContent成功后的detail.reload()/onChange()、refresh中有效刷新、p.files附件与refreshKey、WorkDocuments自有查询/重试/操作回调、离开保护和共享组件。应用源码仅此一文件，4行新增/7行删除；无后端、迁移或依赖变更。
+- `GPT_CONTEXT.md`、`DEVELOPMENT_PROGRESS.md`：替换旧Mac“当前检出/远端未核实”口径，记录本次实际云端基点、已存在流程配置历史验收和当前限定自测、独立验收及P3收尾复验；清理候选改为限定验收通过、未提交保存，不把远端已有源码或历史通过写成云端全系统通过。
+- `PRODUCT_REQUIREMENTS.md`：只更新多设备开发约束以对应用户最新云端要求；既有业务和验收要求不变。`SYSTEM_ARCHITECTURE.md`说明Periods详情/父级与WorkDocuments自身查询的实际刷新职责，不改变业务模型。
+- `docs/management/PROJECT_PLAN.md`：在原GOV-13/GOV-11及原第3项整合本批结果；相关053964e已进入当前远端的事实同步，不新建任务队列。`QUALITY_AND_ACCEPTANCE.md`增加绑定4869a7e差异的云端自测/独立验收/工具收尾覆盖行，与历史Mac证据分开，不累计检查数量。
+- `docs/guides/DEVELOPMENT.md`：增加3.8本地云回归的前提、原隔离入口、测试代理边界、清理与未覆盖范围；复核并沿用已有直接web workspace构建示例，避免根脚本参数转发问题，未改该示例。本文记录本任务，不追加CHANGELOG。
+- 自动生成`docs/knowledge-index.json`和`docs/reference/source-inventory.json`；source-inventory的committedBase刷新为实际HEAD，Periods源码摘要同步。生成器也复核docs/README，内容无差异。
+- 本机新增忽略文件`packages/server/test/cloud-periods.ts`及源码外`/workspace/workbench-cloud/periods-review-*`证据，不进入Git。用例使用合成工作、两期与两个文本附件，不接续旧Mac测试或真实夹具。
+
+**验证与失败边界：**
+
+- `npm run typecheck`通过server/web；`npm run repo:check`通过（258项，无违规）；`git diff --check`通过。源码审查核对Periods引用、api.useApi、routes-files/listArtifacts、期次详情、WorkDocuments、PeriodAttachments及NavigationGuard，确认有效请求、回退、保护与兼容入口保留。
+- `node scripts/test-isolated.mjs --unit cloud-periods`最终退出0；内层执行`npm --workspace @workbench/web run build -- --outDir <本次临时根>/web`，78模块构建通过。真实HTTP健康确认profile=test与专属dbFile，自动备份未启动。
+- 作者自测`/workspace/workbench-cloud/periods-review-aRasQk/results.json`记录16项通过：独立构建、隔离身份、13项实际Chromium页面链路及最终数据边界核对。页面操作含月度初载；A/B切期继续/放弃/保存并离开；503后输入和数据库保留、重试只存A；慢普通保存锁定输入和离开按钮；附件已上传但关联503时保留文件/恢复UI及离开保护，重试成功且POST上传仍只有一次；附件确认及参考资料刷新；详情刷新失败保留组件/输入后重试、详情初载失败重试、WorkDocuments自身成果查询503重试。最终两期快照/status、B内容/文件不变，A新增两份匿名附件，下载字节与合成原文一致。
+- 初始`periods-review-29ooCC`和`periods-review-kiygtN`均在首屏等待超时退出1；本地代理只改Host、未改Origin，浏览器模块请求被应用来源保护拒绝，白屏不算通过。修正本地代理转发Origin后完整重跑通过，未改应用来源守卫；失败日志保留。截图/页面文本、请求路径、服务/浏览器日志与脚本副本分别存各运行目录；该轮是作者自测，不是随后发生的独立验收。浏览器图片人工查看限故障页，不宣称完整视觉验收。
+- `node scripts/docs-maintenance.mjs generate`、`node scripts/docs-maintenance.mjs check`通过；24份共享文档、224源码、284路由声明、42迁移的静态索引核对，不等于运行API或业务验收。
+- `npm test`、`npm run typecheck:tests`未执行：原测试用例、隔离契约脚本与tsconfig.test.json未随云克隆交付。未运行旧Mac15份专项、WorkDocuments逐项成果关联/生成/定稿链、原生刷新/关页保护、完整视觉与全部类型模板、Windows/Office、真实业务/数据迁移/模型或跨进程压力；不得以当前页面链路替代这些缺项。
+
+**独立验收与两项P3有限收尾：**
+
+- 在同一checkout按明确授权启动一名未参与实施的审查者，原11份候选冻结后不改。独立报告`/workspace/workbench-cloud/periods-independent-20261106/report.md`结论PASS，无P0～P2应用回归；原套件在`periods-review-4oCORc`重跑16项/13条页面链路通过，独立副本在`periods-review-9KmS85`通过19项（原16项加3项请求计数）。普通保存artifacts读取0次，上传后1次，成果重试1次且详情/父级均0次；这些是同范围补证，不累计为更多业务覆盖。
+- P3测试等待：独立补测`periods-review-3T8rBj`出现selector absent，期次详情先于父级选项返回。仅在本地忽略的cloud-periods.ts加入独立副本已验证的“期次选项就绪”条件，其余断言不变；原失败记录及原脚本副本保留。修改前后摘要与唯一新增行见`periods-closeout-20261106/test-change.json`。
+- P3清单路径：旧清单有257个哈希，实际258个跟踪文件，非NUL路径处理漏记未修改的`启动工作台.cmd`。新本地`periods-closeout-20261106/freeze-manifest.py`使用git -z路径协议，完整清单覆盖258项；中文文件SHA256为100e552deb91a1e30f86c62de022d1f5e8621171d0eed07d52e60a3c286934d3，与旧补验及HEAD/index/工作区相同。`pre-closeout/manifest.json`确认原257项均匹配；`final/manifest.json`记录收尾文档差异，旧manifest不改写。启动脚本与应用源码均未改。
+- 同一原命令`node scripts/test-isolated.mjs --unit cloud-periods`在等待修正后顺序执行两次，均退出0、各16项通过；证据分别为`periods-review-wZoS6J`、`periods-review-RPkwJQ`，命令日志在`periods-closeout-20261106/run-1.log`与`run-2.log`。每次完成并确认清理后才启动下一次；只验证原范围及重复运行，不新增请求计数或其他业务测试。
+- Periods.tsx SHA256在独立验收、P3修正及收尾后始终为2cd196bbc0c72ea6c8cc41fbb22a59e1c8a135da0b65ef6a5111b94de583fd85；本批应用独立验收结论保持。当前文档分别记录作者自测、独立16/19项及收尾两次16项；原审查者的工具/文档短复核PASS记录于同一本地收尾目录closeout-review.md，不扩展为第三轮完整审计。应用未变，未重跑无关类型/全系统测试；重新generate/check、diff检查和repo:check作为收尾核对。
+
+**五份根文档复核：** GPT_CONTEXT更新云接续摘要；CONTEXT全文复核，业务术语无变化，正文不改；PRODUCT_REQUIREMENTS仅同步最新云端开发约束，业务需求不改；SYSTEM_ARCHITECTURE整合实际查询刷新关系；DEVELOPMENT_PROGRESS替换当前环境基线、冗余候选状态及限定验证边界。旧Mac独立验收只保留原适用范围，不重写其历史结果。
+
+**清理与交付：** 作者初验三轮、独立审查三轮及P3收尾两轮的专属后端、代理和Chromium主进程均退出；清理证据分别保存。收尾两处临时根已删除，6个专属端口均关闭且无活动进程引用对应根；前两阶段各三根/9端口也已核对清理。Chromium部分退出子进程为容器PID1所属Z僵尸，无监听和运行任务，需由宿主回收，未尝试操作PID1。没有启动18889日常/开发自启服务，原有云环境development目录及历史构建/证据保留。用例与脱敏证据仅保留当前云环境，不上传。验收及P3收尾结束时全部源码/文档已保存，未暂存/提交/推送/部署；随后用户明确要求每轮验收后提交并推送GitHub，并确认本批执行。提交前已核对远端main仍为4869a7e、原最终补丁和258项哈希完全匹配，应用哈希不变；仅在本批原11个文件内最小同步授权/提交前状态并刷新索引。云克隆现有pre-commit/pre-push缺执行权限，执行时临时赋予执行权限以运行原钩子，完成后恢复原权限，不提交钩子模式、不改Git安全配置。只精确暂存本批源码/文档，原测试及证据仍忽略；正常提交一次并推送main，完整SHA、远端核对和CI结果由实际执行回报记录，本文写于提交前，不预记成功；日常运行和真实业务验收未执行。本批应用限定独立验收通过、P3工具修正及两次收尾复验完成，其他缺口仍沿原PROJECT_PLAN；建议提交标题`refactor(periods): 删除未消费文件查询并同步云端验证状态`。
 
 ## 2026-11-05～06｜GOV-02 / GOV-13｜流程配置版本治理、新建与在办安全应用
 

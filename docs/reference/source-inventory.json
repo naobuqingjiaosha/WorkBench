@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "681b22f3314737c4d644db5aa3b129501c58b09e",
+  "committedBase": "4869a7ec69b95f3d8441393b8cbc744880b69b28",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -837,7 +837,7 @@
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "0330250d8504a7bb54c4ab7c1b5624472e476c947d79fd906567bb9084d0e808"
+      "sha256": "2cd196bbc0c72ea6c8cc41fbb22a59e1c8a135da0b65ef6a5111b94de583fd85"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
