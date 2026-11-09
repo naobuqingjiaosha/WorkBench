@@ -33,10 +33,14 @@ type AppForm = {org:string;operator:string;style:string};
 const appSettings = (form:AppForm) => ({'app.org':form.org,'app.operator':form.operator,'ai.writing_style':form.style});
 const appForm = (values:Record<string,string>):AppForm => ({org:values['app.org']??'',operator:values['app.operator']??'',style:values['ai.writing_style']??''});
 
-export default function SettingsPage() {
+export default function SettingsPage({params={}}:{params?:Record<string,string>}) {
   const toast = useToast();
-  const [section,setSection]=useState('runtime');
-  const [referenceMounted,setReferenceMounted]=useState(false);
+  const [section,setSection]=useState(params.section==='references'?'models':'runtime');
+  const [referenceMounted,setReferenceMounted]=useState(params.section==='references');
+  const [referenceOpen,setReferenceOpen]=useState(params.section==='references');
+  useEffect(()=>{
+    if(params.section==='references'){setSection('models');setReferenceMounted(true);setReferenceOpen(true);}
+  },[params.section]);
   const health=useApi<{status:string;webBuilt:boolean;time:string;loadedBuild:{startedAt:string;sourceSha256:string;frontendSha256:string}}>('/api/health');
   const overview = useApi<{
     providers: AiProvider[];
@@ -97,6 +101,7 @@ export default function SettingsPage() {
     <PageSplit nav={<SectionNav value={section} onChange={v=>request(()=>setSection(v))} items={[{value:'runtime',label:'运行状态'},{value:'models',label:'模型与资料'},{value:'backup',label:'目录与备份'},{value:'app',label:'应用与导出'}]}/>}><div className="section-content">
       {section==='runtime'&&<><Card title="运行状态" extra={<Button onClick={health.reload}>重新检查</Button>}>{health.error?<LoadError error={health.error} retry={health.reload}/>:health.loading?<Loading/>:<><div className="summary-grid"><div>服务状态<strong>{health.data?.status==='ok'?'正常':'待核查'}</strong></div><div>前端构建<strong>{health.data?.webBuilt?'已加载':'未找到'}</strong></div><div>运行方式<strong>本机</strong></div></div><p className="small muted">检查时间 {fmtTime(health.data?.time)} · 当前连接 {window.location.origin}</p></>}</Card><Card title="高级诊断" collapsible defaultOpen={false}><dl className="kv"><dt>启动时间</dt><dd>{fmtTime(health.data?.loadedBuild.startedAt)}</dd><dt>后端摘要</dt><dd className="mono">{health.data?.loadedBuild.sourceSha256}</dd><dt>前端摘要</dt><dd className="mono">{health.data?.loadedBuild.frontendSha256}</dd></dl></Card></>}
       <div className="settings-panel" hidden={section!=='models'}>
+      <details className="reference-maintenance card" open={referenceOpen} onToggle={e=>{setReferenceOpen(e.currentTarget.open);if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details>
       <div className="notice notice-info">
         模型接口按 OpenAI 兼容协议接入，支持 LM Studio、Ollama 及兼容的云端服务。
         API Key 只存在本机数据库里，只在本机 <code>127.0.0.1</code> 上使用，接口返回时一律打码。
@@ -289,7 +294,7 @@ export default function SettingsPage() {
       </Card>
 
       <BackupCard />
-      </div><div className="settings-panel" hidden={section!=='models'}><AiLogsCard/><KbExtractCard/><ComplianceCard/><OcrCard/><details className="reference-maintenance card" onToggle={e=>{if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details></div>
+      </div><div className="settings-panel" hidden={section!=='models'}><AiLogsCard/><KbExtractCard/><ComplianceCard/><OcrCard/></div>
 
       {editProvider && (
         <ProviderModal
@@ -717,13 +722,13 @@ function KbExtractCard() {
     run(async () => {
       await api.put('/api/settings', { 'kb.dedup': form.dedup, 'kb.scope': form.scope, 'kb.version': form.version });
       cfg.reload();
-    }, '口径已保存。要让新口径生效，请到「知识库 → 制度来源目录」对每个来源点一次「开始抽取」（重跑不会产生重复数据）。');
+    }, '口径已保存。要让新口径生效，请到「系统配置 → 模型与资料 → 后台参考资料维护 → 制度来源目录」对每个来源点一次「开始抽取」（重跑不会产生重复数据）。');
 
   const reExtract = (s: KbSource) =>
     run(async () => {
       const r = await api.post<{ jobId: number; total: number }>(`/api/kb/sources/${s.id}/extract`, { embed: true, ocr: false });
       setRunning(s.id);
-      toast(`已按新口径起任务：${s.label ?? s.path}（${r.total} 个文件）。进度见「知识库 → 制度来源目录」。`, 'ok');
+      toast(`已按新口径起任务：${s.label ?? s.path}（${r.total} 个文件）。进度见「系统配置 → 模型与资料 → 后台参考资料维护 → 制度来源目录」。`, 'ok');
     });
 
   const keys = cfg.data?.keys ?? { dedup: 'kb.dedup', scope: 'kb.scope', version: 'kb.version' };
@@ -825,7 +830,7 @@ function KbExtractCard() {
 
       {sources.data?.items && sources.data.items.length === 0 && (
         <div className="notice notice-warn mt12">
-          还没有登记制度来源目录。先到「知识库 → 公司制度」登记一个目录，再回到这里选口径并抽取。
+          还没有登记制度来源目录。先到「系统配置 → 模型与资料 → 后台参考资料维护」登记一个目录，再回到这里选口径并抽取。
         </div>
       )}
     </Card>

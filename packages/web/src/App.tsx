@@ -154,7 +154,7 @@ function AppShell() {
             {route.key === 'knowledge' && <KnowledgePage key={route.params.module} params={route.params} />}
             {route.key === 'agent' && <AgentPage />}
             {route.key === 'trash' && <TrashPage />}
-            {route.key === 'settings' && <SettingsPage />}
+            {route.key === 'settings' && <SettingsPage params={route.params} />}
           </div>
         </main>
       </div>

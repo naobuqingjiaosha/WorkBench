@@ -549,7 +549,7 @@ export function GenerateModal({
               制度检索提示：{draft.knowledgeError}
               <br />
               <span className="muted small">
-                请到知识库确认制度已抽取，或指定适用制度。涉及制度的内容仍需核对。
+                请到系统配置 → 模型与资料 → 后台参考资料维护确认制度已抽取，或指定适用制度。涉及制度的内容仍需核对。
               </span>
             </div>
           )}

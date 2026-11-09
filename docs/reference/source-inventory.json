@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "b8a5a0097d44e3df8a676cca7a27639bd59f1710",
+  "committedBase": "e0ce13df3b2ab0412c35709aec6bc1d6e0d8deb3",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -681,7 +681,7 @@
     },
     {
       "path": "packages/web/src/App.tsx",
-      "sha256": "7fe0129171e352c7dbb4c938e8d38bb4438efd07125ce4e4e90b710097207cba"
+      "sha256": "25ea8393be1c4d876f272ce073100967b179bbb64ebb9560936a8839c7e4a150"
     },
     {
       "path": "packages/web/src/api.ts",
@@ -829,7 +829,7 @@
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
-      "sha256": "e02850b48d23294fcaa8baf74fd86a29390ee99c66c6f0a50d21b3857f022035"
+      "sha256": "94f8a2dad0547449b3590a820c0f6e1990395bb43623573a57fdf0cff68ff0f1"
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
@@ -849,7 +849,7 @@
     },
     {
       "path": "packages/web/src/pages/ProjectInfo.tsx",
-      "sha256": "49b4c7e24de2196cf6882c2cb72a491005e3078f9d3992cb8e0d69ee7af54b95"
+      "sha256": "a632aac00f4f03b5633708759b610150e7003d9c92c69106d5696a15d7625816"
     },
     {
       "path": "packages/web/src/pages/Proposals.tsx",
@@ -857,7 +857,7 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "b95a18c26e90e716876103ad7e88f87067f39c2702d07e5c5efdea4309dabcc8"
+      "sha256": "4453539b91edc189f7c2ad5bfdad9bdd092c25dad103684885080688a2d24cf0"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
@@ -877,7 +877,7 @@
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "682273862a4adbd2f3a2f4a67ef522ccea125ae053173e34fb5b21c27bc82a9a"
+      "sha256": "aaf81d40d72842866631bd5195f26a76bc8a6f58b5d7a3d8f886c3bff10f0bf1"
     },
     {
       "path": "packages/web/src/styles.css",

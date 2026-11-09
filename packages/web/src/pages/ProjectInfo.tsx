@@ -262,7 +262,7 @@ export function ProjectInfoTab({ workbenchId, workTypeId }: { workbenchId: numbe
             这一类的模板变量映射覆盖率只有 <strong>{coverage.data.percent}%</strong>
             （{coverage.data.mappedVars}/{coverage.data.totalVars} 处能自动带出）——
             模板里还有不少 {'{变量}'} 没有对应的项目信息字段或别名，出文书时得手填或让模型写。
-            需不需要补，到「知识库 → 模板库 → 模板变量覆盖率」看未映射清单（按出现次数排序，还带建议别名）。
+            需不需要补，到「知识库 → 字段映射」看未映射清单（按出现次数排序，还带建议别名）。
           </div>
         )}
       </Card>

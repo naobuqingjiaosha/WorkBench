@@ -2328,9 +2328,8 @@ function EditWorkbenchModal({ wb, onClose, onSaved }: { wb: Workbench; onClose: 
  *      （B3-10 的 /api/kb/documents/:id/usages）、能**人工加**一条、能**取消**一条（软删）；
  *   ③ 制度内容变了（文件哈希不一致）的行标「⚠制度已变」，提醒复核。
  *
- * 【已知限制，如实写在这里】「跳到知识库」只能跳到知识库页（`#/knowledge`），因为
- * `pages/Knowledge.tsx` 本轮不在改动范围内、它也不读任何路由参数；条款原文与"被 N 份文书引用"
- * 两个数字都在本卡片里直接显示了，所以即使跳过去也不会看不着东西。
+ * 「后台参考资料」打开系统配置中的制度维护区；不承诺定位具体条款。
+ * 条款原文与被引文书仍由本弹窗的原接口展示。
  * ==========================================================================*/
 
 export interface CiteLink {
@@ -2427,7 +2426,7 @@ function ArtifactCitationsModal({ artifactId, onClose, onChanged }: { artifactId
 
   const add = () =>
     run(async () => {
-      if (!docId) throw new Error('先选一份制度（没入库的制度先去知识库入库并抽取）');
+      if (!docId) throw new Error('先选一份制度（没入库的制度先到系统配置 → 模型与资料 → 后台参考资料维护入库并抽取）');
       if (!clause.trim()) throw new Error('写清是哪一条：如「第五条」或条款名「检查频次」');
       const r = await api.post<{ link: { id: number } }>(`/api/artifacts/${artifactId}/citations`, { kbDocumentId: Number(docId), clause });
       toast(`已加人工链接 #${r.link.id}`, 'ok');
@@ -2551,12 +2550,12 @@ function CiteRow({ link, onRemove, busy }: { link: CiteLink; onRemove: () => voi
           <Button
             size="sm"
             onClick={() => {
-              // 知识库页本轮不读路由参数，所以这里只跳到知识库，条款原文与引用数在上面已直接显示
-              window.location.hash = `#/knowledge?doc=${link.documentId ?? ''}&clause=${encodeURIComponent(link.clausePath ?? '')}`;
+              // 原文及反向引用留在本弹窗，维护入口直接打开后台资料区。
+              window.location.hash = '#/settings?section=references';
             }}
-            title="去知识库（当前版本只跳转到知识库页，不能定位到具体条款）"
+            title="打开系统配置中的后台参考资料维护；不定位具体条款，原文及被引文书在当前弹窗查看"
           >
-            知识库
+            后台参考资料
           </Button>
           <Button size="sm" kind="danger" onClick={onRemove} disabled={busy} title="取消这条链接（软删，留痕）">
             取消
