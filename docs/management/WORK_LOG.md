@@ -1,6 +1,6 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.27。更新：2026-11-09。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.28。更新：2026-11-09。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
@@ -17,6 +17,10 @@
 **图像复核补查：** 首张AI助手截图标题有短暂上移，直接进入和原导航顺序补查均测得main.scrollTop=0、标题top=12，未能复现稳定裁切；两次要求出现负坐标的诊断断言失败，原日志agent.log/agent-sequence.log保留，不把它们改写为产品修复通过。随后稳定页面、三档视口、标签切换和输入焦点1组定向复核通过（agent-gGI9rF）；不因一张中间态截图盲改全局滚动规则。详见同目录agent-final.log及实际结果。
 
 **工程、文档与交付：** npm run typecheck通过；实际隔离浏览器用最终源码构建通过，另Vite隔离构建79模块通过。docs-maintenance generate/check、仓库worktree及差异检查通过；暂存检查在提交前执行。五根全文复核：GPT_CONTEXT更新接续和边界；CONTEXT无业务术语变化保持；PRODUCT_REQUIREMENTS把用户增强/全页一致/微动与降级要求整合进PR-18；SYSTEM_ARCHITECTURE更新局部过滤层与微动；DEVELOPMENT_PROGRESS更新本批基点、39组限定验证与未验。PROJECT_PLAN沿现有GOV-13，QUALITY_AND_ACCEPTANCE/UI指南/INSTALLATION和本条日志同步，源码/知识索引由工具生成。RK-01删除与RK-11/12保存机制无实现变化，不扩写为新的验收。当前证据根为/workspace/workbench-cloud/liquid-ui，测试源码、截图、日志仅本地不上传Git。此前Library批量传递失败仍是历史事实；本次新增单张最终首页截图通过当前Library技能官方单文件路径成功保存，文件名WorkBench-liquid-glass-home.png，为实际运行的匿名合成页面，不是设计图。
+
+**交付后静态审查补查与修复：** 增强界面e909727已正常推送、远端核验且Git干净，父线程独立静态审查指出普通页头的:not组合优先级压过偏好规则，并提出极矮弹窗裁切线索。当前修复开工HEAD/远端均为e909727dde9115d87a9d4cec6100fb40e209a189。glass-cascade隔离实际浏览器在知识库/设置/文件三页复现减少透明/动画仍有阴影、增强对比仍为rgba(255,255,255,0.85)边框；forced-colors正常Chromium自动调色掩盖作者规则错误，临时forced-color-adjust:none诊断探针仍显示原阴影和边框，不能把探针状态说成用户默认行为。修复仅把两处普通页头排除条件置于:where，保留匹配范围、默认外观及首页/详情排除，降低至单类选择器优先级。glass-modal原样实测320×180新建弹窗clientHeight=146、scrollHeight=197，取消/创建按钮中心被裁切；增加≤480px整张弹窗滚动、正文不独立裁切，常规高度维持原布局，未改组件或业务。
+
+**补查验证与边界：** 原始证据/workspace/workbench-cloud/glass-cascade：页头before.log/run-26LcIM为故障确证，after.log/run-iD2ABQ五模式组通过，逐页检查background/border/box-shadow/backdrop及键盘切换；普通、减少透明、减少动画、增强对比、forced-colors分别验证，作者声明与浏览器自动调色分开。弹窗modal-before.log/modal-VMfjjr记录裁切；最终modal-final.log/modal-ciA9Y3五视口组通过（1366×900、683×450、683×300、390×240、320×180），新建首步/项目表单与未保存确认的每个可见按钮滚动后中心elementFromPoint命中，可用按钮聚焦和trial点击，实际选择项目/取消、继续编辑保留输入及不保存离开成功；截图已看。前两次工具失败分别因可访问名称含空格、继续编辑后误再展开已打开的移动导航，修正本地用例并保留modal-after.log/modal-after-2.log，不改业务规避。最终主要页面11组（pages-kagQVk）、首页13组（home-n0zbGT）、回收站11组（trash-X0jE6J）重跑通过；原文/制度专用4组没有重跑，不冒充新结果。npm run typecheck及隔离构建通过；正式文档与仓库检查按收尾执行。全部测试仍经test-isolated，匿名DB/文件、失败保护核对不变；专属根、服务及活动浏览器清理，原证据保留。五根再次复核：CONTEXT/PRODUCT_REQUIREMENTS无术语/需求增量保持，GPT_CONTEXT/架构/进度整合当前修复范围及基点；原GOV-13、质量矩阵、UI说明与本条日志更新，索引重生成，不建新队列。该补查是作者实际复验，父线程静态审查不等同全套独立运行验收。Windows实际字体/缩放/系统主题、旧浏览器、慢刷新硬件、完整旧套件、Office/真实模型等边界不变；不部署。依用户授权只提交本批CSS及正式文档，执行原钩子并恢复权限、核对并发与最终远端，最终SHA/CI见交付；无记录不算通过。
 
 **清理、限制与Git边界：** runner清理各自数据库/文件/构建；本批测试服务与活动浏览器关闭，保留匿名证据和失败诊断，不清原有资料；额外独立构建目录已删除；cleanup.json确认8个运行根均已删除，无残留隔离根、活动Node服务或Chromium。旧完整npm test/typecheck:tests缺原套件/test-isolation-contract/tsconfig.test.json，未运行；未验Windows原生字体/真实缩放/高对比主题、旧浏览器、目标GPU/低性能设备、全部执行器/模板/年度台账生成、Office/真实模型、原图对照及完整业务。无模糊为删除增强规则模拟，媒体偏好用Chromium模拟；慢刷新降级只有样式审查，未作设备实测。作者复核不等同新独立审查。用户已明确授权每轮验收后提交推送；仅暂存本批样式与正式文档/索引，正常钩子，提交前后核对origin/main并发，恢复钩子原权限，不强推、不部署。该条在提交前定稿，最终完整SHA/远端/CI以交付核验为准，无记录不算CI通过。建议提交标题：feat(ui): strengthen glass navigation and dialog surfaces。
 
