@@ -2,14 +2,14 @@
    this layer follows compact.css and never scales the application canvas. */
 :root {
   color-scheme: light;
-  --bg: #f6f5f3;
+  --bg: #f0f3f8;
   --panel: #fff;
   --line: #dedfe2;
   --border: var(--line);
   --line-strong: #b8bec7;
   --text: #242830;
   --text-2: #505864;
-  --text-3: #626b77;
+  --text-3: #566170;
   --primary: #245fc2;
   --primary-dark: #194b9e;
   --primary-soft: #eaf1fc;
@@ -168,4 +168,80 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
+
+/* Web approximation of frosted navigation chrome; content stays opaque.
+   Solid bases are the no-backdrop-filter fallback. No animated blur or
+   permanent will-change layers: only these three disjoint surfaces blur. */
+.app {
+  background: radial-gradient(ellipse at 0 0, #dce6f1 0, transparent 56%),
+    linear-gradient(135deg, #f6f8fb, #eaf0f7);
+}
+.sidebar {
+  background: #edf2f7;
+  border-right-color: #cbd5e2;
+  box-shadow: inset -1px 0 #ffffffb3, 2px 0 12px #304b6b06;
+}
+.topbar {
+  background: #f3f6fa;
+  border-bottom: 1px solid #d8e0e9;
+  box-shadow: inset 0 1px #ffffffb3;
+}
+.home-header-actions {
+  background: #f1f5fa;
+  padding: 8px;
+  border: 1px solid #cdd8e5;
+  border-radius: 14px;
+  box-shadow: inset 0 1px #fff, 0 3px 10px #304b6b08;
+}
+.home-search, .home-bell {
+  background: #ffffffdb;
+  border-color: #b8c5d5;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sidebar {
+    background: linear-gradient(150deg, #ffffff52, #e3ebf526), #eaf0f7d9;
+    -webkit-backdrop-filter: blur(16px) saturate(110%);
+    backdrop-filter: blur(16px) saturate(110%);
+  }
+  .topbar, .home-header-actions {
+    background: linear-gradient(110deg, #ffffff70, #f1f5fa26), #f2f6fbcf;
+    -webkit-backdrop-filter: blur(10px) saturate(105%);
+    backdrop-filter: blur(10px) saturate(105%);
+  }
+}
+/* Transparency and stronger-contrast preferences both get solid surfaces. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .app { background: var(--bg); }
+  .sidebar, .topbar, .home-header-actions {
+    background: #f1f5fa;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .home-search, .home-bell { background: white; }
+}
+@media (prefers-contrast: more) {
+  :root { --line: #8995a5; --line-strong: #697789; --text-3: #3f4854; }
+  .sidebar, .topbar, .home-header-actions { border-color: var(--line-strong); }
+  .nav-item.active, .section-nav button.selected { outline: 1px solid var(--primary); outline-offset: -1px; }
+}
+@media (forced-colors: active) {
+  :root {
+    --bg: Canvas; --panel: Canvas; --text: CanvasText;
+    --text-2: CanvasText; --text-3: CanvasText; --primary: LinkText;
+    --line: ButtonText; --line-strong: ButtonText;
+  }
+  .app, .sidebar, .topbar, .home-header-actions, .home-search, .home-bell {
+    background: Canvas; color: CanvasText; border-color: ButtonText;
+    box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .nav-item.active, .section-nav button.selected, .btn-primary {
+    background: Canvas; color: ButtonText; border-color: ButtonText;
+    outline: 2px solid Highlight; outline-offset: -2px;
+  }
+  button:focus-visible, a:focus-visible, summary:focus-visible,
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid Highlight; outline-offset: 3px;
+  }
 }
