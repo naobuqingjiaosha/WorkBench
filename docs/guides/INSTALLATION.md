@@ -1,6 +1,6 @@
 # 安装与启动指南
 
-文档ID：GUIDE-INSTALLATION。版本：1.1。更新：2026-11-09。性质：新安装与已有环境启动说明。
+文档ID：GUIDE-INSTALLATION。版本：1.2。更新：2026-11-09。性质：新安装与已有环境启动说明。
 
 本文面向本地最新源码；既有运行实例的版本与路径先按[开发进度](../../DEVELOPMENT_PROGRESS.md)和[运维手册](OPERATIONS.md)核对。开发、测试命令见[开发指南](DEVELOPMENT.md)，源码和私有资料边界见[资料边界](DATA_BOUNDARIES.md)。
 
@@ -58,7 +58,7 @@ npm start
 
 备份、恢复和发布步骤见[运维手册](OPERATIONS.md)。
 
-## 在 Windows 查看 GitHub 最新首页（隔离预览）
+## 在 Windows 查看 GitHub 最新界面（隔离预览）
 
 只看最新界面时，建议在另一个源码目录预览，保留日常实例、数据库和发布指针。Node.js须为24或更高版本。在 PowerShell 中首次获取：
 
@@ -74,7 +74,26 @@ npm run dev:monthly -- --build
 
 此入口使用development身份，数据与构建位于`%LOCALAPPDATA%\WorkBench\development\<源码路径哈希>\monthly`（未另设开发根时），不读取日常发布指针，不把预览数据写进日常库。可在`http://127.0.0.1:18889/api/health`核对`runtimeProfile`为`development`及独立`dbFile`；`loadedBuild`是启动时文件摘要，不是Git SHA。源码版本用上述`git rev-parse HEAD`与本次交付提交核对。
 
-再次更新同一预览目录时，先用Ctrl+C停止自己的预览服务；确认分支为main、`git status --short`无修改，再运行`git pull --ff-only origin main`、`npm ci`和`npm run dev:monthly -- --build`。有本地修改或分支分歧时保留现场，不重置。端口被占用时核实已有进程；可在当前PowerShell先设置`$env:MONTHLY_DEV_PORT='18890'`后启动，并使用终端实际地址。需要时用Ctrl+F5刷新页面。
+再次更新同一预览目录时，先用Ctrl+C停止自己的预览服务；确认分支为main、`git status --short`无修改，再运行：
+
+```powershell
+git pull --ff-only origin main
+git rev-parse HEAD
+npm run dev:monthly -- --build
+```
+
+本次玻璃样式更新未改依赖；已有依赖可直接使用。首次安装或拉取后锁文件变化时先运行`npm ci`。有本地修改或分支分歧时保留现场，不重置。端口被占用时核实已有进程；可在当前PowerShell先设置`$env:MONTHLY_DEV_PORT='18890'`后启动，并使用终端实际地址。需要时用Ctrl+F5刷新页面。
+
+需要对比增强玻璃之前的版本，可停止预览后另建只用于预览的工作树，不回退main、不覆盖已有预览数据：
+
+```powershell
+git worktree add --detach ..\WorkBench-before-liquid f44ef18e732c1f02d95794db28423a1d2b8c3150
+cd ..\WorkBench-before-liquid
+npm ci
+npm run dev:monthly -- --build
+```
+
+新路径默认对应另一个独立开发数据根，因此不带原预览样本；勿设置成日常或原预览数据根来对比。结束后Ctrl+C停止，回到原预览目录即可继续新版本。减少动画/透明或增强对比的浏览器媒体偏好会关闭玻璃增强；不同Windows/浏览器版本是否传递该偏好须以实际效果为准。
 
 `npm start`或双击日常启动脚本可能仍加载旧发布包；单纯拉取Git或运行预览不会更新日常版。配套发布是另一项操作，不删除或改写`current-release.json`来强行看到新界面。本步骤由启动源码与隔离规则核对；Windows本机字体、缩放、浏览器主题及完整启动链仍需在目标设备确认。
 

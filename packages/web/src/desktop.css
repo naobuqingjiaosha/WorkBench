@@ -170,60 +170,143 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
-/* Web approximation of frosted navigation chrome; content stays opaque.
-   Solid bases are the no-backdrop-filter fallback. No animated blur or
-   permanent will-change layers: only these three disjoint surfaces blur. */
+/* CSS glass: bounded navigation surfaces over a static colour field.
+   Solid base colours work without backdrop-filter; content cards stay opaque. */
 .app {
-  background: radial-gradient(ellipse at 0 0, #dce6f1 0, transparent 56%),
-    linear-gradient(135deg, #f6f8fb, #eaf0f7);
+  background:
+    radial-gradient(ellipse at -8% 8%, #b5d5fb 0, transparent 44%),
+    radial-gradient(ellipse at 20% 110%, #d5c8ed 0, transparent 46%),
+    radial-gradient(ellipse at 100% -12%, #c3dbf8 0, transparent 48%),
+    linear-gradient(125deg, #eaf0fa, #f4f6fb 58%, #e5edf8);
 }
 .sidebar {
+  position: relative;
+  height: calc(100% - 24px);
+  margin: 12px 0 12px 12px;
   background: #edf2f7;
-  border-right-color: #cbd5e2;
-  box-shadow: inset -1px 0 #ffffffb3, 2px 0 12px #304b6b06;
+  border: 1px solid #ffffffd9;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #94b1d336,
+    0 10px 30px #33578114, 0 2px 5px #3357810a;
+}
+.sidebar::before, .home-header-actions::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, #ffffff85 0, #ffffff08 22%, transparent 52%, #ffffff50 100%);
+}
+.sidebar > * { position: relative; z-index: 1; }
+.sidebar-status { color: var(--primary-dark); }
+.nav-item.active {
+  background: linear-gradient(125deg, #ffffffc7, #d5e5ff9e);
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #a8c1e155, 0 3px 9px #3c65a012;
 }
 .topbar {
   background: #f3f6fa;
-  border-bottom: 1px solid #d8e0e9;
-  box-shadow: inset 0 1px #ffffffb3;
+  border-bottom: 1px solid #ffffffc9;
+  box-shadow: inset 0 1px #ffffffd9;
 }
 .home-header-actions {
+  position: relative;
   background: #f1f5fa;
-  padding: 8px;
-  border: 1px solid #cdd8e5;
-  border-radius: 14px;
-  box-shadow: inset 0 1px #fff, 0 3px 10px #304b6b08;
+  padding: 9px;
+  border: 1px solid #ffffffed;
+  border-radius: 22px;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #90afd74d,
+    0 8px 24px #33578115, 0 2px 4px #3357810a;
 }
+.home-header-actions > * { position: relative; z-index: 1; }
 .home-search, .home-bell {
-  background: #ffffffdb;
-  border-color: #b8c5d5;
+  background: linear-gradient(150deg, #ffffffed, #ffffff80);
+  border-color: #aabdd6;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 #fff;
 }
+.home-header-actions > .btn-primary {
+  border-radius: 12px;
+  background: linear-gradient(145deg, #326dce, #1f58b6);
+  border-color: #1f58b6;
+  box-shadow: inset 0 1px 0 #ffffff66, 0 3px 8px #225aad25;
+}
+.topbar:not(.dashboard-topbar):not(.detail-topbar) {
+  margin: 12px 24px;
+  padding: 16px 18px;
+  border: 1px solid #ffffffd9;
+  border-radius: 20px;
+  box-shadow: inset 1px 1px 0 #fff, 0 4px 18px #3357810c;
+}
+/* Secondary navigation uses translucency without another filtered layer. */
+.section-nav {
+  background: linear-gradient(145deg, #ffffffdb, #eaf1f9b8);
+  border-color: #ffffffed;
+  border-radius: 16px;
+  box-shadow: inset 1px 1px 0 #fff, 0 4px 14px #3357810b;
+}
+.action-dock {
+  background: linear-gradient(120deg, #f9fbff, #eef3fa);
+  border-color: #ccd8e8;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 #fff, 0 -3px 14px #33578110;
+}
+.modal-mask { background: #26375040; }
+.modal {
+  background: #f3f6fa;
+  border: 1px solid #ffffffd9;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 #fff, 0 22px 70px #1c355a40, 0 3px 12px #1c355a1a;
+}
+.modal-head, .modal-foot { background: #f0f5fb; border-color: #ccd8e8; }
+.modal-body { background: var(--panel); }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .sidebar {
-    background: linear-gradient(150deg, #ffffff52, #e3ebf526), #eaf0f7d9;
-    -webkit-backdrop-filter: blur(16px) saturate(110%);
-    backdrop-filter: blur(16px) saturate(110%);
+    background: linear-gradient(155deg, #ffffff75, #ffffff12 48%, #e8e5ff52), #edf3fc5c;
+    -webkit-backdrop-filter: blur(20px) saturate(135%);
+    backdrop-filter: blur(20px) saturate(135%);
   }
   .topbar, .home-header-actions {
-    background: linear-gradient(110deg, #ffffff70, #f1f5fa26), #f2f6fbcf;
-    -webkit-backdrop-filter: blur(10px) saturate(105%);
-    backdrop-filter: blur(10px) saturate(105%);
+    background: linear-gradient(125deg, #ffffff80, #ffffff10 48%, #ffffff5c), #eef4fc66;
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(125%);
+  }
+  .modal { background: transparent; }
+  .modal-head, .modal-foot {
+    background: linear-gradient(130deg, #ffffff99, #ffffff26), #eaf2fcc7;
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    backdrop-filter: blur(12px) saturate(120%);
   }
 }
-/* Transparency and stronger-contrast preferences both get solid surfaces. */
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+/* Interaction-only motion, no perpetual shimmer, pointer tracking or blur animation. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .home-search, .home-bell, .home-header-actions > .btn-primary {
+    transition: transform 140ms ease, box-shadow 140ms ease;
+  }
+  .home-search:hover, .home-bell:hover, .home-header-actions > .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 #fff, 0 4px 10px #33578124;
+  }
+  .home-search:active, .home-bell:active, .home-header-actions > .btn-primary:active { transform: translateY(0); }
+}
+/* Low-effects preferences also remove the GPU blur, with a solid fallback. */
+@media (prefers-reduced-transparency: reduce), (prefers-reduced-motion: reduce), (prefers-contrast: more), (update: slow) {
   .app { background: var(--bg); }
-  .sidebar, .topbar, .home-header-actions {
+  .sidebar, .topbar, .home-header-actions, .section-nav, .modal, .modal-head, .modal-foot, .action-dock {
     background: #f1f5fa;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: none;
   }
-  .home-search, .home-bell { background: white; }
+  .sidebar::before, .home-header-actions::before { display: none; }
+  .nav-item.active { background: #dce7f8; box-shadow: none; }
+  .home-search, .home-bell { background: white; box-shadow: none; }
+  .home-header-actions > .btn-primary { background: var(--primary); box-shadow: none; }
 }
 @media (prefers-contrast: more) {
   :root { --line: #8995a5; --line-strong: #697789; --text-3: #3f4854; }
-  .sidebar, .topbar, .home-header-actions { border-color: var(--line-strong); }
+  .sidebar, .topbar, .home-header-actions, .section-nav, .modal, .modal-head, .modal-foot, .action-dock { border-color: var(--line-strong); }
   .nav-item.active, .section-nav button.selected { outline: 1px solid var(--primary); outline-offset: -1px; }
 }
 @media (forced-colors: active) {
@@ -232,16 +315,23 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
     --text-2: CanvasText; --text-3: CanvasText; --primary: LinkText;
     --line: ButtonText; --line-strong: ButtonText;
   }
-  .app, .sidebar, .topbar, .home-header-actions, .home-search, .home-bell {
+  .app, .sidebar, .topbar, .home-header-actions, .home-search, .home-bell,
+  .section-nav, .modal, .modal-head, .modal-foot, .modal-body, .action-dock {
     background: Canvas; color: CanvasText; border-color: ButtonText;
     box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
   }
-  .nav-item.active, .section-nav button.selected, .btn-primary {
-    background: Canvas; color: ButtonText; border-color: ButtonText;
+  .sidebar::before, .home-header-actions::before { display: none; }
+  .nav-item.active, .section-nav button.selected, .btn-primary, .home-header-actions > .btn-primary {
+    box-shadow: none; background: Canvas; color: ButtonText; border-color: ButtonText;
     outline: 2px solid Highlight; outline-offset: -2px;
   }
   button:focus-visible, a:focus-visible, summary:focus-visible,
   input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 2px solid Highlight; outline-offset: 3px;
   }
+}
+
+@media (max-width: 999px) {
+  .topbar:not(.dashboard-topbar):not(.detail-topbar) { margin: 12px 16px; }
+  .sidebar.mobile-open { top: 0; }
 }
