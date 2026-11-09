@@ -546,8 +546,8 @@ function searchKb(terms: string[], pool: number, atOf: Map<string, string>): Sea
       subtitle: subtitleBits.filter(Boolean).join(' · '),
       snippet: snippetOf(r.body, terms, `${r.title} ${r.source ?? ''}`),
       score: m.score,
-      // 知识库页不解析参数（未改动的 Knowledge.tsx），只能跳到页面本身
-      route: '/knowledge',
+      // 日常知识库只展示模板；制度命中进入已有的后台维护区。
+      route: '/settings?section=references',
     });
     atOf.set(`kb#${r.id}`, r.created_at ?? '');
   }

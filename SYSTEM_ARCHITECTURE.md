@@ -1,6 +1,6 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.25。更新：2026-11-09。性质：当前源码的结构与运行设计。
+文档ID：KB-ARCHITECTURE。版本：1.26。更新：2026-11-09。性质：当前源码的结构与运行设计。
 
 本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
@@ -27,7 +27,7 @@ flowchart TB
 
 技术栈为React、Vite、TypeScript、Node.js 24+、Fastify及Node内置SQLite。文档处理使用ExcelJS、PizZip、PDF.js、Tesseract.js；旧版Excel转换依赖Windows上的Microsoft Excel。具体依赖版本以package-lock.json为准。
 
-前端样式在既有styles/design/home/compact之后加载desktop.css，统一浅色桌面配色、Windows优先字体、14px正文和36px常规控件；保留原页面业务组件和响应式滚动结构，不整体缩放画布。导航材质先定义实底降级，再通过@supports为sidebar、topbar和home-header-actions提供局部backdrop-filter；页面常见状态同时显示两处且互不嵌套，白色内容卡片不模糊。静态浅灰蓝背景不增加图像资源、动画或永久will-change层；减少透明/增强对比媒体偏好切回实底，forced-colors使用系统色并保留焦点。全部由样式层完成，不增加浏览器脚本或依赖。Knowledge日常入口显示TemplatePanel与CoveragePanel；原制度文档、文件检索、问答和查依据组件由PolicyMaintenancePanel复用，置于Settings“模型与资料”的折叠维护区。维护区在模型与资料页顶部默认折叠；引用弹窗通过#/settings?section=references直接展开该区，App沿用NavigationGuard后传递参数，不重挂载整个设置页或承诺具体条款定位。首次展开后保持挂载，折叠不清空当前输入；后端知识行、索引、显式启用判断及引用来源逻辑未因此改变。工作详情的核对、关联记录、配置更新使用原生details收纳，子组件保持挂载以保留请求与离开保护。
+前端样式在既有styles/design/home/compact之后加载desktop.css，统一浅色桌面配色、Windows优先字体、14px正文和36px常规控件；保留原页面业务组件和响应式滚动结构，不整体缩放画布。导航材质先定义实底降级，再通过@supports为sidebar、topbar和home-header-actions提供局部backdrop-filter；页面常见状态同时显示两处且互不嵌套，白色内容卡片不模糊。静态浅灰蓝背景不增加图像资源、动画或永久will-change层；减少透明/增强对比媒体偏好切回实底，forced-colors使用系统色并保留焦点。全部由样式层完成，不增加浏览器脚本或依赖。Knowledge日常入口显示TemplatePanel与CoveragePanel；原制度文档、文件检索、问答和查依据组件由PolicyMaintenancePanel复用，置于Settings“模型与资料”的折叠维护区。维护区在模型与资料页顶部默认折叠；引用弹窗及全局搜索的制度命中通过#/settings?section=references直接展开该区，App沿用NavigationGuard后传递参数，不重挂载整个设置页或承诺具体条款定位。首次展开后保持挂载，折叠不清空当前输入；后端知识行、索引、显式启用判断及引用来源逻辑未因此改变。工作详情的核对、关联记录、配置更新使用原生details收纳，子组件保持挂载以保留请求与离开保护。
 
 ## 2. 模块与职责
 

@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "56f0b1333b43976d361c546b578564725a7880d54f329b2eb5328778809d9134",
+      "sha256": "1c17b35f384ab0fbdcc3432a156f133e3a096009e177e5e717f5f75cac906073",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -221,7 +221,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "754af18da5a63f3d38ba09fe89bbb2a16984b0b013e4ec92448ea984ab627b20",
+      "sha256": "a1109142bc42b622e48e66c1b9d33a98d9b78280f2204d055b898877ac3d00d6",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -233,6 +233,7 @@
         "docs/guides/DATA_BOUNDARIES.md",
         "docs/guides/DEVELOPMENT.md",
         "docs/guides/DEVICE_HANDOFF.md",
+        "docs/guides/INSTALLATION.md",
         "docs/management/CHANGELOG.md",
         "docs/management/DOCUMENT_CONTROL.md",
         "docs/management/PROJECT_PLAN.md",
@@ -298,6 +299,12 @@
         {
           "target": "DEVELOPMENT_PROGRESS.md",
           "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
           "availability": "repository",
           "exists": true
         },
@@ -616,7 +623,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "3921306b55220e104a3f38b3e87409124e47148551c295b830dc0f51ab7a05be",
+      "sha256": "35324bff6975e76c32d3d231f3a95d4418a513d5d8586374d224171a1b097709",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -1088,7 +1095,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "首次安装、本机配置、构建和日常启动步骤",
-      "sha256": "5280bdcf06684ed5627002b2c7d240147724edf6903fb572e647342621683139",
+      "sha256": "7b34bcdc21e26b66f64289b7b7a4f7aec03cd5f12e74a9dfb9bcd7196373ef47",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DATA_BOUNDARIES.md",
@@ -1212,9 +1219,10 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界",
-      "sha256": "9e626101a7f4ab1b3dda639b558c685ccd7b32a436475d15fc812818e549bc48",
+      "sha256": "1baf7fe9cc6915400743b2f94d1c56dffc4c1287d6851f3470a85fb4fb4e2d4c",
       "linksTo": [
-        "DEVELOPMENT_PROGRESS.md"
+        "DEVELOPMENT_PROGRESS.md",
+        "docs/guides/INSTALLATION.md"
       ],
       "localLinks": [
         {
@@ -1234,6 +1242,12 @@
           "path": "docs/reference/current-baseline.json",
           "availability": "local-evidence",
           "exists": null
+        },
+        {
+          "target": "INSTALLATION.md",
+          "path": "docs/guides/INSTALLATION.md",
+          "availability": "repository",
+          "exists": true
         },
         {
           "target": "../../outputs/ui-design-reference-20261024-v2/00-Codex交互实现说明.md",
@@ -1630,7 +1644,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "356293a0e8c333295bd84cfb531beba569820ce234b3a2b7463b847013dcbe9e",
+      "sha256": "47146cc86d23ae48966220835846111f39446811bf14f4202369bdfd99865cf6",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVICE_HANDOFF.md",
@@ -1735,7 +1749,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "1b0ac3568faed8736076b958eda8576a80a1c7659effdad8200ceb1cb0411325",
+      "sha256": "ad33c683974416ad038345cddf919ce714cbc30f7861274e5adb54884a1fd29f",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1820,7 +1834,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "e6685a8b1c2a537c82c23e0ab0bd690eaa272de5d4fd0ead77852c4e63f7bd6d",
+      "sha256": "b8ab7578e78af0405d9577db4cf8deaa5459c00930457f472596850733d24b88",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

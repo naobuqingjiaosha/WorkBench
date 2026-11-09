@@ -1,6 +1,6 @@
 # 安装与启动指南
 
-文档ID：GUIDE-INSTALLATION。版本：1.0。更新：2026-10-26。性质：新安装与已有环境启动说明。
+文档ID：GUIDE-INSTALLATION。版本：1.1。更新：2026-11-09。性质：新安装与已有环境启动说明。
 
 本文面向本地最新源码；既有运行实例的版本与路径先按[开发进度](../../DEVELOPMENT_PROGRESS.md)和[运维手册](OPERATIONS.md)核对。开发、测试命令见[开发指南](DEVELOPMENT.md)，源码和私有资料边界见[资料边界](DATA_BOUNDARIES.md)。
 
@@ -57,6 +57,26 @@ npm start
 `npm start` 会读取当前环境的 `runtime/current-release.json`（旧布局为 `data/runtime/current-release.json`）：存在有效指针时启动所选发布包；没有指针时启动开发工作区源码。发布包与当前源码可能不同，拉取代码或构建前端不等于完成发布。已有发布指针但包不完整时，启动器会报错，不会自动回退到源码。
 
 备份、恢复和发布步骤见[运维手册](OPERATIONS.md)。
+
+## 在 Windows 查看 GitHub 最新首页（隔离预览）
+
+只看最新界面时，建议在另一个源码目录预览，保留日常实例、数据库和发布指针。Node.js须为24或更高版本。在 PowerShell 中首次获取：
+
+```powershell
+git clone https://github.com/naobuqingjiaosha/WorkBench.git WorkBench-preview
+cd WorkBench-preview
+git rev-parse HEAD
+npm ci
+npm run dev:monthly -- --build
+```
+
+打开终端显示的地址，默认是 [http://127.0.0.1:18889](http://127.0.0.1:18889)。虽然命令沿用monthly名称，它构建并启动的是当前源码的完整工作台：首页、文件、模板和其他导航均可查看。不要加`--seed-handoff`；该选项会建立额外验收样本。首次预览没有日常工作或模板是正常现象，不表示原资料丢失。
+
+此入口使用development身份，数据与构建位于`%LOCALAPPDATA%\WorkBench\development\<源码路径哈希>\monthly`（未另设开发根时），不读取日常发布指针，不把预览数据写进日常库。可在`http://127.0.0.1:18889/api/health`核对`runtimeProfile`为`development`及独立`dbFile`；`loadedBuild`是启动时文件摘要，不是Git SHA。源码版本用上述`git rev-parse HEAD`与本次交付提交核对。
+
+再次更新同一预览目录时，先用Ctrl+C停止自己的预览服务；确认分支为main、`git status --short`无修改，再运行`git pull --ff-only origin main`、`npm ci`和`npm run dev:monthly -- --build`。有本地修改或分支分歧时保留现场，不重置。端口被占用时核实已有进程；可在当前PowerShell先设置`$env:MONTHLY_DEV_PORT='18890'`后启动，并使用终端实际地址。需要时用Ctrl+F5刷新页面。
+
+`npm start`或双击日常启动脚本可能仍加载旧发布包；单纯拉取Git或运行预览不会更新日常版。配套发布是另一项操作，不删除或改写`current-release.json`来强行看到新界面。本步骤由启动源码与隔离规则核对；Windows本机字体、缩放、浏览器主题及完整启动链仍需在目标设备确认。
 
 ## 后续操作
 
