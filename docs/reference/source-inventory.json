@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "5fd56249be81639e1b280d88b9af1d3d3c3c8e2f",
+  "committedBase": "b8a5a0097d44e3df8a676cca7a27639bd59f1710",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -681,7 +681,7 @@
     },
     {
       "path": "packages/web/src/App.tsx",
-      "sha256": "52920569a64d0fb904de8578261c0b8ebf67869d37dc96cf5a18f01ed0aae8f3"
+      "sha256": "7fe0129171e352c7dbb4c938e8d38bb4438efd07125ce4e4e90b710097207cba"
     },
     {
       "path": "packages/web/src/api.ts",
@@ -800,12 +800,16 @@
       "sha256": "a94c09396ce2599e99eb385bdaac5a8847646cae6ffd4822a8bf2e522f1e4843"
     },
     {
+      "path": "packages/web/src/desktop.css",
+      "sha256": "3f6fd18e8ac0ea79256799b4d19f81eec7e7d3c9e6bcfa3ce490089521478443"
+    },
+    {
       "path": "packages/web/src/home.css",
       "sha256": "c36fc1137e33ed109795028302d467d6938eb0a0a27ba40dbe30bfa6b1fccc5e"
     },
     {
       "path": "packages/web/src/main.tsx",
-      "sha256": "fedf9e8c460932815eef00d2de4c46ebdb5e8def8705c26db9ed13a1ccf55325"
+      "sha256": "5397529c0e68134f2ea9cdfbe77fa0a3a5ae23102f0dce79214c534edb69b4ad"
     },
     {
       "path": "packages/web/src/pages/Agent.tsx",
@@ -829,7 +833,7 @@
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
-      "sha256": "c7f4d9ee1403f6e96bf5788f4b058a1d363e874c1d714fb47c08050779c149d7"
+      "sha256": "98e1ee84b08bd6d3daf0552339c613ebcf7c0b0a1d77405fda2dd1ca90344b08"
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
@@ -853,11 +857,11 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "af2b0d879b82ed654a0c2841a4f217ed18bd4f07d1d5660e20118d4c24576f5b"
+      "sha256": "b95a18c26e90e716876103ad7e88f87067f39c2702d07e5c5efdea4309dabcc8"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
-      "sha256": "acaba144f147b8c92d067a04d3582957111ab41757d807f08baebc57d5b8ead1"
+      "sha256": "1c4dcb009f09099f78035077afb70e91ae881d06e8cfd8bfeb1bf24ebcacf8e5"
     },
     {
       "path": "packages/web/src/pages/Timesheets.tsx",
@@ -873,7 +877,7 @@
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "a59922097c2e245cb6ccb95aa0a484c089c0afd8c6a9f09891b7fd637dca3291"
+      "sha256": "682273862a4adbd2f3a2f4a67ef522ccea125ae053173e34fb5b21c27bc82a9a"
     },
     {
       "path": "packages/web/src/styles.css",

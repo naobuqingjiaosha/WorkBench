@@ -72,6 +72,9 @@ export function TemplatePanel() {
 
   return (
     <div className="col" style={{ gap: 14 }}>
+      <details className="template-guide card">
+      <summary>模板使用说明 · 变量、循环与图片</summary>
+      <div className="card-body">
       <div className="notice notice-info">
         <strong>模板怎么写？</strong> 打开你的 Word / Excel 模板，把每次会变的内容改写成 <code>{'{变量名}'}</code>，
         例如把「2026年3月」写成 <code>{'{检查月份}'}</code>、把单位名写成 <code>{'{单位名称}'}</code>。
@@ -131,6 +134,7 @@ export function TemplatePanel() {
         </div>
       </div>
 
+      </div></details>
       <Card
         title={`模板库（${rows.length}）`}
         extra={
@@ -173,7 +177,7 @@ export function TemplatePanel() {
             }
           />
         ) : (
-          <table className="table">
+          <table className="table template-table">
             <thead>
               <tr>
                 <th>模板名</th>

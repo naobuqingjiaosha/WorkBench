@@ -508,14 +508,14 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
         <p>{periodEnabled?'选择期次，填写本期内容并生成文书':isDocMode?'填写业务内容，选择模板生成文书':`当前阶段：${d.positions.find(p=>p.status==='doing')?.name??d.positions.find(p=>p.status!=='done')?.name??'阶段已完成'}`}</p>
         <div className="row small muted"><span>{wb.code}</span><span>已有文件 {stats.artifactCount} 份</span></div>
       </Card>
-      <Card title="材料与进度核对">
+      <details className="work-support card"><summary>材料与进度核对</summary><div className="card-body">
         <p className="small muted">从当前磁盘文件重新核对影像数量、清单状态及完成时间，并更新工作进度；不改变阶段、期次的办理状态或历史定稿。仅刷新页面不会执行核对。未保存的表单输入不参与核对。</p>
         <Button disabled={busy||rechecking} onClick={()=>void recheck()}>{rechecking?'正在核对…':'重新核对材料与进度'}</Button>
         {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
         {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
-      </Card>
-      <WorkRecordLinks key={id} workbenchId={id}/>
-      <WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/>
+      </div></details>
+      <details className="work-support card"><summary>关联工作记录</summary><WorkRecordLinks key={id} workbenchId={id}/></details>
+      <details className="work-support card"><summary>流程配置更新</summary><WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/></details>
       {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading && <details open={isDocMode} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
         行政管理是「文书驱动」：这份工作的内容就是填那几张表，

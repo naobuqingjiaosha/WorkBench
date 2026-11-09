@@ -1,6 +1,6 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.23。更新：2026-11-06。性质：当前源码的结构与运行设计。
+文档ID：KB-ARCHITECTURE。版本：1.24。更新：2026-11-09。性质：当前源码的结构与运行设计。
 
 本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
@@ -26,6 +26,8 @@ flowchart TB
 ```
 
 技术栈为React、Vite、TypeScript、Node.js 24+、Fastify及Node内置SQLite。文档处理使用ExcelJS、PizZip、PDF.js、Tesseract.js；旧版Excel转换依赖Windows上的Microsoft Excel。具体依赖版本以package-lock.json为准。
+
+前端样式在既有styles/design/home/compact之后加载desktop.css，统一浅色桌面配色、Windows优先字体、14px正文和36px常规控件；保留原页面业务组件和响应式滚动结构，不整体缩放画布。Knowledge日常入口显示TemplatePanel与CoveragePanel；原制度文档、文件检索、问答和查依据组件由PolicyMaintenancePanel复用，置于Settings“模型与资料”的折叠维护区。首次展开后保持挂载，折叠不清空当前输入；后端知识行、索引、显式启用判断及引用来源逻辑未因此改变。工作详情的核对、关联记录、配置更新使用原生details收纳，子组件保持挂载以保留请求与离开保护。
 
 ## 2. 模块与职责
 

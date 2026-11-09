@@ -44,7 +44,7 @@ function readRoute(): RouteState {
 const NAV: { group: string; items: { key: RouteKey; label: string; icon: string; desc: string }[] }[] = [
   {
     group: '总览',
-    items: [{ key: 'dashboard', label: '工作台首页', icon: '◫', desc: '工作进度与待办' }],
+    items: [{ key: 'dashboard', label: '工作台首页', icon: '◫', desc: '日常工作、资料与常用工具' }],
   },
   {
     group: '工作办理',
@@ -57,7 +57,7 @@ const NAV: { group: string; items: { key: RouteKey; label: string; icon: string;
     group: '资料与工具',
     items: [
       { key: 'process', label: '流程规范', icon: '⇉', desc: '每步该做什么、留什么材料' },
-      { key: 'knowledge', label: '知识库', icon: '❖', desc: '模板、制度、资料 —— 检索与提问' },
+      { key: 'knowledge', label: '知识库', icon: '❖', desc: '文书模板、变量与自动填写' },
       { key: 'agent', label: 'AI 助手', icon: '✦', desc: '基于业务证据问答、分析和起草文书' },
     ],
   },
@@ -113,7 +113,7 @@ function AppShell() {
         <aside className={`sidebar${mobileOpen?' mobile-open':''}`}>
           <div className="brand">
             <h1>工作台</h1>
-            <p>行政管理 · 项目实施</p>
+            <p>个人工作空间</p>
           </div>
           <nav className="nav">
             {NAV.map((g) => (
@@ -133,7 +133,7 @@ function AppShell() {
             ))}
           </nav>
           <div className="sidebar-foot">
-            {aiReady === null ? '正在检查模型…' : aiReady === 'error' ? '模型状态读取失败' : aiReady ? '模型已就绪' : <span onClick={() => go('settings')} className="clickable">⚠ 还没配置模型</span>}
+            {aiReady === null ? '正在检查模型…' : aiReady === 'error' ? '模型状态读取失败' : aiReady ? '模型已就绪' : <button type="button" className="sidebar-status" onClick={() => go('settings')}>配置模型 →</button>}
           </div>
         </aside>
 

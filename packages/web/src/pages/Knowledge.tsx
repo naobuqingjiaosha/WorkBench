@@ -2,20 +2,8 @@ import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {FilePreview} from '../components/FilePreview';
-/**
- * 知识库
- *
- * 分成两个模块，因为这两类东西的用法不一样：
- *   ❐ 模板库   —— 要填的表。套上去出成品文件，用字段占位符。
- *   📖 公司制度 —— 办事的规矩。制度、规范、标准、通知，是写内容时的口径依据。
- *
- * 分开是给人看的；模型写内容时两者会**一起**作为依据（核心逻辑见
- * server/src/core/knowledge.ts），不需要分别去两个模块里搬。
- *
- * 「公司制度」下面是三种用法：
- *   已入库文档 —— 库里有什么、导入了多少
- *   ⌕ 找文件   —— 按文件名/正文关键词精确匹配，快、不花钱、结果确定
- *   ❖ 检索提问 —— 本地关键词查原文，可交给本地模型回答
+/** 模板是日常知识库入口；制度维护移至系统配置。
+ * 制度资料只在当前请求明确启用时参与引用，不因页面可见性自动启用。
  */
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -89,56 +77,31 @@ interface DisplayHit {
 
 /* ============================== 主组件 ============================== */
 
-/**
- * 知识库
- *
- * 两个模块 —— 都是「开展工作要用到的东西」，但性质不同，所以分开组织：
- *   ❐ 模板库     Word/Excel 模板：套上去就能出成品文件
- *   📖 公司制度   制度、规范、纪要等资料：办事要照的口径
- *
- * 分开是给人看的；模型思考时**两者都会作为依据**（见 core/knowledge.ts），
- * 不需要你分别去两个地方找。
- */
-type KnowledgeModule = 'all' | 'template' | 'policy';
-/** 公司制度模块内部的用法 —— 看得见、找得到、问得出、查依据 */
 type PolicyTab = 'docs' | 'files' | 'ask' | 'evidence';
 
 export default function KnowledgePage({params={}}:{params?:Record<string,string>}) {
-  const [mod, setMod] = useState<KnowledgeModule>(params.module==='template'?'template':'all');
-  const [policyTab, setPolicyTab] = useState<PolicyTab>('docs');
+  const [section, setSection] = useState('template');
+  return <PageSplit nav={<SectionNav value={section} onChange={setSection} items={[
+    {value:'template',label:'模板库'}, {value:'coverage',label:'字段映射'},
+  ]}/>}><div className="section-content">
+    {section === 'template' ? <TemplatePanel /> : <CoveragePanel />}
+  </div></PageSplit>;
+}
 
-  return (
-    <PageSplit nav={<SectionNav value={mod} onChange={v=>setMod(v as KnowledgeModule)} items={[{value:'all',label:'全部资料'},{value:'policy',label:'制度与参考资料'},{value:'template',label:'模板库'}]}/>}><div className="section-content">
-      {mod==='all'&&<KnowledgeOverview onTemplates={()=>setMod('template')} onPolicies={()=>setMod('policy')}/>}
-      {mod === 'template' ? (
-        <>
-          <TemplatePanel />
-          <CoveragePanel />
-        </>
-      ) : mod==='policy' ? (
-        <>
-          <div className="row" style={{ gap: 8 }}>
-            {(
-              [
-                ['docs', '已入库文档'],
-                ['files', '⌕ 找文件'],
-                ['ask', '❖ 检索提问'],
-                ['evidence', '⚖ 查依据'],
-              ] as [PolicyTab, string][]
-            ).map(([k, label]) => (
-              <button key={k} className={`btn btn-sm${policyTab === k ? ' btn-primary' : ''}`} onClick={() => setPolicyTab(k)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          {policyTab === 'files' && <FileSearchPanel />}
-          {policyTab === 'ask' && <AskPanel />}
-          {policyTab === 'docs' && <PolicyDocsPanel />}
-          {policyTab === 'evidence' && <EvidencePanel />}
-        </>
-      ) : null}
-    </div></PageSplit>
-  );
+/** 保留原维护/查询能力，只在设置的折叠维护区由用户主动打开。 */
+export function PolicyMaintenancePanel() {
+  const [policyTab, setPolicyTab] = useState<PolicyTab>('docs');
+  return <div className="section-content">
+    <p className="muted">此处维护后台参考资料。日常知识库展示模板；助手和文书的制度参考仍需在本次请求中明确启用。</p>
+    <div className="view-tabs" aria-label="参考资料维护方式">
+      {([['docs','已入库文档'],['files','找文件'],['ask','检索提问'],['evidence','查依据']] as [PolicyTab,string][]).map(([key,label]) =>
+        <button type="button" key={key} aria-pressed={policyTab===key} className={policyTab===key?'selected':''} onClick={()=>setPolicyTab(key)}>{label}</button>)}
+    </div>
+    {policyTab === 'docs' && <PolicyDocsPanel />}
+    {policyTab === 'files' && <FileSearchPanel />}
+    {policyTab === 'ask' && <AskPanel />}
+    {policyTab === 'evidence' && <EvidencePanel />}
+  </div>;
 }
 
 /* ============================== 模板变量覆盖率 ============================== */

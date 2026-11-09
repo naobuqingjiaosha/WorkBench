@@ -1,3 +1,4 @@
+import {PolicyMaintenancePanel} from './Knowledge';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {useEditorGuard} from '../components/NavigationGuard';
 import { useEffect, useRef, useState } from 'react';
@@ -35,6 +36,7 @@ const appForm = (values:Record<string,string>):AppForm => ({org:values['app.org'
 export default function SettingsPage() {
   const toast = useToast();
   const [section,setSection]=useState('runtime');
+  const [referenceMounted,setReferenceMounted]=useState(false);
   const health=useApi<{status:string;webBuilt:boolean;time:string;loadedBuild:{startedAt:string;sourceSha256:string;frontendSha256:string}}>('/api/health');
   const overview = useApi<{
     providers: AiProvider[];
@@ -287,7 +289,7 @@ export default function SettingsPage() {
       </Card>
 
       <BackupCard />
-      </div><div className="settings-panel" hidden={section!=='models'}><AiLogsCard/><KbExtractCard/><ComplianceCard/><OcrCard/></div>
+      </div><div className="settings-panel" hidden={section!=='models'}><AiLogsCard/><KbExtractCard/><ComplianceCard/><OcrCard/><details className="reference-maintenance card" onToggle={e=>{if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details></div>
 
       {editProvider && (
         <ProviderModal
