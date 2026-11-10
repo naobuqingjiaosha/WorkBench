@@ -3,7 +3,7 @@ import {ApiError} from '../api/reply.ts';
 import {departmentLayout,monthDays,type RunInput,type Calculation} from './timesheets.ts';
 
 /** Keep the supplied workbook. Only date columns, selected people/project rows and dependent totals change. */
-export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput){
+export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput,result?:Calculation){
  const layout=departmentLayout(book,input.month),s=layout.sheet,count=monthDays(input.month),year=Number(input.month.slice(0,4)),month=Number(input.month.slice(5));
  const retainedRd=s.getRows(1,s.rowCount)?.filter(r=>r.getCell(4).text.trim()==='研发工时').map(r=>({row:r.number,cells:Array.from({length:s.columnCount},(_,i)=>({value:structuredClone(r.getCell(i+1).value),style:structuredClone(r.getCell(i+1).style)}))}))??[];
  let total=layout.totalCol;
@@ -26,12 +26,12 @@ export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput
  // Unselected people stay as empty, non-person rows so original rows and styles are not deleted.
  for(const row of layout.rows){
   for(let c=9;c<=total;c++)s.getCell(row.row,c).value=null;
-  if(wanted&&!wanted.includes(row.person)){for(let c=1;c<=8;c++)s.getCell(row.row,c).value=null;}
-  else s.getCell(row.row,total).value={formula:`SUM(I${row.row}:AM${row.row})`,result:0};
+  if(wanted&&!wanted.includes(row.person)){s.getRow(row.row).eachCell(c=>{c.value=null;c.note='';});}
+  else {s.getCell(row.row,4).value=s.getCell(row.row,4).text.trim();s.getCell(row.row,total).value={formula:`SUM(I${row.row}:AM${row.row})`,result:0};}
  }
  const pairs=layout.rows.filter(r=>!wanted||wanted.includes(r.person)).map(r=>({person:r.person,project:r.project}));
  for(const person of wanted??[]){const assigned=input.assignments[person];const projects=typeof assigned==='string'?[assigned]:assigned??[];
-  const targets=[...new Set([...projects,...(input.overrides??[]).filter(o=>o.person===person&&o.project).map(o=>o.project!),...(input.allocations??[]).filter(o=>o.person===person).flatMap(o=>Object.keys(o.shares))])];
+  const targets=[...new Set([...projects,...(result?.days??[]).filter(d=>d.person===person&&d.project&&d.department>0).map(d=>d.project),...(input.overrides??[]).filter(o=>o.person===person&&o.project).map(o=>o.project!),...(input.allocations??[]).filter(o=>o.person===person).flatMap(o=>Object.keys(o.shares))])];
   for(const project of targets)if(!pairs.some(p=>p.person===person&&p.project===project)){
    if(!input.projects.includes(project))throw new ApiError('PROJECT_UNKNOWN','新增行的项目不在已确认清单中');
    const footer=layout.rows.length?Math.max(...layout.rows.map(r=>r.row))+1:layout.headerRow+2;
@@ -52,6 +52,29 @@ export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput
  book.calcProperties.fullCalcOnLoad=true;
 }
 
+// A department template may be last month's finished sheet. Its old research rows
+// have no authority for this month's person, project, contract, date or hours.
+export function refreshResearchRows(layout:ReturnType<typeof departmentLayout>,result:Calculation) {
+ const {sheet,totalCol}=layout;
+ const remaining=new Map<string,number[]>();
+ for(const day of result.days){
+  if(!remaining.has(day.person))remaining.set(day.person,Array(31).fill(0));
+  const daily=remaining.get(day.person)!,index=Number(day.date.slice(8))-1;
+  daily[index]=(daily[index]??0)+day.rd;
+ }
+ sheet.eachRow(row=>{
+  if(row.getCell(4).text.trim()!=='研发工时')return;
+  const person=row.getCell(3).text.trim(),daily=remaining.get(person);
+  row.eachCell(cell=>{cell.value=null;cell.note='';});
+  if(!daily)return;
+  remaining.delete(person);
+  row.getCell(3).value=person;row.getCell(4).value='研发工时';
+  row.getCell(5).value='本月研发合计（不分项目）';
+  daily.forEach((hours,index)=>{if(hours)row.getCell(9+index).value=hours;});
+  row.getCell(totalCol).value={formula:`SUM(I${row.number}:${sheet.getColumn(totalCol-1).letter}${row.number})`,result:daily.reduce((a,b)=>a+b,0)};
+ });
+}
+
 export function refreshTimesheetSummary(book:ExcelJS.Workbook,layout:ReturnType<typeof departmentLayout>,result:Calculation){
  const {sheet:s,rows,totalCol}=layout,first=Math.min(...rows.map(r=>r.row)),last=Math.max(...rows.map(r=>r.row));
  let footer=last+1;
@@ -60,7 +83,8 @@ export function refreshTimesheetSummary(book:ExcelJS.Workbook,layout:ReturnType<
  for(let c=9;c<=totalCol;c++){
   const letter=s.getColumn(c).letter;
   const value=rows.reduce((sum,r)=>{const v=s.getCell(r.row,c);return sum+Number(v.formula?v.result??0:v.value??0);},0);
-  s.getCell(footer,c).value={formula:`SUM(${rows.map(r=>letter+r.row).join(',')})`,result:value};
+  const kinds=`$D$${first}:$D$${last}`,values=`${letter}${first}:${letter}${last}`;
+  s.getCell(footer,c).value={formula:`SUMIF(${kinds},"部门工时",${values})+SUMIF(${kinds},"服务工时",${values})`,result:value};
  }
  s.pageSetup.printArea=`A1:${s.getColumn(Math.max(totalCol,s.columnCount)).letter}${Math.max(footer,s.rowCount)}`;
  const summary=book.worksheets.find(ws=>ws.name.startsWith('人员工时汇总'));

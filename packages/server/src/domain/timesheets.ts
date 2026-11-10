@@ -1,11 +1,13 @@
+import {parseProjectReport,validateProjectReportSelection,type ProjectReportSelection} from './project-report.ts';
 import {checkedOfficeBytes,readOfficeBytes} from '../core/office-package.ts';
 import ExcelJS from 'exceljs';
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DATA_ROOT } from '../core/config.ts';
 import { get, run, tx } from '../db/index.ts';
-import { prepareDepartmentBook, refreshTimesheetSummary } from './timesheet-layout.ts';
+import {timesheetPreferences,saveTimesheetPreferences} from './timesheet-preferences.ts';
+import { prepareDepartmentBook, refreshResearchRows, refreshTimesheetSummary } from './timesheet-layout.ts';
 import {normalizeExcel} from '../core/office-import.ts';
 import { ApiError } from '../api/reply.ts';
 import { requirePeriod, requireWorkbench } from './periods.ts';
@@ -13,7 +15,7 @@ import { workbenchOutputDirAbs } from './service.ts';
 import { saveArtifact, artifactAbsPath, getArtifact } from '../core/store.ts';
 import { markFinal } from './versions.ts';
 import { assertFinalArtifact } from './finalization.ts';
-export const TIMESHEET_RULE_VERSION = '2026-10-21.5';
+export const TIMESHEET_RULE_VERSION = '2026-11-10.integer';
 const ROOT = () => join(DATA_ROOT, '_工时处理');
 export interface Source {
     id: string;
@@ -80,7 +82,12 @@ export async function storeTimesheetSource(name: string, bytes: Buffer) {
     const id = randomUUID(), digest = createHash('sha256').update(bytes).digest('hex');
     mkdirSync(join(ROOT(), 'inputs'), { recursive: true });
     writeFileSync(sourcePath(id), bytes, { flag: 'wx' });
-    run('INSERT INTO timesheet_source(id,name,digest) VALUES(?,?,?)', [id, name, digest]);
+    try {
+        run('INSERT INTO timesheet_source(id,name,digest) VALUES(?,?,?)', [id, name, digest]);
+    } catch (error) {
+        unlinkSync(sourcePath(id));
+        throw error;
+    }
     return { id, name, digest, sheets: book.worksheets.map(s => ({ name: s.name, rows: s.rowCount, preview: Array.from({ length: Math.min(s.rowCount, 12) }, (_, i) => Array.from({ length: Math.min(s.columnCount, 45) }, (_, j) => s.getCell(i + 1, j + 1).text)) })) };
 }
 export async function readSource(id: string) {
@@ -132,6 +139,16 @@ export async function readMapped(id: string, m: Mapping, month: string, kind: 'r
     const wide = m.dateHeaderRow && m.dateStartColumn;
     if (!wide && (!m.dateColumn || (kind === 'rd' ? !m.hoursColumn : !m.statusColumn)))
         throw new ApiError('BAD_MAPPING', '请补齐日期、工时或考勤状态列');
+    const dates: string[] = [];
+    if (wide) {
+        for (let d = 1; d <= monthDays(month); d++) {
+            const cell = s.getCell(m.dateHeaderRow!, m.dateStartColumn! + d - 1);
+            const date = dateValue(scalar(cell), month);
+            if (date !== `${month}-${String(d).padStart(2,'0')}`)
+                throw new ApiError('WRONG_MONTH', `${source.name} ${cell.address} 需要为 ${month} 的第 ${d} 日，请核对月份、重复或缺失日期`);
+            dates.push(date);
+        }
+    }
     const rows: DayInput[] = [];
     for (let r = m.startRow; r <= s.rowCount; r++) {
         const person = s.getCell(r, m.personColumn).text.trim();
@@ -150,7 +167,7 @@ export async function readMapped(id: string, m: Mapping, month: string, kind: 'r
             for (let d = 0; d < monthDays(month); d++) {
                 const col = m.dateStartColumn! + d;
                 const cell=s.getCell(r,col);
-                push(dateValue(scalar(s.getCell(m.dateHeaderRow!, col)), month), kind==='rd'?scalar(cell):0,kind==='attendance'?(cell.text.trim()||'未注明考勤状态'):'',cell.address);
+                push(dates[d]!, kind==='rd'?scalar(cell):0,kind==='attendance'?(cell.text.trim()||'未注明考勤状态'):'',cell.address);
             }
         }
         else {
@@ -228,7 +245,7 @@ export function calculateTimesheet(input: {
     const overrideKeys = new Set<string>();
     for (const row of input.overrides ?? []) {
         const k = `${row.person}|${row.date}`;
-        if (!people.has(row.person) || !row.date.startsWith(input.month + '-') || Number(row.date.slice(8)) < 1 || Number(row.date.slice(8)) > count || !row.source.trim() || overrideKeys.has(k)) {
+        if (!people.has(row.person) || !/^20\d{2}-\d{2}-\d{2}$/.test(row.date) || !row.date.startsWith(input.month + '-') || Number(row.date.slice(8)) < 1 || Number(row.date.slice(8)) > count || !row.source.trim() || overrideKeys.has(k)) {
             issue('OVERRIDE_INVALID', row.person, row.date, '人工调整须属于目标人日、填写原因且不可重复');
             continue;
         }
@@ -264,15 +281,21 @@ export function calculateTimesheet(input: {
                     const requested = overrideKeys.has(key) && a.hours !== undefined ? a.hours : available;
                     if (!Number.isFinite(requested) || requested < 0 || requested > available)
                         issue('OVERRIDE_HOURS', person, date, '人工确认部门工时必须在研发扣除后的可用上限内');
+                    else if (!Number.isInteger(requested))
+                        issue('FRACTIONAL_DEPARTMENT', person, date, `研发及扣薪核对后的部门工时为 ${requested} 小时，不能整小时分配。请核对原始工时与扣薪依据，不自动取整`);
                     else
                         department = requested;
                 }
                 basis += `；研发优先：8 - ${hours}；项目依据：${a.project ? '考勤项目' : '本次确认分配'}`;
                 if(department>0&&targets.length>1){
-                    // Split hundredths deterministically; the final total is exactly the available department time.
-                    const units=Math.floor((department+1e-9)*100),base=Math.floor(units/targets.length),remainder=units%targets.length;
-                    department=units/100;
-                    targets.forEach((target,i)=>{const share=(base+(i<remainder?1:0))/100;days.push({person,date,rd:i===0?hours:0,department:share,project:target,basis:basis+`；本日研发合计 ${hours}；按当期参与的 ${targets.length} 个项目均分（0.01小时，余数依清单顺序）`});projectTotals[target]=(projectTotals[target]??0)+share;});
+                    const base = Math.floor(department / targets.length);
+                    const remainder = department % targets.length;
+                    targets.forEach((target, i) => {
+                        const share = base + (i < remainder ? 1 : 0);
+                        days.push({ person, date, rd: i === 0 ? hours : 0, department: share, project: target,
+                            basis: basis + `；整小时均分，本日 ${department} 小时，余数按本月参与项目顺序分配` });
+                        projectTotals[target] = (projectTotals[target] ?? 0) + share;
+                    });
                     personTotals[person]+=department;
                     continue;
                 }
@@ -351,6 +374,8 @@ export function departmentLayout(book: ExcelJS.Workbook, month: string): Layout 
     return { sheet, headerRow, totalCol, rows };
 }
 export interface RunInput {
+    projectReport?: ProjectReportSelection;
+    projectReportHistory?: ProjectReportSelection[];
     workbenchId?: number;
     periodId?: number;
     month: string;
@@ -373,17 +398,28 @@ export interface RunInput {
 }
 export async function createTimesheetRun(input: RunInput) {
     input=structuredClone(input);
-    // Rebuild source-derived decisions on every run; retain only explicit user edits.
-    input.overrides=(input.overrides??[]).filter(o=>!o.source.startsWith('考勤明确项目：')&&!o.source.startsWith('用户确认扣薪工时：'));
+    // Derived decisions belong to this calculation only. Keep the user's reasons verbatim.
+    const manualOverrides = input.overrides ?? [];
+    input.overrides = [...manualOverrides];
     assertTimesheetScope(input);
+    if(!Array.isArray(input.requiredPeople)||!input.requiredPeople.length)throw new ApiError('ROSTER_REQUIRED','请先核对并填写本月明确参与名单，不能从模板或资料自动认定人员范围');
+    if(new Set(input.requiredPeople).size!==input.requiredPeople.length||input.requiredPeople.some(p=>typeof p!=='string'||!p.trim()))throw new ApiError('ROSTER_INVALID','本月名单存在空姓名或重复，请先核对');
+    const projectReportDetails=[];
+    for(const selected of [...(input.projectReportHistory??[]),...(input.projectReport?[input.projectReport]:[])]){
+        const {book,source}=await readSource(selected.id);
+        if(!/\.xlsx$/i.test(source.name)||selected.digest!==source.digest||selected.month!==input.month)throw new ApiError('REPORT_SOURCE','月报来源或月份已变化，请重新核对');
+        const report=parseProjectReport(book,input.month);
+        validateProjectReportSelection(selected,report);
+        selected.sourceName=source.name;
+        projectReportDetails.push({source,report,selection:selected});
+    }
+
     if (!Array.isArray(input.projects) || input.projects.some(p => typeof p !== 'string' || !p.trim()) || !input.assignments || typeof input.assignments !== 'object')
         throw new ApiError('BAD_INPUT', '请填写成立项目清单和人员分配');
-    if(Array.isArray(input.assignments)||Object.values(input.assignments).some(v=>typeof v!=='string'&&(!Array.isArray(v)||v.some(p=>typeof p!=='string'||!p.trim())||!v.length)))throw new ApiError('BAD_INPUT','每人参与项目须为正式项目名或非空项目数组');
+    if(Array.isArray(input.assignments)||Object.values(input.assignments).some(v=>typeof v!=='string'&&(!Array.isArray(v)||v.some(p=>typeof p!=='string'||!p.trim()))))throw new ApiError('BAD_INPUT','每人参与项目须为正式项目名或项目数组');
     if(input.requiredPeople!==undefined&&!Array.isArray(input.requiredPeople))throw new ApiError('BAD_INPUT','应填报人员名单须为数组');
     if(Object.entries(input.projectAliases??{}).some(([alias,p])=>alias.trim().length<2||!input.projects.includes(p)))throw new ApiError('BAD_PROJECT_ALIAS','项目简称须至少两个字，并对应本月已确认项目');
     const { book, source } = await readSource(input.templateId);
-    await prepareDepartmentBook(book,input);
-    let layout = departmentLayout(book, input.month);
     const rd = await readMapped(input.rdId, input.rdMapping, input.month, 'rd');
     let attendance = (await Promise.all([{id:input.attendanceId,mapping:input.attendanceMapping},...(input.attendanceSources??[])].map(s=>readMapped(s.id,s.mapping,input.month,'attendance')))).flat();
     const projectIssues:Issue[]=[];
@@ -392,11 +428,13 @@ export async function createTimesheetRun(input: RunInput) {
         const text=a.status??'',explicit=input.overrides?.some(o=>o.person===a.person&&o.date===a.date);
         const matches=[...new Set([...input.projects.filter(p=>text.includes(p)),...Object.entries(input.projectAliases??{}).filter(([alias,p])=>alias.length>=2&&text.includes(alias)&&input.projects.includes(p)).map(([,p])=>p)])];
         if(matches.length===1&&!explicit&&(!input.payroll?.fullPay||input.payroll.workdays.includes(Number(a.date.slice(8))))){a.project=matches[0];input.overrides=[...(input.overrides??[]),{...a,status:'project',source:'考勤明确项目：'+text}];}
-        else if(!explicit&&matches.length!==1&&/现场|驻场|出差|送货|安装|调试|项目实施|项目对接|北干|新二坝|小浪底|东山|平台建设|软件开发费/.test(text)&&rd.filter(r=>r.person===a.person&&r.date===a.date).reduce((s,r)=>s+(r.hours??0),0)<8)
+        else if(!explicit&&matches.length!==1&&/现场|驻场|出差|送货|安装|调试|项目实施|项目对接/.test(text)&&rd.filter(r=>r.person===a.person&&r.date===a.date).reduce((s,r)=>s+(r.hours??0),0)<8)
             projectIssues.push({severity:'warning',code:'PROJECT_REMARK',person:a.person,date:a.date,message:`考勤项目线索“${text}”；暂按本月参与项目分配，可调整归属，个人总工时不变`});
         a.source+='；原始考勤：'+(text||'空白');
     }
-    if(input.requiredPeople){const names=new Set(input.requiredPeople);for(const r of [...rd,...attendance])if(!names.has(input.aliases?.[r.person]??r.person))input.exclusions={...input.exclusions,[r.person]:'不在用户确认的人员范围内'};}
+    const scopeExclusion='不在用户确认的人员范围内';
+    input.exclusions=Object.fromEntries(Object.entries(input.exclusions??{}).filter(([,reason])=>reason!==scopeExclusion));
+    if(input.requiredPeople){const names=new Set(input.requiredPeople);for(const r of [...rd,...attendance])if(!names.has(input.aliases?.[r.person]??r.person)&&!Object.hasOwn(input.exclusions??{},r.person))input.exclusions={...input.exclusions,[r.person]:scopeExclusion};}
     if(input.payroll?.fullPay){
         const {workdays,deductions}=input.payroll;
         if(!workdays.length||new Set(workdays).size!==workdays.length||workdays.some(d=>!Number.isInteger(d)||d<1||d>monthDays(input.month)))throw new ApiError('BAD_CALENDAR','请确认本月实际应计薪日期，不可用星期自动代替');
@@ -415,31 +453,40 @@ export async function createTimesheetRun(input: RunInput) {
         }
         input.overrides=custom;
     }
-    const result = calculateTimesheet({ ...input, rd, attendance, people: input.requiredPeople??[...new Set(layout.rows.map(r => r.person))] });
+    const result = calculateTimesheet({ ...input, rd, attendance, people: input.requiredPeople });
     if(input.payroll?.fullPay)for(const person of input.requiredPeople??[])for(let day=1;day<=monthDays(input.month);day++){
         const date=`${input.month}-${String(day).padStart(2,'0')}`,expected=input.payroll.workdays.includes(day)?8-(input.payroll.deductions[`${person}|${date}`]??0):0;
         const total=result.days.filter(d=>d.person===person&&d.date===date).reduce((sum,d)=>sum+d.rd+d.department,0);
         if(Math.abs(total-expected)>0.00001)result.issues.push({code:'PAID_DAY_TOTAL',person,date,message:`本日研发和部门工时合计${total}小时，应为${expected}小时；如确有扣薪请填写扣薪例外`});
     }
     result.issues.push(...projectIssues);
-    const rebuilt=await readSource(input.templateId);await prepareDepartmentBook(rebuilt.book,input);layout=departmentLayout(rebuilt.book,input.month);
+    await prepareDepartmentBook(book,input);
+    const layout = departmentLayout(book,input.month);
     for(const person of input.requiredPeople??[])if(!layout.rows.some(r=>r.person===person))result.issues.push({code:'PERSON_ROW_MISSING',person,date:'',message:'人员已加入计算范围，请补充其参与项目后自动建立导出行'});
     for(const edit of input.allocations??[]){
         const previous=result.days.filter(d=>d.person===edit.person&&d.date===edit.date),total=previous.reduce((s,d)=>s+d.department,0),shares=Object.entries(edit.shares);
-        if(!previous.length||!edit.reason.trim()||!shares.length||shares.some(([p,h])=>!input.projects.includes(p)||!Number.isFinite(h)||h<0)||Math.abs(shares.reduce((s,[,h])=>s+h,0)-total)>0.00001)throw new ApiError('ALLOCATION_TOTAL','项目调整必须保留该人当日总工时；改变总工时请使用明确的逐日调整');
+        if(!previous.length||!edit.reason.trim()||!shares.length||shares.some(([p,h])=>!input.projects.includes(p)||!Number.isInteger(h)||h<0)||Math.abs(shares.reduce((s,[,h])=>s+h,0)-total)>0.00001)throw new ApiError('ALLOCATION_TOTAL','项目份额须为非负整数小时，合计须保持该人当日部门总工时');
         result.days=result.days.filter(d=>d.person!==edit.person||d.date!==edit.date);
         shares.forEach(([project,department],n)=>result.days.push({person:edit.person,date:edit.date,project,department,rd:n===0?previous.reduce((s,d)=>s+d.rd,0):0,basis:'已确认项目调整：'+edit.reason}));
     }
     result.projectTotals={};for(const d of result.days)if(d.project)result.projectTotals[d.project]=Number(((result.projectTotals[d.project]??0)+d.department).toFixed(10));
-    if(!input.requiredPeople)result.issues.push({code:'ROSTER_UNCONFIRMED',person:'',date:'',message:'尚未提供部门全体应填报人员名单；不能仅凭模板人员认定没有漏填'});
     for (const d of result.days)
         if (d.department > 0 && !layout.rows.some(r => r.person === d.person && r.project === d.project))
             result.issues.push({ code: 'ROW_MISSING', person: d.person, date: d.date, message: `模板没有项目“${d.project}”行，请在模板副本新增行后导入` });
     result.canFinalize = result.issues.every(i=>i.severity==='warning');
-    const snapshot = { ...input, rd, attendance, templateDigest: source.digest, sourceFiles: [source, ...[input.rdId,input.attendanceId,...(input.attendanceSources??[]).map(s=>s.id)].map(id=>get<Source>('SELECT * FROM timesheet_source WHERE id=?',[id]))] };
-    assertTimesheetScope(input);
-    const id = run('INSERT INTO timesheet_run(month,input,result,rule_version,workbench_id,period_id) VALUES(?,?,?,?,?,?)', [input.month, JSON.stringify(snapshot), JSON.stringify(result), TIMESHEET_RULE_VERSION,input.workbenchId??null,input.periodId??null]).lastInsertRowid;
-    return { id, ...result };
+    const snapshot = { ...input, overrides: manualOverrides, ...(projectReportDetails.length?{projectReportDetails}:{}), rd, attendance, templateDigest: source.digest, sourceFiles: [source, ...[input.rdId,input.attendanceId,...(input.attendanceSources??[]).map(s=>s.id),...(input.projectReport?[input.projectReport.id]:[]),...(input.projectReportHistory??[]).map(r=>r.id)].map(id=>get<Source>('SELECT * FROM timesheet_source WHERE id=?',[id]))] };
+    return tx(() => {
+        assertTimesheetScope(input);
+        const id = run('INSERT INTO timesheet_run(month,input,result,rule_version,workbench_id,period_id) VALUES(?,?,?,?,?,?)',
+            [input.month, JSON.stringify(snapshot), JSON.stringify(result), TIMESHEET_RULE_VERSION,input.workbenchId??null,input.periodId??null]).lastInsertRowid;
+        if(input.workbenchId) {
+            const prefs=timesheetPreferences(input.workbenchId);
+            const value={...prefs.value,people:input.requiredPeople,assignments:input.assignments,fullPay:input.payroll?.fullPay??prefs.value.fullPay};
+            if(Array.isArray(value.excluded))value.excluded=value.excluded.filter((p:string)=>!input.requiredPeople!.includes(p));
+            saveTimesheetPreferences(input.workbenchId,prefs.revision,value);
+        }
+        return { id, ...result };
+    });
 }
 export function getTimesheetRun(id: number) { const row = get<{
     workbench_id: number|null;
@@ -453,6 +500,23 @@ export function getTimesheetRun(id: number) { const row = get<{
     status: string;
 }>('SELECT * FROM timesheet_run WHERE id=?', [id]); if (!row)
     throw new ApiError('NOT_FOUND', '工时记录不存在', 404); return { ...row, input: JSON.parse(row.input) as RunInput, result: JSON.parse(row.result) as Calculation }; }
+
+/** Older snapshots mixed generated overrides with manual ones. Keep the stored evidence intact. */
+export function editableTimesheetInput(record: ReturnType<typeof getTimesheetRun>): RunInput {
+    const { rd, attendance, sourceFiles, projectReportDetails, templateDigest, ...input } =
+        record.input as RunInput & {rd?: DayInput[]; attendance?: DayInput[]; sourceFiles?: Source[]; projectReportDetails?: unknown; templateDigest?: string};
+    if (record.rule_version !== TIMESHEET_RULE_VERSION && attendance) {
+        input.overrides = (input.overrides ?? []).filter(o => {
+            const original = attendance.find(a => a.person === o.person && a.date === o.date);
+            if (!original) return true;
+            const text = original.source.split('；原始考勤：').at(-1);
+            const deduction = input.payroll?.deductions[`${o.person}|${o.date}`];
+            return !(o.status === 'project' && o.source === '考勤明确项目：' + text)
+                && !(deduction !== undefined && o.source === '用户确认扣薪工时：' + deduction);
+        });
+    }
+    return input;
+}
 
 function assertTimesheetScope(input:RunInput):void {
  if(input.periodId&&!input.workbenchId)throw new ApiError('WORK_REQUIRED','工时期次必须指定所属工作');
@@ -477,19 +541,27 @@ export async function finalizeTimesheet(id:number,reviewed:boolean) {
 async function finalizeTimesheetOnce(id:number,reviewed:boolean) {
  const r=getTimesheetRun(id);
  if(!reviewed)throw new ApiError('REVIEW_REQUIRED','需要确认已核对工时及导出文件');
+ if(r.status==='final') {if(r.artifact_id)assertFinalArtifact(getArtifact(r.artifact_id)!);return {finalized:true,artifactId:r.artifact_id};}
  if(r.rule_version!==TIMESHEET_RULE_VERSION)throw new ApiError('RULE_CHANGED','计算规则已修正，请重新计算并核对新文件后定稿',409);
  if(!r.result.canFinalize)throw new ApiError('UNRESOLVED','仍有阻断异常，不能定稿',409);
- if(r.status==='final') {if(r.artifact_id)assertFinalArtifact(getArtifact(r.artifact_id)!);return {finalized:true,artifactId:r.artifact_id};}
  assertTimesheetScope(r.input);
- for(const sourceId of [r.input.templateId,r.input.rdId,r.input.attendanceId,...(r.input.attendanceSources??[]).map(s=>s.id)])await readSource(sourceId);
+ for(const sourceId of [r.input.templateId,r.input.rdId,r.input.attendanceId,...(r.input.attendanceSources??[]).map(s=>s.id),...(r.input.projectReport?[r.input.projectReport.id]:[]),...(r.input.projectReportHistory??[]).map(r=>r.id)])await readSource(sourceId);
  let artifactId:number|null=null;
  if(r.workbench_id){
    const bytes=await exportTimesheet(id),w=requireWorkbench(r.workbench_id);
    assertTimesheetScope(r.input);
    const dir=join(workbenchOutputDirAbs(w,'generated'),...(r.period_id?[requirePeriod(r.period_id,w.id).report_period]:[]));
-   const saved=await saveArtifact({data:bytes,dirAbs:dir,fileName:`部门工时-${r.month}-定稿-${id}.xlsx`,kind:'generated',title:`部门工时 ${r.month}`,workbenchId:w.id,dedupe:false});
+   const saved=await saveArtifact({
+       data:bytes,dirAbs:dir,fileName:`部门工时-${r.month}-定稿-${id}.xlsx`,kind:'generated',
+       title:`部门工时 ${r.month}`,workbenchId:w.id,dedupe:false,
+       onCommit:artifact=>{
+           assertTimesheetScope(r.input);
+           run('UPDATE artifact SET work_period_id=? WHERE id=?',[r.period_id,artifact.id]);
+           markFinal(artifact.id,true);
+           run("UPDATE timesheet_run SET status='final',artifact_id=? WHERE id=?",[artifact.id,id]);
+       }
+   });
    artifactId=saved.artifact.id;
-   tx(()=>{assertTimesheetScope(r.input);run('UPDATE artifact SET work_period_id=? WHERE id=?',[r.period_id,artifactId]);markFinal(artifactId!,true);run("UPDATE timesheet_run SET status='final',artifact_id=? WHERE id=?",[artifactId,id]);});
  }else run("UPDATE timesheet_run SET status='final' WHERE id=?",[id]);
  return {finalized:true,artifactId};
 }
@@ -513,7 +585,7 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
         return readFileSync(artifactAbsPath(artifact));
     }
     const { book } = await readSource(row.input.templateId);
-    await prepareDepartmentBook(book,row.input);
+    await prepareDepartmentBook(book,row.input,row.result);
     const layout = departmentLayout(book, row.month), { sheet, rows, totalCol, headerRow } = layout;
     const days = monthDays(row.month), year = Number(row.month.slice(0, 4)), month = Number(row.month.slice(5));
     const cover=book.getWorksheet('封面');
@@ -539,6 +611,7 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
         const sum = row.result.days.filter(v => v.person === r.person && v.project === r.project).reduce((s, v) => s + v.department, 0);
         sheet.getCell(r.row, totalCol).value = { formula: `SUM(I${r.row}:${sheet.getColumn(totalCol - 1).letter}${r.row})`, result: sum };
     }
+    if(row.rule_version===TIMESHEET_RULE_VERSION)refreshResearchRows(layout,row.result);
     // Keep footer caches consistent as well as formulas. Readers that do not
     // recalculate must not display a historical zero beneath current hours.
     sheet.eachRow(r=>r.eachCell(c=>{
@@ -559,12 +632,33 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
     report.columns = [{ header: '人员', key: 'person', width: 18 }, { header: '日期', key: 'date', width: 14 }, { header: '研发工时', key: 'rd', width: 12 }, { header: '部门工时', key: 'department', width: 12 }, { header: '项目', key: 'project', width: 40 }, { header: '计算依据', key: 'basis', width: 80 }];
     report.addRows(row.result.days);
     report.addRow([]);
+    report.addRow(['办理年月', row.month]);
     report.addRow(['规则版本', row.rule_version]);
+    const snapshot = row.input as RunInput & {sourceFiles?: Source[]};
+    const sources = new Map((snapshot.sourceFiles ?? []).filter(Boolean).map(s => [s.id, s]));
+    for (const [role, sourceId] of [
+        ['部门模板', snapshot.templateId], ['研发工时', snapshot.rdId], ['主考勤', snapshot.attendanceId],
+        ...(snapshot.attendanceSources ?? []).map(s => ['补充考勤', s.id]),
+        ...(snapshot.projectReportHistory ?? []).map(s => ['此前采用月报', s.id]),
+        ...(snapshot.projectReport ? [['本次采用月报', snapshot.projectReport.id]] : [])
+    ]) {
+        const source = sources.get(sourceId!);
+        if (source) report.addRow([role, source.name, '', '', source.id, 'SHA-256 ' + source.digest]);
+    }
+    for (const selection of [...snapshot.projectReportHistory ?? [], ...snapshot.projectReport ? [snapshot.projectReport] : []])
+        for (const choice of selection.choices)
+            report.addRow(['月报项目映射', selection.sourceName, '', '', choice.target, choice.key + ' ' + choice.name]);
     for (const [person, target] of Object.entries(row.input.aliases ?? {})) report.addRow(['确认别名', person, target]);
     for (const [person, reason] of Object.entries(row.input.exclusions ?? {})) report.addRow(['确认排除', person, reason]);
     report.addRow(['结果', row.result.canFinalize ? '计算校验通过，仍需人工核对版式' : '草稿：存在阻断异常']);
     for (const i of row.result.issues)
         report.addRow([i.person, i.date, i.code, i.message]);
+    report.pageSetup = { ...report.pageSetup, paperSize: 9, orientation: 'landscape',
+        fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '1:1' };
+    report.getRow(1).font = {bold:true};
+    report.eachRow(r => {
+        r.alignment = {vertical:'top',wrapText:true};
+    });
     book.calcProperties.fullCalcOnLoad = true;
     return Buffer.from(await book.xlsx.writeBuffer());
 }
