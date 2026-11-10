@@ -194,6 +194,7 @@ export function calculateTimesheet(input: {
     aliases?: Record<string, string>;
     exclusions?: Record<string, string>;
     overrides?: DayInput[];
+    derivedOverrides?: ReadonlySet<DayInput>;
 }): Calculation {
     const count = monthDays(input.month), issues: Issue[] = [], days: Allocation[] = [], personTotals: Record<string, number> = Object.create(null), projectTotals: Record<string, number> = Object.create(null);
     const issue = (code: string, person: string, date: string, message: string) => issues.push({ code, person, date, message });
@@ -250,7 +251,7 @@ export function calculateTimesheet(input: {
             continue;
         }
         overrideKeys.add(k);
-        att.set(k, { ...row, source: '人工确认：' + row.source });
+        att.set(k, { ...row, source: (input.derivedOverrides?.has(row) ? '资料规则：' : '人工确认：') + row.source });
     }
     for (const [key, h] of rd)
         if (h > 8) {
@@ -423,13 +424,20 @@ export async function createTimesheetRun(input: RunInput) {
     const rd = await readMapped(input.rdId, input.rdMapping, input.month, 'rd');
     let attendance = (await Promise.all([{id:input.attendanceId,mapping:input.attendanceMapping},...(input.attendanceSources??[])].map(s=>readMapped(s.id,s.mapping,input.month,'attendance')))).flat();
     const projectIssues:Issue[]=[];
+    const canonicalPerson=(name:string)=>Object.hasOwn(input.aliases??{},name)?input.aliases![name]!:name;
+    const researchHours=new Map<string,number>();
+    for(const row of rd){
+        const key=`${canonicalPerson(row.person)}|${row.date}`;
+        researchHours.set(key,(researchHours.get(key)??0)+(row.hours??0));
+    }
     for(const a of attendance){
-        if(!input.requiredPeople?.includes(a.person))continue;
-        const text=a.status??'',explicit=input.overrides?.some(o=>o.person===a.person&&o.date===a.date);
+        const person=canonicalPerson(a.person);
+        if(!input.requiredPeople?.includes(person))continue;
+        const text=a.status??'',explicit=manualOverrides.some(o=>o.person===person&&o.date===a.date);
         const matches=[...new Set([...input.projects.filter(p=>text.includes(p)),...Object.entries(input.projectAliases??{}).filter(([alias,p])=>alias.length>=2&&text.includes(alias)&&input.projects.includes(p)).map(([,p])=>p)])];
-        if(matches.length===1&&!explicit&&(!input.payroll?.fullPay||input.payroll.workdays.includes(Number(a.date.slice(8))))){a.project=matches[0];input.overrides=[...(input.overrides??[]),{...a,status:'project',source:'考勤明确项目：'+text}];}
-        else if(!explicit&&matches.length!==1&&/现场|驻场|出差|送货|安装|调试|项目实施|项目对接/.test(text)&&rd.filter(r=>r.person===a.person&&r.date===a.date).reduce((s,r)=>s+(r.hours??0),0)<8)
-            projectIssues.push({severity:'warning',code:'PROJECT_REMARK',person:a.person,date:a.date,message:`考勤项目线索“${text}”；暂按本月参与项目分配，可调整归属，个人总工时不变`});
+        if(matches.length===1&&!explicit&&(!input.payroll?.fullPay||input.payroll.workdays.includes(Number(a.date.slice(8))))){a.project=matches[0];input.overrides=[...(input.overrides??[]),{...a,person,status:'project',source:'考勤明确项目：'+text}];}
+        else if(!explicit&&matches.length!==1&&/现场|驻场|出差|送货|安装|调试|项目实施|项目对接/.test(text)&&(researchHours.get(`${person}|${a.date}`)??0)<8)
+            projectIssues.push({severity:'warning',code:'PROJECT_REMARK',person,date:a.date,message:`考勤项目线索“${text}”；暂按本月参与项目分配，可调整归属，个人总工时不变`});
         a.source+='；原始考勤：'+(text||'空白');
     }
     const scopeExclusion='不在用户确认的人员范围内';
@@ -444,23 +452,24 @@ export async function createTimesheetRun(input: RunInput) {
         }
         // Preserve explicit manual edits. Deductions affect the paid daily cap, never just a project share.
         const custom=input.overrides??[];
-        for(const a of attendance){const key=`${a.person}|${a.date}`,deduct=deductions[key];if(deduct===undefined)continue;
-            const hours=rd.filter(r=>r.person===a.person&&r.date===a.date).reduce((s,r)=>s+(r.hours??0),0);
+        for(const a of attendance){const person=canonicalPerson(a.person),key=`${person}|${a.date}`,deduct=deductions[key];if(deduct===undefined)continue;
+            const hours=researchHours.get(key)??0;
             if(hours>8-deduct)throw new ApiError('DEDUCTION_RD_CONFLICT',`${a.person} ${a.date} 研发工时超过扣薪后的可计工时，请核对`);
-            const override=custom.find(o=>o.person===a.person&&o.date===a.date);
-            if(override?.source.startsWith('考勤明确项目：'))override.hours=Math.max(0,8-deduct-hours);
-            else if(!override)custom.push({...a,hours:Math.max(0,8-deduct-hours),source:'用户确认扣薪工时：'+deduct});
+            const override=custom.find(o=>o.person===person&&o.date===a.date);
+            if(override&&!manualOverrides.includes(override)){override.hours=Math.max(0,8-deduct-hours);override.source+=`；明确扣薪 ${deduct} 小时`;}
+            else if(!override)custom.push({...a,person,hours:Math.max(0,8-deduct-hours),source:'用户确认扣薪工时：'+deduct});
         }
         input.overrides=custom;
     }
-    const result = calculateTimesheet({ ...input, rd, attendance, people: input.requiredPeople });
+    const derivedOverrides = new Set(input.overrides.filter(o=>!manualOverrides.includes(o)));
+    const result = calculateTimesheet({ ...input, rd, attendance, people: input.requiredPeople, derivedOverrides });
     if(input.payroll?.fullPay)for(const person of input.requiredPeople??[])for(let day=1;day<=monthDays(input.month);day++){
         const date=`${input.month}-${String(day).padStart(2,'0')}`,expected=input.payroll.workdays.includes(day)?8-(input.payroll.deductions[`${person}|${date}`]??0):0;
         const total=result.days.filter(d=>d.person===person&&d.date===date).reduce((sum,d)=>sum+d.rd+d.department,0);
         if(Math.abs(total-expected)>0.00001)result.issues.push({code:'PAID_DAY_TOTAL',person,date,message:`本日研发和部门工时合计${total}小时，应为${expected}小时；如确有扣薪请填写扣薪例外`});
     }
     result.issues.push(...projectIssues);
-    await prepareDepartmentBook(book,input);
+    await prepareDepartmentBook(book,input,undefined,true);
     const layout = departmentLayout(book,input.month);
     for(const person of input.requiredPeople??[])if(!layout.rows.some(r=>r.person===person))result.issues.push({code:'PERSON_ROW_MISSING',person,date:'',message:'人员已加入计算范围，请补充其参与项目后自动建立导出行'});
     for(const edit of input.allocations??[]){
@@ -468,6 +477,10 @@ export async function createTimesheetRun(input: RunInput) {
         if(!previous.length||!edit.reason.trim()||!shares.length||shares.some(([p,h])=>!input.projects.includes(p)||!Number.isInteger(h)||h<0)||Math.abs(shares.reduce((s,[,h])=>s+h,0)-total)>0.00001)throw new ApiError('ALLOCATION_TOTAL','项目份额须为非负整数小时，合计须保持该人当日部门总工时');
         result.days=result.days.filter(d=>d.person!==edit.person||d.date!==edit.date);
         shares.forEach(([project,department],n)=>result.days.push({person:edit.person,date:edit.date,project,department,rd:n===0?previous.reduce((s,d)=>s+d.rd,0):0,basis:'已确认项目调整：'+edit.reason}));
+    }
+    if (input.allocations?.length) {
+        const order=new Map(input.requiredPeople.map((p,i)=>[p,i]));
+        result.days.sort((a,b)=>order.get(a.person)!-order.get(b.person)! || a.date.localeCompare(b.date));
     }
     result.projectTotals={};for(const d of result.days)if(d.project)result.projectTotals[d.project]=Number(((result.projectTotals[d.project]??0)+d.department).toFixed(10));
     for (const d of result.days)
@@ -505,7 +518,7 @@ export function getTimesheetRun(id: number) { const row = get<{
 export function editableTimesheetInput(record: ReturnType<typeof getTimesheetRun>): RunInput {
     const { rd, attendance, sourceFiles, projectReportDetails, templateDigest, ...input } =
         record.input as RunInput & {rd?: DayInput[]; attendance?: DayInput[]; sourceFiles?: Source[]; projectReportDetails?: unknown; templateDigest?: string};
-    if (record.rule_version !== TIMESHEET_RULE_VERSION && attendance) {
+    if (record.rule_version < '2026-11-10' && attendance) {
         input.overrides = (input.overrides ?? []).filter(o => {
             const original = attendance.find(a => a.person === o.person && a.date === o.date);
             if (!original) return true;
@@ -585,7 +598,7 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
         return readFileSync(artifactAbsPath(artifact));
     }
     const { book } = await readSource(row.input.templateId);
-    await prepareDepartmentBook(book,row.input,row.result);
+    await prepareDepartmentBook(book,row.input,row.result,row.rule_version===TIMESHEET_RULE_VERSION);
     const layout = departmentLayout(book, row.month), { sheet, rows, totalCol, headerRow } = layout;
     const days = monthDays(row.month), year = Number(row.month.slice(0, 4)), month = Number(row.month.slice(5));
     const cover=book.getWorksheet('封面');
@@ -645,7 +658,7 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
         const source = sources.get(sourceId!);
         if (source) report.addRow([role, source.name, '', '', source.id, 'SHA-256 ' + source.digest]);
     }
-    for (const selection of [...snapshot.projectReportHistory ?? [], ...snapshot.projectReport ? [snapshot.projectReport] : []])
+    for (const selection of [...(snapshot.projectReportHistory ?? []), ...(snapshot.projectReport ? [snapshot.projectReport] : [])])
         for (const choice of selection.choices)
             report.addRow(['月报项目映射', selection.sourceName, '', '', choice.target, choice.key + ' ' + choice.name]);
     for (const [person, target] of Object.entries(row.input.aliases ?? {})) report.addRow(['确认别名', person, target]);

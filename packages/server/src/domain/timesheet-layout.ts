@@ -3,7 +3,7 @@ import {ApiError} from '../api/reply.ts';
 import {departmentLayout,monthDays,type RunInput,type Calculation} from './timesheets.ts';
 
 /** Keep the supplied workbook. Only date columns, selected people/project rows and dependent totals change. */
-export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput,result?:Calculation){
+export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput,result?:Calculation,confirmedProjectsOnly=false){
  const layout=departmentLayout(book,input.month),s=layout.sheet,count=monthDays(input.month),year=Number(input.month.slice(0,4)),month=Number(input.month.slice(5));
  const retainedRd=s.getRows(1,s.rowCount)?.filter(r=>r.getCell(4).text.trim()==='研发工时').map(r=>({row:r.number,cells:Array.from({length:s.columnCount},(_,i)=>({value:structuredClone(r.getCell(i+1).value),style:structuredClone(r.getCell(i+1).style)}))}))??[];
  let total=layout.totalCol;
@@ -23,13 +23,14 @@ export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput
  }
  s.getCell(layout.headerRow,total).value='合计';s.getCell(layout.headerRow+1,total).value='--';
  const wanted=input.requiredPeople;
+ const included=(row:{person:string;project:string})=>(!wanted||wanted.includes(row.person))&&(!confirmedProjectsOnly||input.projects.includes(row.project));
  // Unselected people stay as empty, non-person rows so original rows and styles are not deleted.
  for(const row of layout.rows){
   for(let c=9;c<=total;c++)s.getCell(row.row,c).value=null;
-  if(wanted&&!wanted.includes(row.person)){s.getRow(row.row).eachCell(c=>{c.value=null;c.note='';});}
+  if(!included(row)){s.getRow(row.row).eachCell(c=>{c.value=null;c.note='';});}
   else {s.getCell(row.row,4).value=s.getCell(row.row,4).text.trim();s.getCell(row.row,total).value={formula:`SUM(I${row.row}:AM${row.row})`,result:0};}
  }
- const pairs=layout.rows.filter(r=>!wanted||wanted.includes(r.person)).map(r=>({person:r.person,project:r.project}));
+ const pairs=layout.rows.filter(included).map(r=>({person:r.person,project:r.project}));
  for(const person of wanted??[]){const assigned=input.assignments[person];const projects=typeof assigned==='string'?[assigned]:assigned??[];
   const targets=[...new Set([...projects,...(result?.days??[]).filter(d=>d.person===person&&d.project&&d.department>0).map(d=>d.project),...(input.overrides??[]).filter(o=>o.person===person&&o.project).map(o=>o.project!),...(input.allocations??[]).filter(o=>o.person===person).flatMap(o=>Object.keys(o.shares))])];
   for(const project of targets)if(!pairs.some(p=>p.person===person&&p.project===project)){

@@ -48,7 +48,16 @@ await withBrowserPage(async(page,base)=>{
   await button('采用此考勤').click();
   await pending.waitFor({state:'hidden'});
   await page.getByLabel(/本月明确参与名单/).fill(person);
-  await page.getByLabel(/本月部门项目/).fill(fixture.projects.join('\n'));
+  await input.nth(3).setInputFiles(workbookFile('合成月报.xlsx',fixture.report));
+  const reportReview=page.getByRole('region',{name:'待核对项目月报'});
+  await reportReview.getByLabel(/已核对此资料用于/).check();
+  await button('选中全部候选（仍需逐项确认名称）').click();
+  for(let i=0;i<2;i++){
+    await reportReview.getByRole('button',{name:/以月报名称填写/}).nth(i).click();
+    await reportReview.getByLabel(/已核对本行所选正式名称/).nth(i).check();
+  }
+  await button('采用已确认项目').click();await reportReview.waitFor({state:'hidden'});
+  assert.equal(await page.getByLabel(/本月部门项目/).inputValue(),fixture.projects.join('\n'));
   await page.getByLabel(/实际应计薪日期（日号/).fill('2, 29');
   await page.getByLabel(/已按本月资料核对以上日期/).check();
   await page.getByLabel(/已确认研发资料完整/).check();
@@ -72,6 +81,7 @@ await withBrowserPage(async(page,base)=>{
   assert.equal(actual.getWorksheet('人员工时汇总')!.getCell('E3').result,14);
   const evidence=actual.worksheets.at(-1)!;
   assert.ok(evidence.getColumn(2).values.includes('合成考勤.xlsx'));
+  assert.ok(evidence.getColumn(2).values.includes('合成月报.xlsx'));
   await page.getByLabel('已核对 Excel 与原始资料').check();
   const finalizing=page.waitForResponse(r=>r.url().endsWith('/finalize')&&r.request().method()==='POST');
   await button('保存核对后的定稿').click();

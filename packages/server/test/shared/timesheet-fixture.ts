@@ -48,6 +48,12 @@ export async function syntheticTimesheets() {
         rdSheet.getCell(5 + index, 3).value = person;
         attSheet.getCell(2 + index, 1).value = person;
     }
+    const report=new ExcelJS.Workbook();
+    report.addWorksheet('空页');
+    const reportSheet=report.addWorksheet('当期项目');
+    reportSheet.addRow(['2028年2月项目月报']);
+    reportSheet.addRow(['项目名称','项目建设单位','本月完成情况','累计完成比例']);
+    for(const project of projects.slice(1))reportSheet.addRow([project,'合成单位','当期资料核对','100%']);
     const bytes = async (book: ExcelJS.Workbook) => Buffer.from(await book.xlsx.writeBuffer());
-    return {month: '2028-02', people, projects, template: await bytes(template), rd: await bytes(rd), attendance: await bytes(attendance)};
+    return {month: '2028-02', people, projects, template: await bytes(template), rd: await bytes(rd), attendance: await bytes(attendance),report:await bytes(report)};
 }

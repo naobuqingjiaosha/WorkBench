@@ -34,7 +34,23 @@ try {
     assert.equal(calculated.personTotals[person],13);
     assert.deepEqual(calculated.days.filter(d=>d.date==='2028-02-02').map(d=>d.department),[3,2,2]);
     assert.equal(calculated.days.find(d=>d.date==='2028-02-29' && d.project===c)?.department,6);
+    const sourceBasis=calculated.days.find(d=>d.date==='2028-02-29'&&d.project===c)!.basis;
+    assert.match(sourceBasis,/资料规则/);assert.match(sourceBasis,/扣薪 2 小时/);assert.doesNotMatch(sourceBasis,/人工确认/);
     assert.ok(calculated.days.every(d=>Number.isInteger(d.department)));
+    // Both sources use the first synthetic name but the confirmed payroll and project
+    // decisions belong to its explicitly supplied canonical name.
+    const canonical='合成正式名';
+    const aliasRun=await createTimesheetRun({...input,requiredPeople:[canonical],aliases:{[person]:canonical},
+        assignments:{[canonical]:f.projects},payroll:{fullPay:true,workdays:[2,29],deductions:{[`${canonical}|2028-02-29`]:2}}});
+    assert.equal(aliasRun.canFinalize,true,JSON.stringify(aliasRun.issues));
+    assert.equal(aliasRun.days.find(d=>d.date==='2028-02-29'&&d.project===c)?.department,6);
+    assert.equal(aliasRun.days.filter(d=>d.date==='2028-02-02').reduce((n,d)=>n+d.rd,0),1);
+    const conflicting={person,date:'2028-02-29',project:b,status:'project',hours:4,source:'考勤明确项目：人工指定小时'};
+    const conflict=await createTimesheetRun({...input,overrides:[conflicting]});
+    assert.deepEqual(getTimesheetRun(conflict.id).input.overrides,[conflicting]);
+    assert.equal(conflict.canFinalize,false);
+    assert.equal(conflict.days.find(d=>d.date==='2028-02-29')?.department,4);
+    assert.ok(conflict.issues.some(i=>i.code==='PAID_DAY_TOTAL'));
     const editDay = {person,date:'2028-02-02',shares:{[a!]:1,[b!]:2,[c!]:4},reason:'合成人工核对'};
     await assert.rejects(applyTimesheetEdit(calculated.id,{allocations:[{...editDay,shares:{[a!]:1.5,[b!]:5.5}}]}),/整数/);
     const adjusted = await applyTimesheetEdit(calculated.id,{allocations:[editDay]});
@@ -44,8 +60,12 @@ try {
     assert.deepEqual(editableTimesheetInput(reopen).allocations,[editDay]);
     assert.deepEqual(editableTimesheetInput(reopen).overrides,[dayOverride]);
     assert.equal(Object.hasOwn(editableTimesheetInput(reopen),'attendance'),false);
+    assert.deepEqual(edited.days.map(d=>d.date),edited.days.map(d=>d.date).sort());
     assert.deepEqual(edited.projectTotals,{[a!]:1,[b!]:8,[c!]:4});
     assert.deepEqual(getTimesheetRun(calculated.id).result.projectTotals,{[a!]:3,[b!]:2,[c!]:8});
+    const newScope=await createTimesheetRun({...input,projects:[b!,c!],assignments:{[person]:[b!,c!]}});
+    const scopedBook=new ExcelJS.Workbook();await scopedBook.xlsx.load(await exportTimesheet(newScope.id) as never);
+    assert.ok(!scopedBook.getWorksheet('工时明细表（填写）')!.getColumn(5).values.includes(a!),'模板中的上期项目已从本月清单撤下');
     const bytes = await exportTimesheet(edited.id);
     const book = new ExcelJS.Workbook();
     await book.xlsx.load(bytes as never);
