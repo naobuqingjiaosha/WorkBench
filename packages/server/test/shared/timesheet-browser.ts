@@ -108,5 +108,22 @@ await withBrowserPage(async(page,base)=>{
     await button('核对结果').click();
     await page.screenshot({path:join(sample,'工时核对界面.png')});
   }
-  console.log('真实 Chromium 完成：锁月、上传、失败映射恢复、草稿重开、整数计算、手改、下载、核对定稿及刷新续办。');
+  // Replace the uploaded template after reopening the final. A new draft must
+  // explain an unsafe original total, without changing the earlier final.
+  const custom=new ExcelJS.Workbook();await custom.xlsx.load(fixture.template as never);
+  const sheet=custom.getWorksheet('工时明细表（填写）')!;
+  sheet.getCell('C9').value='模板保留总计';
+  sheet.getCell('AM9').value={formula:'SUM(INDIRECT("AM5:AM8"))',result:396};
+  await button('人员与项目').click();
+  await input.nth(1).setInputFiles(workbookFile('需核对公式.xlsx',Buffer.from(await custom.xlsx.writeBuffer())));
+  await page.getByText('需核对公式.xlsx 已识别',{exact:false}).waitFor();
+  await button('重新计算并保存').click();
+  await page.getByText(/模板公式.*工时明细表（填写）!AN11.*INDIRECT/).waitFor();
+  await page.getByLabel('已核对 Excel 与原始资料').check();
+  assert.equal(await button('保存核对后的定稿').isDisabled(),true);
+  const versions=await fetch(base+'/api/timesheets?periodId='+period.id).then(r=>r.json());
+  assert.equal(versions.data.items[0].status,'draft');
+  const old=versions.data.items.find((r:{id:number})=>r.id===latest.id);
+  assert.equal(old.status,'final');assert.equal(old.artifact_id,latest.artifact_id);
+  console.log('真实 Chromium 完成：导入、异常恢复、手改、下载、定稿和重开。换入不安全公式后显示定位、禁用定稿，原定稿仍关联原成果。');
 });
