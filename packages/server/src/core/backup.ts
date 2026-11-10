@@ -1224,6 +1224,7 @@ export interface TickResult {
 }
 
 let tickRunning = false;
+export function isBackupTickRunning(): boolean { return tickRunning; }
 
 /** 跑一轮"到点了吗"的判断；定时器与命令行/测试都走这里 */
 export async function runBackupTick(now: Date = new Date(), dirOverride?: string): Promise<TickResult> {

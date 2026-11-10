@@ -1,10 +1,24 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.29。更新：2026-11-10。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.30。更新：2026-11-10。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-10｜GOV-11 / GOV-13｜拉取后双击运行当前源码
+
+**依据与范围：** 用户澄清要求同一仓库pull后双击使用最新代码，避免逐台盘点多个版本，并针对本轮启动更新与必要文档授权审查后提交推送naobuqingjiaosha/WorkBench。基点bd958f518b47ffbd50759ce7a3f67beef041f7ed已在远端核对。使用独立云端副本；原云端5个未提交应用文件与另一核查副本9份文档保留，不reset、不混入。本轮不改页面、工时算法、模板绑定或业务迁移SQL，不部署真实Windows，不读真实业务资料。
+
+**代码清单与变化：** scripts/start.mjs改为默认源码入口与显式历史恢复分发；新增start-source、source-build、source-upgrade，原启动器迁为start-release并加恢复迁移兼容拒绝；启动工作台.cmd说明同步，命令路径保留。按共享源码和Node ABI/平台/架构标识固定副本，自动安装/复制相同锁依赖、构建web，修正Windows绝对workspace链接，校验源码与界面后使用；构建失败不停止原服务。source-update锁串行化准备，相同实例复用，不自动换端口；会话令牌/startedAt核对及明确确认后停止，后台忙拒绝、在途请求排空并关闭完成响应的长连接后关库，原锁释放才启动。config/test-isolation保留原检出根解析，paths同时保护原源码根和副本；build-identity记录sourceBuildId。server-lock提供主动释放用于升级预检；migrate将全部待执行SQL合成事务。backup/ocr各增加只读忙碌状态供退出检查。升级前确认、保留数据库备份、副本演练；未知迁移拒绝，失败不自动倒库。仅新服务身份核对通过才更新source-current；历史指针/数据/备份/缓存不自动删。.gitignore和repository-policy只允许四个新增通用脚本，不放宽私有资源边界。
+
+**验证与证据：** node scripts/test-isolated.mjs --unit source-launch最终17组通过，匿名证据/workspace/workbench-cloud/launch-evidence-kvdOc9；前15组是准确应用候选，最后两组只在合成源码副本注入后台忙、慢请求及启动异常，生产无测试开关。覆盖真实npm ci/79模块构建、中文和空格目录、复用、更新确认、并发双击、依赖/构建/启动失败、显式恢复、旧布局与指针、迁移确认/回滚、会话和实例拒绝、慢请求落库后退出；DB行、文件字节、备份及成功记录分别比较。真实Chromium首页及截图已亲自复核，无页面脚本错误。source-contract最终6组通过，证据/workspace/workbench-cloud/launch-contract-rMHqvS：实际040结构升级041/042保留旧行、延迟FK提交失败回滚、备份路径失败不改原库、非空无记录拒绝、两类源码根保护及缺历史指针拒绝。server/web类型、脚本语法、仓库边界、文档generate/check与diff检查通过；未运行缺资源的完整npm test/typecheck:tests，不以23组替代旧完整套件。
+
+**发现与复核：** 首次7组启动测试在第5组暴露关闭HTTP后DB尚未释放的时序，改为等待原server.lock释放；修后7组通过（QAwT7f）。扩展15组与修正运行环境/链接后的15组分别通过（Gqt9HW、hOllyn），不重复累计。补充慢请求复现长连接等待（bkbZho、带服务日志cM1j9z），通过停止期间响应Connection: close修复，最终17组通过；在途写入保留。迁移工具测试初次未创建临时runtime、再次把合成代码根放进隔离资源根而触发正确拒绝，均仅修测试设置，失败证据4YrhNm/1asgw9保留，最终6组通过。作者审查与复跑，不称新独立审查；未操作真实Windows、真实旧库/旧包、Office或模型，未验证原生窗口/文件锁、所有后台任务实际负载、跨盘或崩溃恢复。
+
+**文档与五根复核：** GPT_CONTEXT更新基点、授权和接续；CONTEXT全文复核，无术语变化不改；PRODUCT_REQUIREMENTS写明pull后双击与保留数据验收；SYSTEM_ARCHITECTURE整合副本/升级/退出边界；DEVELOPMENT_PROGRESS整合当前云端状态与验证限制。安装/运维改为单一日常入口，开发、资料边界、换机和界面指引修正相关旧指针说法；既有GOV-11/13、质量矩阵与本条日志更新，机器索引重新生成，不建立新队列。
+
+**交付与清理：** 本批测试/合成源码/数据库/依赖缓存/服务和浏览器按专属范围清理，匿名证据和本地测试源码保留且不上传；原5文件差异摘要仍为27df8bc0527ffce7120cc0fcf625886d15988627675d92bb71f1a52631bbd553，9文档现场保留。交付只包含上述代码与正式文档；按当前授权运行原钩子、精确提交并普通推送main，完整SHA/远端及CI结果以Git记录和任务交付为准。没有部署日常设备、删除历史或宣称完整业务验收。source-inventory committedBase为生成时基点，不追逐自身提交哈希追加提交。
 
 ## 2026-11-10｜GOV-13｜办理优先入口与空态、整页滚动
 

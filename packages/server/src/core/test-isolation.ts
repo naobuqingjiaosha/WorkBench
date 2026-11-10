@@ -4,7 +4,7 @@ import { basename, dirname } from 'node:path';
 import { existsSync, realpathSync } from 'node:fs';
 import { resolve, join, isAbsolute } from 'node:path';
 import { inside, assertNoPathLinks } from './path-boundary.ts';
-const install = resolve(import.meta.dirname, '../../../..');
+const install = process.env.WORKBENCH_LAYOUT_ROOT ? resolve(process.env.WORKBENCH_LAYOUT_ROOT) : resolve(import.meta.dirname, '../../../..');
 const keys = ['WORKBENCH_DB', 'WORKBENCH_DATA_DIR', 'WORKBENCH_RUNTIME_DIR', 'WORKBENCH_WEB_DIST', 'WORKBENCH_BACKUP_DIR', 'WORKBENCH_TESSDATA_DIR'] as const;
 export function isIsolated(): boolean {
   return !!process.env.WORKBENCH_ISOLATION_ROOT || process.env.WORKBENCH_TEST_MODE === '1' || /[\\/]test[\\/]/.test(process.argv[1] || '') || process.env.NODE_ENV === 'test' || process.env.WORKBENCH_PROFILE === 'test';

@@ -1,5 +1,5 @@
 @echo off
-rem Double-click to start the workbench and open its web page.
+rem Build and start the current checkout; preserve local data and configuration.
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"

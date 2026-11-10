@@ -5,7 +5,7 @@ export const rootFiles = new Set([
   'GPT_CONTEXT.md', 'CONTEXT.md', 'PRODUCT_REQUIREMENTS.md', 'SYSTEM_ARCHITECTURE.md', 'DEVELOPMENT_PROGRESS.md',
 ]);
 export const sharedScripts = new Set([
-  'start.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'isolation-env.mjs',
+  'start.mjs', 'start-release.mjs', 'start-source.mjs', 'source-build.mjs', 'source-upgrade.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'isolation-env.mjs',
   'test-isolated.mjs', 'test-preflight.mjs', 'dev-monthly.mjs', 'dev-server.mjs',
   'docs-maintenance.mjs', 'repository-policy.mjs', 'check-repository.mjs', 'install-git-hooks.mjs',
 ]);

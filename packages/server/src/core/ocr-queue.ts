@@ -71,6 +71,7 @@ export interface OcrQueueState {
 }
 
 let processing = false;
+export function isOcrProcessing(): boolean { return processing; }
 let lastMessage = '';
 
 /* ------------------------------ 登记任务 ------------------------------ */

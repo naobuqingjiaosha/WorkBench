@@ -1,106 +1,48 @@
 # 安装与启动指南
 
-文档ID：GUIDE-INSTALLATION。版本：1.2。更新：2026-11-09。性质：新安装与已有环境启动说明。
+文档ID：GUIDE-INSTALLATION。版本：1.3。更新：2026-11-10。性质：当前源码的安装、更新与已有环境接续。
 
-本文面向本地最新源码；既有运行实例的版本与路径先按[开发进度](../../DEVELOPMENT_PROGRESS.md)和[运维手册](OPERATIONS.md)核对。开发、测试命令见[开发指南](DEVELOPMENT.md)，源码和私有资料边界见[资料边界](DATA_BOUNDARIES.md)。
+## 首次使用
 
-## 环境要求
+安装包含 npm 的 Node.js 24 或更高版本，取得完整仓库后，双击根目录的 `启动工作台.cmd`。不需要先手工运行 npm ci 或 npm run build；启动器会在本机私有缓存准备依赖、构建界面，然后打开浏览器。首次安装需要访问 npm 依赖源和足够磁盘空间。默认地址为 http://127.0.0.1:8787，以启动窗口显示为准。
 
-- Windows：当前主要开发与使用环境，部分 Office 验证脚本依赖 Windows 桌面应用。
-- Node.js **24 或更高版本**，以及 npm。
-- 可用的本地磁盘目录，用于数据库、业务文件和备份。
-- AI 功能按需配置模型服务；OCR、Office 验证按所用功能准备对应资源。
+新安装的配置和数据默认位于 `%LOCALAPPDATA%\WorkBench\daily`，不会随 Git 传递。已有安装继续使用原配置、数据库、模板和业务文件路径，不自动搬迁。需要自定义时使用绝对路径的 WORKBENCH_HOME；样例 workbench.config.example.json 只说明格式，不要覆盖已有配置。相对路径规则见[资料边界](DATA_BOUNDARIES.md)。模型、OCR 和 Office 仍按实际功能另行配置。
 
-## 快速开始
+## 拉取后双击使用最新代码
 
-以下步骤适用于首次安装到独立目录。已有运行环境请直接阅读“日常启动”，不要在服务运行期间重装依赖或覆盖前端构建。
-
-### 1. 安装依赖
-
-获取完整源码，在项目根目录执行：
+在原仓库目录执行：
 
 ```powershell
-node --version
-npm --version
-npm ci
-```
-
-`npm ci` 按锁文件安装整个 workspace 的依赖，并通过 prepare 安装本地提交/推送检查；无需分别进入前后端目录安装。
-
-### 2. 检查本机配置
-
-新安装默认把本机配置和数据放在源码之外：Windows 为 `%LOCALAPPDATA%/WorkBench/daily`，首次启动自动创建。可以用 `WORKBENCH_HOME` 指定另一个独立的绝对目录；不需要把真实配置复制到项目根目录。
-
-`workbench.config.example.json` 仅提供配置格式。需要预先配置时，将它复制到独立数据根的 `workbench.config.json`，且不要覆盖已有文件。相对路径以该环境的数据根为基准，例如 `dataRoot: "files"` 和 `backup.dir: "backups"`。`WORKBENCH_CONFIG_FILE` 可显式指定已有配置文件，仍以环境数据根解析其中相对路径；格式错误会停止启动。
-
-已有安装仍兼容项目根配置及 `data/runtime`，启动时会提示沿用旧布局，不自动迁移资料。修改数据根不会搬迁数据。详见[运行边界](DATA_BOUNDARIES.md)。
-
-### 3. 构建并启动
-
-```powershell
-npm run build
-npm start
-```
-
-默认访问 [http://127.0.0.1:8787](http://127.0.0.1:8787)。首次启动会初始化数据库、执行缺失的迁移并创建基础目录与预置配置，无需先运行数据库初始化命令。
-
-如需 AI 功能，在界面的设置中配置模型服务商及用途。凭证保存在本机配置的数据中，不应提交到源码仓库。
-
-## 日常启动
-
-在已配置的环境中双击 `启动工作台.cmd`，或执行：
-
-```powershell
-npm start
-```
-
-`npm start` 会读取当前环境的 `runtime/current-release.json`（旧布局为 `data/runtime/current-release.json`）：存在有效指针时启动所选发布包；没有指针时启动开发工作区源码。发布包与当前源码可能不同，拉取代码或构建前端不等于完成发布。已有发布指针但包不完整时，启动器会报错，不会自动回退到源码。
-
-备份、恢复和发布步骤见[运维手册](OPERATIONS.md)。
-
-## 在 Windows 查看 GitHub 最新界面（隔离预览）
-
-只看最新界面时，建议在另一个源码目录预览，保留日常实例、数据库和发布指针。Node.js须为24或更高版本。在 PowerShell 中首次获取：
-
-```powershell
-git clone https://github.com/naobuqingjiaosha/WorkBench.git WorkBench-preview
-cd WorkBench-preview
-git rev-parse HEAD
-npm ci
-npm run dev:monthly -- --build
-```
-
-打开终端显示的地址，默认是 [http://127.0.0.1:18889](http://127.0.0.1:18889)。虽然命令沿用monthly名称，它构建并启动的是当前源码的完整工作台：首页、文件、模板和其他导航均可查看。不要加`--seed-handoff`；该选项会建立额外验收样本。首次预览没有日常工作或模板是正常现象，不表示原资料丢失。
-
-此入口使用development身份，数据与构建位于`%LOCALAPPDATA%\WorkBench\development\<源码路径哈希>\monthly`（未另设开发根时），不读取日常发布指针，不把预览数据写进日常库。可在`http://127.0.0.1:18889/api/health`核对`runtimeProfile`为`development`及独立`dbFile`；`loadedBuild`是启动时文件摘要，不是Git SHA。源码版本用上述`git rev-parse HEAD`与本次交付提交核对。
-
-再次更新同一预览目录时，先用Ctrl+C停止自己的预览服务；确认分支为main、`git status --short`无修改，再运行：
-
-```powershell
+git status --short
 git pull --ff-only origin main
-git rev-parse HEAD
-npm run dev:monthly -- --build
 ```
 
-本次玻璃样式更新未改依赖；已有依赖可直接使用。首次安装或拉取后锁文件变化时先运行`npm ci`。有本地修改或分支分歧时保留现场，不重置。端口被占用时核实已有进程；可在当前PowerShell先设置`$env:MONTHLY_DEV_PORT='18890'`后启动，并使用终端实际地址。需要时用Ctrl+F5刷新页面。
+有本地修改、分支分歧或 pull 冲突时保留现场，先解决差异，不使用 reset 覆盖自己的文件。拉取成功后，双击同一目录的 `启动工作台.cmd` 即可。也可在终端执行 `npm start`；后者前台运行，Ctrl+C 停止。
 
-需要对比增强玻璃之前的版本，可停止预览后另建只用于预览的工作树，不回退main、不覆盖已有预览数据：
+默认入口按当前磁盘源码构建，包含已保存的本地源码修改；它不自动拉取 Git，也不承诺绕过冲突取得远端最新。相同源码再次双击只打开已运行实例；源码变化时先准备新的配套界面与依赖，成功后提示先保存所有浏览器输入，再输入 Y 确认重启。更新后刷新原页面。依赖锁变化时自动重新安装；锁未变且 Node ABI/平台/架构相同则复用上次依赖的独立副本。
+
+旧版后台进程没有安全停止接口时，第一次接续会明确停止更新。保存输入并关闭旧服务；找不到旧服务启动窗口时，可重启电脑，再双击仓库入口。无需盘点或删除多个历史版本。新入口的后续更新会核验实例身份并等待请求、数据库锁和已开始的后台任务结束，不强杀进程，也不自动换端口启动另一份工作台。
+
+**已有数据库需要新增迁移时会列出迁移并要求确认。** 确认后先保留升级前数据库备份，并在副本演练；新迁移作为一批事务执行。失败保留日志及备份，不自动覆盖业务数据或倒回旧库。没有迁移记录的非空库、当前代码不认识的较新迁移均拒绝猜测启动。空白新安装正常初始化；备份不包含外部原件或全部业务文件。
+
+## 失败与恢复
+
+- 安装或构建失败：原服务继续运行，原数据库和成功版本记录不变。检查启动窗口中的错误（网络、磁盘空间或源码问题），修复后重新双击。
+- 准备成功后停止/备份/迁移/新服务失败：窗口说明阶段与日志位置，不自动反复重试或启动旧程序。先核对是否仍有实例运行，以及数据库是否已升级；不要删除锁或直接覆盖数据库。
+- 明确使用本目录上次成功的源码副本：`node scripts/start.mjs --last-good --background --start-only --open`。仍须通过源码/界面完整性、环境身份和迁移兼容检查；不存在已验证副本就拒绝。数据库已升级到该副本不认识的版本时不能回退程序。
+- 历史发布包仅保留显式恢复入口：`node scripts/start.mjs --release --background --start-only --open`。须先停止当前服务，核对原发布包、前端及数据库兼容；此入口拒绝执行缺失迁移或降级。旧 current-release.json 不再控制默认双击，不必删除或手改它。
+
+缓存位于仓库 `.local/source-builds`，每份含配套源码、依赖、界面及 SOURCE_BUILD.json；成功记录为当前运行根的 source-current.json。只运行一个工作台，但保留可核验缓存与备份供恢复，不自动清理用户历史。缓存、配置、数据、测试和日志不上传 GitHub。详细排障见[运维手册](OPERATIONS.md)。
+
+## 可选的独立开发预览
+
+只需隔离查看而暂不升级日常数据时，在源码目录执行：
 
 ```powershell
-git worktree add --detach ..\WorkBench-before-liquid f44ef18e732c1f02d95794db28423a1d2b8c3150
-cd ..\WorkBench-before-liquid
 npm ci
 npm run dev:monthly -- --build
 ```
 
-新路径默认对应另一个独立开发数据根，因此不带原预览样本；勿设置成日常或原预览数据根来对比。结束后Ctrl+C停止，回到原预览目录即可继续新版本。减少动画/透明或增强对比的浏览器媒体偏好会关闭玻璃增强；不同Windows/浏览器版本是否传递该偏好须以实际效果为准。
+默认使用独立 development 数据根和18889端口；不要加 --seed-handoff，不把空白预览当原资料丢失。再次更新预览先 Ctrl+C 停止自己的预览，再 pull；依赖锁变化后 npm ci，随后重新执行构建预览命令。此开发入口不使用 source-current.json 或历史发布指针。详见[开发指南](DEVELOPMENT.md)。
 
-`npm start`或双击日常启动脚本可能仍加载旧发布包；单纯拉取Git或运行预览不会更新日常版。配套发布是另一项操作，不删除或改写`current-release.json`来强行看到新界面。本步骤由启动源码与隔离规则核对；Windows本机字体、缩放、浏览器主题及完整启动链仍需在目标设备确认。
-
-## 后续操作
-
-- 日常操作见[使用说明](USER_GUIDE.md)。
-- 前后端开发、暂存构建与隔离验证见[开发指南](DEVELOPMENT.md)。
-- 换电脑接续见[换机清单](DEVICE_HANDOFF.md)，测试用例、业务数据和本机配置不会随Git自动传递。
-
-首次启动会写入当前环境数据库、执行迁移并创建目录。需要只读了解配置时，使用`node scripts/dev-server.mjs --show-paths`查看开发路径，不以启动应用代替只读检查。
+启动是写操作，会按上述规则初始化或升级当前环境，不可作为只读探测。Windows 双击、原生文件锁、真实旧安装和 Office 的实际结果须在目标设备核实；云端 Linux 隔离验证不能代替这些验收。

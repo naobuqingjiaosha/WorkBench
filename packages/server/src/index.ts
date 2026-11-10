@@ -42,6 +42,10 @@ import { registerPreviewRoutes } from './api/routes-preview.ts';
 
 import {acquireServerLock} from './core/server-lock.ts';
 import {closeDatabase} from './db/index.ts';
+import {isOcrProcessing} from './core/ocr-queue.ts';
+import {isBackupTickRunning,stopBackupScheduler} from './core/backup.ts';
+import {getBatchState} from './api/routes-kb.ts';
+import {liveExtractJobs} from './core/kb-extract.ts';
 acquireServerLock();
 const started = bootstrap();
 
@@ -125,6 +129,32 @@ app.setErrorHandler((error, _req, reply) => {
 });
 
 registerRequestGuard(app);
+
+// Stop new requests, drain current requests and background writers before releasing the DB lock.
+let stopping = false;
+app.addHook('onRequest', async (_req, reply) => {
+ if(stopping)return reply.code(503).send({ok:false,error:{code:'STOPPING',message:'工作台正在更新，请等待启动窗口完成后刷新页面'}});
+});
+// In-flight keep-alive responses must close their socket after completion during update.
+app.addHook('onSend', async (_req, reply, payload) => {
+ if(stopping)reply.header('Connection','close');
+ return payload;
+});
+const backgroundBusy=()=>isOcrProcessing()||isBackupTickRunning()||getBatchState().running||liveExtractJobs().length>0;
+app.post('/api/system/shutdown',async(req,reply)=>{
+ const {loadedBuild}=await import('./core/build-identity.ts');
+ const b=req.body as {startedAt?:string;confirmed?:boolean}|null;
+ if(!loadedBuild.sourceBuildId||!b?.confirmed||b.startedAt!==loadedBuild.startedAt)throw new ApiError('STALE_INSTANCE','运行实例已变化，请重新启动更新',409);
+ if(backgroundBusy())throw new ApiError('BACKGROUND_BUSY','OCR、知识库导入或备份尚在运行，请等任务完成后再更新',409);
+ stopping=true;stopBackupScheduler();
+ reply.send({ok:true,data:{stopping:true}});
+ setTimeout(()=>{void (async()=>{
+  await app.close();
+  // A request already in flight can have queued work just before close drained it.
+  while(backgroundBusy())await new Promise(r=>setTimeout(r,100));
+  closeDatabase();process.exit(0);
+ })().catch(e=>console.error('停止未完成，保留数据库锁，请核对日志',e));},100);
+});
 
 // 没有请求体的请求（例如 curl -X POST）不要求声明 Content-Type
 app.addHook('preValidation', async (req, reply) => {

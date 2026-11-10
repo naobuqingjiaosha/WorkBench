@@ -8,7 +8,7 @@ export function probeLockOwner(raw:string,probe:(pid:number)=>void=pid=>{process
  if(!/^\d+$/.test(raw.trim())||!Number.isSafeInteger(pid)||pid<=0)return 'unknown';
  try{probe(pid);return 'alive';}catch(e){return (e as NodeJS.ErrnoException).code==='ESRCH'?'dead':'unknown';}
 }
-export function acquireServerLock():void {
+export function acquireServerLock():()=>void {
  const path=join(dirname(DB_FILE),'server.lock'),guard=path+'.acquiring';
  mkdirSync(dirname(path),{recursive:true});
  // Serialize inspect/remove/create. A crashed acquisition needs manual inspection, never a timeout guess.
@@ -24,5 +24,7 @@ export function acquireServerLock():void {
   }
   writeFileSync(path,String(process.pid),{flag:'wx'});
  }finally{rmdirSync(guard);}
- process.once('exit',()=>{try{if(readFileSync(path,'utf8')===String(process.pid))unlinkSync(path);}catch{}});
+ const release=()=>{try{if(readFileSync(path,'utf8')===String(process.pid))unlinkSync(path);}catch{}};
+ process.once('exit',release);
+ return ()=>{process.removeListener('exit',release);release();};
 }

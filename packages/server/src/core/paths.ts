@@ -8,7 +8,7 @@ export { assertNoPathLinks } from './path-boundary.ts';
 import { createHash } from 'node:crypto';
 import { basename, dirname, extname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { accessSync, constants, existsSync, lstatSync, mkdirSync, readFileSync, statSync } from 'node:fs';
-import { DATA_ROOT, INSTALL_ROOT, LOG_DIR, RUNTIME_ROOT, WEB_DIST } from './config.ts';
+import { DATA_ROOT, INSTALL_ROOT, LOG_DIR, RUNTIME_ROOT, WEB_DIST, RUNTIME_LAYOUT } from './config.ts';
 
 /** 统一存正斜杠，跨平台、跨同步盘都一致 */
 export function toPosix(p: string): string {
@@ -220,6 +220,7 @@ export function platformProtectedRoots(): string[] {
     out.push(n);
   };
   push(INSTALL_ROOT);
+  push(RUNTIME_LAYOUT.codeRoot);
   push(DATA_ROOT);
   push(RUNTIME_ROOT);
   push(LOG_DIR);

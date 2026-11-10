@@ -29,25 +29,24 @@ export function runMigrations(db: DatabaseSync): string[] {
     (db.prepare('SELECT version FROM schema_migration').all() as { version: string }[]).map((r) => r.version),
   );
 
+  const pending = listMigrations().filter(m => !applied.has(m.version));
   const done: string[] = [];
-  for (const m of listMigrations()) {
-    if (applied.has(m.version)) continue;
-    const sql = readFileSync(m.file, 'utf8');
-    db.exec('BEGIN');
-    try {
-      db.exec(sql);
+  if (!pending.length) return done;
+  let current = '';
+  db.exec('BEGIN');
+  try {
+    for (const m of pending) {
+      current = m.version;
+      db.exec(readFileSync(m.file, 'utf8'));
       db.prepare('INSERT INTO schema_migration (version) VALUES (?)').run(m.version);
-      db.exec('COMMIT');
       done.push(m.version);
-    } catch (e) {
-      try {
-        db.exec('ROLLBACK');
-      } catch {
-        /* ignore */
-      }
-      throw new Error(`迁移 ${m.version} 执行失败：${(e as Error).message}`);
     }
+    db.exec('COMMIT');
+  } catch (e) {
+    try { db.exec('ROLLBACK'); } catch { /* original failure remains authoritative */ }
+    throw new Error(`迁移 ${current} 执行失败，本批迁移已回滚：${(e as Error).message}`);
   }
+
   return done;
 }
 

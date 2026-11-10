@@ -46,6 +46,10 @@
 !/scripts/repository-policy.mjs
 !/scripts/snapshot.mjs
 !/scripts/start.mjs
+!/scripts/start-release.mjs
+!/scripts/start-source.mjs
+!/scripts/source-build.mjs
+!/scripts/source-upgrade.mjs
 !/scripts/test-isolated.mjs
 !/scripts/test-preflight.mjs
 !/docs/

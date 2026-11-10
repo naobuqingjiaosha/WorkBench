@@ -10,6 +10,7 @@ function digestTree(root:string):string {
 // Capture once on module evaluation: later disk edits cannot masquerade as a restart.
 export const loadedBuild = Object.freeze({
  startedAt:new Date().toISOString(),pid:process.pid,
+ sourceBuildId:existsSync(join(INSTALL_ROOT,'SOURCE_BUILD.json'))?JSON.parse(readFileSync(join(INSTALL_ROOT,'SOURCE_BUILD.json'),'utf8')).id:null,
  sourceSha256:digestTree(join(INSTALL_ROOT,'packages/server/src')),
  dependenciesSha256:createHash('sha256').update(readFileSync(join(INSTALL_ROOT,'package-lock.json'))).digest('hex'),
  frontendSha256:digestTree(WEB_DIST),

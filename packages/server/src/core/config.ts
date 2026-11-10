@@ -19,7 +19,7 @@ const here = dirname(fileURLToPath(import.meta.url)); // packages/server/src/cor
 export const INSTALL_ROOT = resolve(here, '..', '..', '..', '..'); // 工作台根目录
 
 assertTestIsolation();
-export const RUNTIME_LAYOUT = loadRuntimeLayout(INSTALL_ROOT);
+export const RUNTIME_LAYOUT = loadRuntimeLayout(process.env.WORKBENCH_LAYOUT_ROOT || INSTALL_ROOT);
 export const CONFIG_FILE = RUNTIME_LAYOUT.configFile;
 export const CONFIG_BASE = RUNTIME_LAYOUT.configBase;
 export const DATA_ROOT = RUNTIME_LAYOUT.dataRoot;
