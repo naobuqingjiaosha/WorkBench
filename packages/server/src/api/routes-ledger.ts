@@ -5,7 +5,7 @@ import {spawn} from 'node:child_process';
 import {body,fail,ok,intParam,ApiError} from './reply.ts';
 import {loadBook,readForm} from '../domain/ledger-office.ts';
 import {readParts,cleanupTemp} from './upload.ts';
-import {ledgerView,importAnnualLedger,setLedgerTemplate,addLedgerEntry,patchLedgerEntry,inspectLedgerChanges,syncAnnualLedger,generateLedgerForms,ledgerDocument,freezeLedgerDocument,annualLedgerFile,suggestLedgerEntry,ledgerPath} from '../domain/annual-ledger.ts';
+import {ledgerView,bindAnnualLedger,importAnnualLedger,setLedgerTemplate,addLedgerEntry,patchLedgerEntry,inspectLedgerChanges,syncAnnualLedger,generateLedgerForms,ledgerDocument,freezeLedgerDocument,annualLedgerFile,suggestLedgerEntry} from '../domain/annual-ledger.ts';
 export function registerLedgerRoutes(app:FastifyInstance){
  const route=(method:'get'|'post'|'put',path:string,fn:(req:any)=>unknown)=>app[method]('/api/periods/:id/ledger'+path,async(req,reply)=>{try{return ok(reply,await fn(req));}catch(e){return fail(reply,e);}});
  route('get','',req=>ledgerView(intParam(req,'id')));
@@ -17,7 +17,7 @@ export function registerLedgerRoutes(app:FastifyInstance){
  route('post','/entries/:entry/suggest',req=>{const b=body(req);return suggestLedgerEntry(intParam(req,'id'),req.params.entry,Number(b.revision),String(b.instruction??''),{fields:b.fields,allowedFields:b.allowedFields,includeHistory:b.includeHistory!==false});});
  route('post','/entries/:entry/generate',req=>{const b=body(req);if(b.kinds!==undefined&&(!Array.isArray(b.kinds)||b.kinds.some(k=>typeof k!=='string')))throw new ApiError('BAD_KIND','文件类型无效');return generateLedgerForms(intParam(req,'id'),req.params.entry,{kinds:b.kinds as string[]|undefined,revision:b.revision===undefined?undefined:Number(b.revision)});});
  route('post','/documents/:doc/freeze',req=>freezeLedgerDocument(intParam(req,'id'),req.params.doc,String(body(req).state)));
- route('post','/bind',req=>{const path=ledgerPath(intParam(req,'id'),String(body(req).path??''));return importAnnualLedger(intParam(req,'id'),basename(path),readFileSync(path),path);});
+ route('post','/bind',req=>bindAnnualLedger(intParam(req,'id'),String(body(req).path??'')));
  app.post('/api/periods/:id/ledger/upload',async(req,reply)=>{
   let files:{tempPath:string}[]=[];try{const parts=await readParts(req);files=parts.files;if(files.length!==1)throw new ApiError('ONE_FILE','每次上传一个文件');const f=parts.files[0]!;const kind=String(parts.fields.kind??'ledger');return ok(reply,kind==='ledger'?await importAnnualLedger(intParam(req,'id'),f.fileName,readFileSync(f.tempPath)):await setLedgerTemplate(intParam(req,'id'),kind,f.fileName,readFileSync(f.tempPath)));}catch(e){return fail(reply,e);}finally{files.forEach(f=>cleanupTemp(f.tempPath));}
  });

@@ -1,9 +1,10 @@
 import {randomUUID} from 'node:crypto';
-import {readFileSync,writeFileSync,mkdirSync,existsSync,copyFileSync} from 'node:fs';
-import {join,dirname,isAbsolute,resolve} from 'node:path';
+import {readFileSync,writeFileSync,mkdirSync,existsSync,copyFileSync,rmSync,renameSync,statSync} from 'node:fs';
+import {join,dirname,isAbsolute,resolve,basename} from 'node:path';
 import {all,get,run,tx} from '../db/index.ts';
 import {DATA_ROOT} from '../core/config.ts';
 import {inside,assertNoPathLinks} from '../core/path-boundary.ts';
+import {assertUsable,workbenchRootAbs} from '../core/paths.ts';
 import {ApiError} from '../api/reply.ts';
 import {requirePeriod,requireWorkbench,validDate} from './periods.ts';
 import {isMonthlyInspection,saveInspection} from './inspections.ts';
@@ -15,31 +16,89 @@ type EntryRow={id:string;ledger_id:number;revision:number;fields:string;month:st
 type Doc={id:string;ledger_id:number;entry_id:string;kind:string;path:string;digest:string;baseline:string;state:string};
 export function ledgerScope(periodId:number){const p=requirePeriod(periodId),w=requireWorkbench(p.workbench_id);if(!isMonthlyInspection(p)||w.archived_at)throw new ApiError('BAD_SCOPE','请选择未归档的月度检查工作');return {p,w};}
 function requireLedger(periodId:number){const {p}=ledgerScope(periodId);const l=get<Ledger>('SELECT * FROM annual_ledger WHERE workbench_id=? AND year=?',[p.workbench_id,p.report_period.slice(0,4)]);if(!l)throw new ApiError('NO_LEDGER','请先导入本年度台账');return l;}
-function entry(l:Ledger,id:string){const e=get<EntryRow>('SELECT * FROM ledger_entry WHERE id=? AND ledger_id=?',[id,l.id]);if(!e)throw new ApiError('NO_ENTRY','记录不属于本年度台账');return {...e,fields:JSON.parse(e.fields) as LedgerFields};}
+function entryView(row:EntryRow){
+ // Old versions could mark an entry confirmed without creating an inspection.
+ // Preserve the stored row and require explicit confirmation to register it.
+ const status=row.status==='confirmed'&&!row.inspection_id ? 'draft' : row.status;
+ return {...row,status,fields:JSON.parse(row.fields) as LedgerFields};
+}
+function entry(l:Ledger,id:string){
+ const row=get<EntryRow>('SELECT * FROM ledger_entry WHERE id=? AND ledger_id=?',[id,l.id]);
+ if(!row)throw new ApiError('NO_ENTRY','记录不属于本年度台账');
+ return entryView(row);
+}
 export function ledgerPath(periodId:number,path:string){const {w}=ledgerScope(periodId);const root=(w as unknown as {external_root?:string}).external_root;if(!isAbsolute(path)||!(inside(DATA_ROOT,path)||root&&inside(root,path)))throw new ApiError('FORBIDDEN_PATH','文件须位于工作台管理目录或本工作已绑定目录');assertNoPathLinks(path);return resolve(path);}
 function cleanFields(value:unknown):Partial<LedgerFields>{if(!value||typeof value!=='object'||Array.isArray(value))throw new ApiError('BAD_FIELDS','字段格式不正确');const out:Partial<LedgerFields>={};for(const [k,v]of Object.entries(value)){if(!ledgerKeys.includes(k as keyof LedgerFields)||typeof v!=='string'||v.length>10000)throw new ApiError('BAD_FIELDS','未知字段或文字过长');out[k as keyof LedgerFields]=v.trim();}if(out.small_power!==undefined&&!['','yes'].includes(out.small_power))throw new ApiError('BAD_FIELDS','小微权力标记不正确');return out;}
-export async function importAnnualLedger(periodId:number,name:string,bytes:Buffer,boundPath?:string){
- const {p}=ledgerScope(periodId);if(get('SELECT id FROM annual_ledger WHERE workbench_id=? AND year=?',[p.workbench_id,p.report_period.slice(0,4)]))throw new ApiError('ALREADY_IMPORTED','本年度已有台账；请同步现有文件，避免重复导入');
+const importing = new Set<string>();
+
+export async function bindAnnualLedger(periodId:number, file:string){
+ const path=ledgerPath(periodId,file),{w}=ledgerScope(periodId);
+ if(!inside(workbenchRootAbs(w),path))throw new ApiError('FORBIDDEN_PATH','请选择本工作目录内的原件，其他来源可上传副本');
+ assertUsable(path,'write','绑定台账');
+ const stat=statSync(path);
+ if(!stat.isFile() || stat.size>20*1024*1024 || !/\.xlsx$/i.test(path))throw new ApiError('BAD_FILE','请选择20MB以内的XLSX文件');
+ return importAnnualLedger(periodId,basename(path),readFileSync(path),path);
+}
+
+export async function importAnnualLedger(periodId:number,name:string,bytes:Buffer,boundPath?:string) {
+ const {p,w}=ledgerScope(periodId),year=p.report_period.slice(0,4),scope=w.id+'-'+year;
+ if(boundPath) {
+  if(!inside(workbenchRootAbs(w),boundPath))throw new ApiError('FORBIDDEN_PATH','请选择本工作目录内的原件，其他来源可上传副本');
+  assertUsable(boundPath,'write','绑定台账');
+ }
+ if(importing.has(scope))throw new ApiError('BUSY','此年度台账正在导入',409);
+ if(get('SELECT id FROM annual_ledger WHERE workbench_id=? AND year=?',[w.id,year]))throw new ApiError('ALREADY_IMPORTED','本年度已有台账，请同步现有文件');
  if(!/\.xlsx$/i.test(name)||bytes.length>20*1024*1024)throw new ApiError('BAD_FILE','请提供20MB以内的年度XLSX台账');
- const folder=join(DATA_ROOT,'_月度检查',String(p.workbench_id),p.report_period.slice(0,4));mkdirSync(folder,{recursive:true});
- const original=join(folder,'原始台账-'+randomUUID()+'.xlsx');writeFileSync(original,bytes,{flag:'wx'});
- const book=await loadBook(original),{meta,entries,issues}=importLedgerBook(book);
+ const folder=join(DATA_ROOT,'_月度检查',String(w.id),year);
  const path=boundPath?ledgerPath(periodId,boundPath):join(folder,'年度台账.xlsx');
- const expected=boundPath?hash(bytes):null;
- const digest=await saveBookVersion(path,book,expected);
- for(const e of entries)if(e.fields.inspection_date&&!e.fields.inspection_date.startsWith(p.report_period.slice(0,4)))issues.push(`${e.fields.project} 存在其他年份日期 ${e.fields.inspection_date}，保留原文待核对`);
- tx(()=>{const id=run('INSERT INTO annual_ledger(workbench_id,year,path,digest,metadata) VALUES(?,?,?,?,?)',[p.workbench_id,p.report_period.slice(0,4),path,digest,JSON.stringify(meta)]).lastInsertRowid;for(const e of entries)run("INSERT INTO ledger_entry(id,ledger_id,fields,baseline,status) VALUES(?,?,?,?,'imported')",[e.id,id,JSON.stringify(e.fields),JSON.stringify(e.fields)]);});
- return {...await ledgerView(periodId),importIssues:issues};
+ const original=join(folder,'原始台账-'+randomUUID()+'.xlsx');
+ let keepOriginal=false;
+ importing.add(scope);
+ try {
+  assertUsable(original,'write');
+  mkdirSync(folder,{recursive:true});
+  writeFileSync(original,bytes,{flag:'wx'});
+  const book=await loadBook(original), {meta,entries,issues}=importLedgerBook(book);
+  for(const e of entries)if(e.fields.inspection_date&&!e.fields.inspection_date.startsWith(year))issues.push(e.fields.project+' 存在其他年份日期 '+e.fields.inspection_date+'，保留原文待核对');
+  const digest=await saveBookVersion(path,book,boundPath?hash(bytes):null);
+  try {
+   tx(()=>{
+    const ledgerId=run('INSERT INTO annual_ledger(workbench_id,year,path,digest,metadata) VALUES(?,?,?,?,?)',[w.id,year,path,digest,JSON.stringify(meta)]).lastInsertRowid;
+    for(const e of entries) {
+     const fields=JSON.stringify(e.fields);
+     run("INSERT INTO ledger_entry(id,ledger_id,fields,baseline,status) VALUES(?,?,?,?,'imported')",[e.id,ledgerId,fields,fields]);
+    }
+   });
+   keepOriginal=true;
+  } catch(error) {
+   // Restore just this operation's bytes. A concurrent external edit is retained.
+   if(hash(readFileSync(path))===digest) {
+    assertUsable(path,'write');
+    if(boundPath) {
+     keepOriginal=true;
+     const tmp=path+'.'+randomUUID()+'.tmp';
+     try {writeFileSync(tmp,bytes,{flag:'wx'});renameSync(tmp,path);keepOriginal=false;}
+     finally{rmSync(tmp,{force:true});}
+    } else rmSync(path);
+   } else keepOriginal=true;
+   throw error;
+  }
+  return {...await ledgerView(periodId),importIssues:issues};
+ } finally {
+  importing.delete(scope);
+  if(!keepOriginal)rmSync(original,{force:true});
+ }
 }
 export async function setLedgerTemplate(periodId:number,kind:string,name:string,bytes:Buffer){
  const l=requireLedger(periodId);if(!['work','supervision'].includes(kind)||!name.endsWith('.xlsx'))throw new ApiError('BAD_TEMPLATE','请选择工作记录表或监督情况表的XLSX模板');
- const path=join(DATA_ROOT,'_月度检查',String(l.workbench_id),l.year,kind+'-模板-'+randomUUID()+'.xlsx');mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes,{flag:'wx'});const book=await loadBook(path),s=book.worksheets[0]!;
+ const path=join(DATA_ROOT,'_月度检查',String(l.workbench_id),l.year,kind+'-模板-'+randomUUID()+'.xlsx');assertUsable(path,'write');mkdirSync(dirname(path),{recursive:true});writeFileSync(path,bytes,{flag:'wx'});
+ try{const book=await loadBook(path),s=book.worksheets[0]!;
  if(kind==='work'&&(!s.getCell('A4').text.includes('检查内容')||!s.getCell('A5').text.includes('检查结果'))||kind==='supervision'&&!s.getCell('C5').text.includes('廉政监督情况记录'))throw new ApiError('TEMPLATE_LAYOUT','模板栏目与交接资料不一致，请先核对字段映射');
- const meta=JSON.parse(l.metadata) as LedgerMeta;meta.templates={...meta.templates,[kind]:path};run('UPDATE annual_ledger SET metadata=? WHERE id=?',[JSON.stringify(meta),l.id]);return {saved:true};
+ const meta=JSON.parse(requireLedger(periodId).metadata) as LedgerMeta;meta.templates={...meta.templates,[kind]:path};run('UPDATE annual_ledger SET metadata=? WHERE id=?',[JSON.stringify(meta),l.id]);return {saved:true};}catch(e){rmSync(path,{force:true});throw e;}
 }
 export async function ledgerView(periodId:number){
  const {p}=ledgerScope(periodId);const l=get<Ledger>('SELECT * FROM annual_ledger WHERE workbench_id=? AND year=?',[p.workbench_id,p.report_period.slice(0,4)]);if(!l)return {ledger:null,entries:[],documents:[],month:p.report_period,smallPower:0,projects:[]};
- const entries=all<EntryRow>('SELECT * FROM ledger_entry WHERE ledger_id=? ORDER BY rowid',[l.id]).map(e=>({...e,fields:JSON.parse(e.fields) as LedgerFields}));
+ const entries=all<EntryRow>('SELECT * FROM ledger_entry WHERE ledger_id=? ORDER BY rowid',[l.id]).map(entryView);
  const meta=JSON.parse(l.metadata) as LedgerMeta;
  return {ledger:{id:l.id,path:l.path,year:l.year,templates:{work:!!meta.templates?.work,supervision:!!meta.templates?.supervision}},entries,documents:all<Doc>('SELECT * FROM ledger_document WHERE ledger_id=? ORDER BY created_at DESC',[l.id]),month:p.report_period,smallPower:entries.filter(e=>(e.fields.inspection_date.slice(0,7)||e.month)===p.report_period&&e.fields.small_power==='yes').length,confirmedSmallPower:entries.filter(e=>e.fields.inspection_date.startsWith(p.report_period)&&e.fields.small_power==='yes'&&e.status==='confirmed').length,projects:[...new Set([...Object.keys(meta.sheets),...entries.map(e=>e.fields.project)])]};
 }
@@ -49,10 +108,10 @@ function saveEntryFields(l:Ledger,id:string,revision:number,fields:LedgerFields,
   // Only explicit confirmation promotes facts. Changed content requires confirmation again.
   if(status==='confirmed'){
    validDate(fields.inspection_date);const p=get<{id:number}>('SELECT id FROM work_period WHERE workbench_id=? AND report_period=?',[l.workbench_id,fields.inspection_date.slice(0,7)]);
-   if(p){const prior=e.inspection_id?get<{revision:number;period_id:number}>('SELECT revision,period_id FROM inspection_record WHERE id=?',[e.inspection_id]):undefined;
+   if(!fields.inspection_date.startsWith(l.year+'-')||!p)throw new ApiError('RECORD_MONTH','实际检查日期须属于本年度已建立的期次，请先核对日期和期次',409);
+   const prior=e.inspection_id?get<{revision:number;period_id:number}>('SELECT revision,period_id FROM inspection_record WHERE id=?',[e.inspection_id]):undefined;
     if(prior&&prior.period_id!==p.id)throw new ApiError('RECORD_MONTH','已登记的记录不能直接跨月移动');
     const r=saveInspection(p.id,{...fields,result:fields.findings,revision:prior?.revision},e.inspection_id??undefined);run('UPDATE ledger_entry SET inspection_id=? WHERE id=?',[r.id,id]);
-   }
   }
  });return entry(l,id);
 }
@@ -64,6 +123,7 @@ export async function addLedgerEntry(periodId:number,value:unknown){
 export async function patchLedgerEntry(periodId:number,id:string,revision:number,value:unknown,confirm=false){
  const l=requireLedger(periodId),e=entry(l,id),fields={...e.fields,...cleanFields(value)};
  if(fields.inspection_date)validDate(fields.inspection_date);
+ if(confirm&&fields.inspection_date.slice(0,7)!==requirePeriod(periodId).report_period)throw new ApiError('RECORD_MONTH','请在实际检查日期所属期次确认记录，当前期次不能代为登记',409);
  if(fields.project!==e.fields.project)throw new ApiError('PROJECT_IDENTITY','已有记录的项目归属不可直接改名，请核对原关联');
  if(confirm&&['inspection_date','subject','content','findings'].some(k=>!fields[k as keyof LedgerFields]))throw new ApiError('FACTS_MISSING','确认实际检查前请补齐日期、事项、具体内容和发现问题；未知不能填成无问题');
  const result=saveEntryFields(l,id,revision,fields,confirm?'confirmed':undefined);return result;
@@ -94,6 +154,8 @@ export async function syncAnnualLedger(periodId:number,resolutions:Record<string
  try{
   const scan=await inspectLedgerChanges(periodId);if(expectedToken&&expectedToken!==scan.token)throw new ApiError('STALE_FILES','文件或记录又有变化，请重新查看差异',409);
   if(scan.issues.length)return {...scan,synced:false};
+  // Avoid accepting new database values if the required source is now read-only.
+  assertUsable(l.path,'write','年度台账');
   const unresolved=scan.conflicts.filter(c=>{const choice=resolutions[`${c.entryId}.${c.field}`];return choice!=='database'&&!scan.changes.some(x=>x.entryId===c.entryId&&x.field===c.field&&x.source===choice);});if(unresolved.length)return {...scan,synced:false};
   const grouped=new Map<string,Partial<LedgerFields>>();
   for(const c of scan.changes){const key=`${c.entryId}.${c.field}`,choice=resolutions[key];if(choice==='database')continue;if(choice&&choice!==c.source)continue;const patch=grouped.get(c.entryId)??{};patch[c.field as keyof LedgerFields]=c.value;grouped.set(c.entryId,patch);}
@@ -139,10 +201,17 @@ export async function generateLedgerForms(periodId:number,id:string,options:{kin
   const kind=value as 'work'|'supervision';
   try{
   const docId=randomUUID(),book=await loadBook(meta.templates[kind]!);writeForm(book,kind,e.fields,docId,id);
-  const folder=join(dirname(l.path),'月度表格',e.fields.inspection_date.slice(0,7)||'待确定月份');mkdirSync(folder,{recursive:true});
+  const folder=join(dirname(l.path),'月度表格',e.fields.inspection_date.slice(0,7)||'待确定月份');assertUsable(folder,'write');mkdirSync(folder,{recursive:true});
   const filename=`${e.fields.project.replace(/[<>:"/\\|?*]/g,'_').slice(0,50)}-${kind==='work'?'工作记录表':'监督情况表'}-${e.revision}-${docId.slice(0,8)}.xlsx`,path=join(folder,filename);
   const digest=await saveBookVersion(path,book,null);
-  run('INSERT INTO ledger_document(id,ledger_id,entry_id,kind,path,digest,baseline) VALUES(?,?,?,?,?,?,?)',[docId,l.id,id,kind,path,digest,JSON.stringify(e.fields)]);const document=get<Doc>('SELECT * FROM ledger_document WHERE id=?',[docId])!;out.push(document);results.push({kind,status:'success',document});
+  try {
+   run('INSERT INTO ledger_document(id,ledger_id,entry_id,kind,path,digest,baseline) VALUES(?,?,?,?,?,?,?)',[docId,l.id,id,kind,path,digest,JSON.stringify(e.fields)]);
+  }catch(error){
+   if(hash(readFileSync(path))===digest)rmSync(path);
+   throw error;
+  }
+  const document=get<Doc>('SELECT * FROM ledger_document WHERE id=?',[docId])!;
+  out.push(document);results.push({kind,status:'success',document});
   }catch(error){results.push({kind,status:'failed',error:(error as Error).message});}
  }
  return {documents:out,results,revision:e.revision};
@@ -150,7 +219,8 @@ export async function generateLedgerForms(periodId:number,id:string,options:{kin
 export function ledgerDocument(periodId:number,id:string){const l=requireLedger(periodId);const d=get<Doc>('SELECT * FROM ledger_document WHERE id=? AND ledger_id=?',[id,l.id]);if(!d)throw new ApiError('NO_FILE','文件不属于当前台账');ledgerPath(periodId,d.path);return d;}
 export function freezeLedgerDocument(periodId:number,id:string,state:string){
  const d=ledgerDocument(periodId,id);if(!['signed','archived','submitted'].includes(state))throw new ApiError('BAD_STATE','历史状态不正确');
- const dir=join(dirname(d.path),'.versions');mkdirSync(dir,{recursive:true});const path=join(dir,d.id+'-'+state+'-'+randomUUID()+'.xlsx');copyFileSync(d.path,path);
+ if(d.state!=='editable'){if(d.state===state)return {saved:true};throw new ApiError('HISTORY_FROZEN','已保留版本不能重新标记历史状态',409);}
+ const dir=join(dirname(d.path),'.versions');assertUsable(dir,'write','历史版本');mkdirSync(dir,{recursive:true});const path=join(dir,d.id+'-'+state+'-'+randomUUID()+'.xlsx');copyFileSync(d.path,path);
  run('UPDATE ledger_document SET path=?,digest=?,state=? WHERE id=?',[path,hash(readFileSync(path)),state,id]);return {saved:true};
 }
 export function annualLedgerFile(periodId:number){const l=requireLedger(periodId);ledgerPath(periodId,l.path);return l.path;}

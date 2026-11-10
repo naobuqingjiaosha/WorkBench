@@ -242,7 +242,7 @@ export async function collectBusinessEvidence(input: BusinessScope, budget = 240
    sa.fileDigest=sha256(readFileSync(annual.path));
    if(pending)pack.gaps.push(`${w.name} 年度台账关联文件有未同步变化或问题，请先在月检页同步；当前台账内容仅供参考。`);
    for(const row of all<Row>("SELECT * FROM ledger_entry WHERE ledger_id=? AND (substr(json_extract(fields,'$.inspection_date'),1,7)=? OR (json_extract(fields,'$.inspection_date')='' AND month=?)) ORDER BY rowid",[annual.id,p.report_period,p.report_period])){
-    const f=JSON.parse(row.fields),sr=source('ledger_entry',row,w.id,p.id),confirmed=row.status==='confirmed'&&!pending;
+    const f=JSON.parse(row.fields),sr=source('ledger_entry',row,w.id,p.id),confirmed=row.status==='confirmed'&&!pending&&Boolean(row.inspection_id&&get('SELECT id FROM inspection_record WHERE id=? AND period_id=?',[row.inspection_id,p.id]));
     if(scope.start&&f.inspection_date&&(f.inspection_date<scope.start||f.inspection_date>=scope.end!))continue;
     const body=`${f.inspection_date||'日期待补'}，项目 ${f.project}；监督事项 ${f.subject}；具体内容 ${f.content||'待补'}；发现问题 ${f.findings||'待补'}；整改情况 ${f.rectification||'待补'}；小微权力 ${f.small_power==='yes'?'是':'未标记'}。`;
     fact(`年度台账记录（${confirmed?'用户已确认实际检查':row.status==='imported'?'历史导入，待核对':'草稿或修改后待确认'}）：${body}`,confirmed?'confirmed':'unverified',[sr,sa],'inspection',body);

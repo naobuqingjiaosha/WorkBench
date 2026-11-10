@@ -1,9 +1,10 @@
 import ExcelJS from 'exceljs';
 import {randomUUID,createHash} from 'node:crypto';
-import {readFileSync,writeFileSync,mkdirSync,renameSync,copyFileSync,existsSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,renameSync,rmSync,copyFileSync,existsSync} from 'node:fs';
 import {dirname,join} from 'node:path';
 import {readOfficeBytes} from '../core/office-package.ts';
 import {ApiError} from '../api/reply.ts';
+import {assertUsable} from '../core/paths.ts';
 import {assertNoPathLinks} from '../core/path-boundary.ts';
 
 export const ledgerKeys=['project','inspection_date','subject','method','content','findings','rectification','remarks','supervisor','supervised_unit','small_power'] as const;
@@ -19,9 +20,16 @@ export function importLedgerBook(book:ExcelJS.Workbook){
  const meta:LedgerMeta={sheets:{}},entries:{id:string;fields:LedgerFields}[]=[],issues:string[]=[];
  for(const s of book.worksheets){
   if(s.name.startsWith('_workbench'))continue;
-  const columns:Record<string,number>={};let header=0;
-  for(let r=1;r<=Math.min(10,s.rowCount);r++)if(s.getRow(r).values?.toString().includes('监督事项')){header=r;s.getRow(r).eachCell((c,col)=>{const key=headers[c.text.trim()];if(key)columns[key]=col;});break;}
-  if(Object.keys(columns).length!==7)throw new ApiError('LEDGER_LAYOUT',`${s.name} 未识别完整八栏台账，请核对表头；不猜测导入`);
+  let columns:Record<string,number>={},header=0;
+  for(let r=1;r<=Math.min(10,s.rowCount);r++) {
+   const found:Record<string,number>={};let duplicate=false;
+   s.getRow(r).eachCell((c,col)=>{const key=headers[c.text.trim()];if(key){if(found[key])duplicate=true;found[key]=col;}});
+   if(Object.keys(found).length!==Object.keys(headers).length)continue;
+   if(duplicate || header)throw new ApiError('LEDGER_LAYOUT',s.name+' 存在重复栏目或多个台账表头，请核对');
+   columns=found;header=r;
+  }
+  if(!header)throw new ApiError('LEDGER_LAYOUT',s.name+' 未识别完整台账栏目，请核对表头');
+  if(s.getRow(header).values.toString().includes('_workbench_record_id'))throw new ApiError('ALREADY_LINKED',s.name+' 已关联到受管理台账，请打开原工作核对');
   const keyColumn=Math.max(14,s.columnCount+1);s.getColumn(keyColumn).hidden=true;s.getCell(header,keyColumn).value='_workbench_record_id';
   meta.sheets[s.name]={keyColumn,columns};
   for(let r=header+1;r<=s.rowCount;r++){
@@ -33,11 +41,22 @@ export function importLedgerBook(book:ExcelJS.Workbook){
  }
  if(!Object.keys(meta.sheets).length)throw new ApiError('EMPTY_LEDGER','没有可识别的项目台账');return {meta,entries,issues};
 }
+function headerRow(sheet:ExcelJS.Worksheet,keyColumn:number) {
+ // The hidden identity header was written on import, including in older managed books.
+ const header=sheet.getColumn(keyColumn).values.findIndex(value=>value==='_workbench_record_id');
+ if(header<1)throw new ApiError('LEDGER_LAYOUT',`${sheet.name} 缺少工作台记录标识表头，已停止写入`);
+ return header;
+}
 export function readLedgerRows(book:ExcelJS.Workbook,meta:LedgerMeta){
  const rows=new Map<string,{fields:Partial<LedgerFields>;sheet:ExcelJS.Worksheet;row:number}>();const issues:string[]=[];
+ for(const sheet of book.worksheets)if(!sheet.name.startsWith('_workbench')&&!meta.sheets[sheet.name])issues.push(sheet.name+' 是未登记的工作表，请核对关联后再同步');
  for(const [name,m]of Object.entries(meta.sheets)){
   const s=book.getWorksheet(name);if(!s){issues.push(`项目工作表“${name}”被改名或删除，需确认关联`);continue;}
-  for(let r=3;r<=s.rowCount;r++){
+  const header=headerRow(s,m.keyColumn);
+  if(Object.entries(m.columns).some(([key,col])=>headers[cellText(s.getCell(header,col))]!==key)){
+   issues.push(name+' 的台账列位置或名称有变化，请恢复原栏目后同步');continue;
+  }
+  for(let r=header+1;r<=s.rowCount;r++){
    const id=s.getCell(r,m.keyColumn).text.trim();const populated=Object.values(m.columns).some(c=>cellText(s.getCell(r,c)));
    if(!id){if(populated)issues.push(`${name} 第${r}行无记录关联，待确认后导入`);continue;}
    if(rows.has(id)){issues.push(`${name} 第${r}行记录关联重复，停止自动同步`);continue;}
@@ -54,15 +73,30 @@ export function writeLedgerEntry(book:ExcelJS.Workbook,meta:LedgerMeta,id:string
    if(!fields.project.trim()||fields.project.length>31||/[\[\]*?:/\\]/.test(fields.project))throw new ApiError('SHEET_NAME','新项目工作表名称须不超过31字，不能含 Excel 禁用字符');
    s=book.addWorksheet(fields.project);s.model={...structuredClone(model.model),id:s.id,name:fields.project};
    const source=meta.sheets[model.name]!;meta.sheets[fields.project]=structuredClone(source);
-   for(let r=3;r<=s.rowCount;r++)s.getRow(r).eachCell(c=>c.value=null);
-   s.getCell('A1').value=fields.project+'（项目）廉政监督员日常监督工作台账';
+   const header=headerRow(s,source.keyColumn);
+   for(let r=header+1;r<=s.rowCount;r++)s.getRow(r).eachCell(c=>c.value=null);
+   if(header>1)s.getCell('A1').value=fields.project+'（项目）廉政监督员日常监督工作台账';
   }
-  const m=meta.sheets[s.name]!;let r=3;while(s.getCell(r,m.keyColumn).text||Object.values(m.columns).some(c=>cellText(s!.getCell(r,c))))r++;
-  const sample=s.getRow(Math.max(3,r-1));for(let c=1;c<=8;c++)s.getCell(r,c).style=structuredClone(sample.getCell(c).style);s.getRow(r).height=sample.height??60;
-  s.getCell(r,1).value=r-2;s.getCell(r,m.keyColumn).value=id;located={sheet:s,row:r,fields:{}};
+  const m=meta.sheets[s.name]!,header=headerRow(s,m.keyColumn);let r=header+1;while(s.getCell(r,m.keyColumn).text||Object.values(m.columns).some(c=>cellText(s!.getCell(r,c))))r++;
+  const sample=s.getRow(Math.max(header+1,r-1));for(let c=1;c<=8;c++)s.getCell(r,c).style=structuredClone(sample.getCell(c).style);s.getRow(r).height=sample.height??60;
+  s.getCell(r,1).value=r-header;s.getCell(r,m.keyColumn).value=id;located={sheet:s,row:r,fields:{}};
  }
- const m=meta.sheets[located.sheet.name]!;for(const [key,c]of Object.entries(m.columns))located.sheet.getCell(located.row,c).value=fields[key as keyof LedgerFields];
- located.sheet.pageSetup.printArea=`A1:H${Math.max(located.sheet.rowCount,located.row)}`;
+ const sheet=located.sheet,m=meta.sheets[sheet.name]!;
+ for(const [key,col]of Object.entries(m.columns)){
+  const cell=sheet.getCell(located.row,col);
+  const previous=key==='inspection_date'?normalizeLedgerDate(cellText(cell)):cellText(cell);
+  if(previous===fields[key as keyof LedgerFields])continue;
+  if(cell.formula)throw new ApiError('FORMULA_CONFLICT',sheet.name+' '+cell.address+' 是公式，请先在原表中核对后再同步',409);
+  cell.value=fields[key as keyof LedgerFields];
+ }
+ const area=sheet.pageSetup.printArea;
+ if(!area){
+  const lastColumn=sheet.getColumn(Math.max(...Object.values(m.columns))).letter;
+  sheet.pageSetup.printArea=`A1:${lastColumn}${sheet.rowCount}`;
+ }else{
+  const rectangle=area.match(/^([A-Z]+\d+:[A-Z]+)(\d+)$/i);
+  if(rectangle&&Number(rectangle[2])<located.row)sheet.pageSetup.printArea=rectangle[1]+String(located.row);
+ }
 }
 export function formFields(kind:string,f:LedgerFields):Record<string,string>{
  // Confirmed business mapping: work-record inspection content is the ledger subject.
@@ -90,9 +124,11 @@ export function readForm(book:ExcelJS.Workbook,kind:string,id:string,entry:strin
 }
 /** Every replaced file gets an immutable backup; compare bytes again immediately before rename. */
 export async function saveBookVersion(path:string,book:ExcelJS.Workbook,expected:string|null){
- assertNoPathLinks(path);mkdirSync(dirname(path),{recursive:true});const bytes=Buffer.from(await book.xlsx.writeBuffer()),temp=path+'.'+randomUUID()+'.tmp';
- writeFileSync(temp,bytes,{flag:'wx'});
- if(expected!==null){if(!existsSync(path)||hash(readFileSync(path))!==expected)throw new ApiError('FILE_CHANGED','文件在处理期间再次变化，未覆盖，请重新同步',409);const versions=join(dirname(path),'.versions');mkdirSync(versions,{recursive:true});copyFileSync(path,join(versions,randomUUID()+'.xlsx'));}
+ assertUsable(path,'write','台账或关联表格');mkdirSync(dirname(path),{recursive:true});const bytes=Buffer.from(await book.xlsx.writeBuffer()),temp=path+'.'+randomUUID()+'.tmp';
+ try{
+ assertUsable(temp,'write');writeFileSync(temp,bytes,{flag:'wx'});
+ if(expected!==null){if(!existsSync(path)||hash(readFileSync(path))!==expected)throw new ApiError('FILE_CHANGED','文件在处理期间再次变化，未覆盖，请重新同步',409);const versions=join(dirname(path),'.versions');assertUsable(versions,'write','历史版本');mkdirSync(versions,{recursive:true});copyFileSync(path,join(versions,randomUUID()+'.xlsx'));}
  else if(existsSync(path))throw new ApiError('FILE_EXISTS','目标文件已存在，未覆盖',409);
  renameSync(temp,path);return hash(bytes);
+ }finally{rmSync(temp,{force:true});}
 }
