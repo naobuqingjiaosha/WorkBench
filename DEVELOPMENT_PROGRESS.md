@@ -7,7 +7,7 @@
 | 对象 | 已核实的身份和范围 |
 |---|---|
 | 源码起点 | Mac 原检出开工时的本地与远端 main 均为 `913b002a613d4b06b0a67172b009885af6fb30d1`。已有首页、列表、工时输入/月报/人员范围和配套文档的未提交修改。本次在 `codex/workbench-delivery` 上接续。 |
-| 交付候选 | 通用源码、锁文件、经审查的合成测试和配套前端可独立打包。归档版本使用交付清单、提交和文件摘要识别。各批提交、推送、最终包与同包复验结果以[工作日志](docs/management/WORK_LOG.md)的交付记录为准。 |
+| 交付候选 | 软件提交 `92f60991669b35f2c6508a80291432ee12a37b7b` 已推送至 `codex/workbench-delivery`。已实际解压 `WorkBench-92f6099.zip`，按锁文件全新安装并启动。Mac 隔离构建 `b2ce01c74a45` 的实际后端、前端、锁文件和 42 个迁移名均与清单核对。程序包内类型检查、共享业务回归和 Chromium 全部场景通过；实际生成的六份 Office 文件经 LibreOffice 逐页核对。摘要和复核范围见[工作日志](docs/management/WORK_LOG.md)。 |
 | Mac 日常实例 | 2026-11-10 只读核对 8787 的 `/api/health`，状态 ok、profile 为 daily，已加载的 sourceBuildId 与 source-current.json 均为 `d2b1d8ffa9f82762ce3104cd1a654cabeef786c7c46db8bc7ffe6bf05e588878`。这是先前应用首页/列表后的源码构建。本轮没有切换该服务或修改日常库。 |
 | Windows 日常环境 | 本轮无法访问。实际加载版本、平台锁、Office、业务库和外部资料需在目标机核对。旧设备的 ui-design、monthly-workspaces、reliability 发布与恢复记录只说明当时设备和范围。 |
 | 数据与文件 | 已有 SQLite 迁移集合、文件目录和成果版本保留。候选复验使用独立数据库、临时路径、合成输入。已在合成旧库副本上进行升级与配套文件恢复；真实数据恢复需单独核验外部资料及权限。 |

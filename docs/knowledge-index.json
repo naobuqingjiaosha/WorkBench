@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "a8d2b2d62dd9215e46f54d01b23011b7547cd1abed2634fdc7d8fec4a16b57e4",
+      "sha256": "33e883442c16b3f9f9e3a3fd763836746fd4ccaba00385040bd3071d80f067da",
       "linksTo": [
         "docs/guides/INSTALLATION.md",
         "docs/management/PROJECT_PLAN.md",
@@ -1525,7 +1525,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "9e36a820d6c5f139dfa340aa6b8664f572c3eac58a81f85fec86a27a6ace2104",
+      "sha256": "37e1a9102c5229c41ccd47db703b63766fddb8cd3372b7408811ec0c07e10062",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1699,7 +1699,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "ccd9aa57b395ed85a01218e3d659cabf988986ff9a7606285555a8f7378cf9a2",
+      "sha256": "907fc4053be5f62fdd6d4831f2f5da2f543c1d05989ec500ded5126fea0c23a0",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",
