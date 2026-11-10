@@ -30,7 +30,7 @@ npm ci会重建node_modules；已有环境不是每次任务都要运行，更�
 
 应用依赖齐备后可运行npm run typecheck核对源码类型。纯文档任务只执行文档及共享边界检查，不重跑应用测试。
 
-新克隆用 `npm ci` 安装锁定依赖，再运行 `npm test`。指定场景用 `node scripts/test-isolated.mjs --shared timesheet`。这些用例生成自己的来源文件、日期、预期与 SQLite 数据，结束回收。浏览器驱动已按锁文件固定。首次运行 `npx playwright-core install chromium` 安装匹配的浏览器，之后用 `npm run test:browser` 回放；可通过 PLAYWRIGHT_MODULE、PLAYWRIGHT_BROWSERS_PATH 指向已安装工具，CANDIDATE_WEB_DIST 可指定要复验的已构建界面。
+新克隆用 `npm ci` 安装锁定依赖，再运行 `npm test`。工时针对性复验用 `npm run test:monthly`，包含常规模板和原总计在插行、补列后的对照。编辑器实页可单独用 `node scripts/test-isolated.mjs --shared work-documents-browser templates-schedule-browser` 回放。这些用例生成自己的来源文件、日期、预期与 SQLite 数据，结束回收。浏览器驱动已按锁文件固定。首次运行 `npx playwright-core install chromium` 安装匹配的浏览器，之后用 `npm run test:browser` 回放；可通过 PLAYWRIGHT_MODULE、PLAYWRIGHT_BROWSERS_PATH 指向已安装工具，CANDIDATE_WEB_DIST 可指定要复验的已构建界面。
 
 `npm run test:legacy:all` 保留原机完整套件；`--unit <名称>` 单独运行已安装的私有专项。缺旧用例明确报错。共享通过和历史全套分别记录。
 

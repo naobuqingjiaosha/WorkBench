@@ -8,13 +8,13 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "92f60991669b35f2c6508a80291432ee12a37b7b",
+  "committedBase": "08229d6c304f3342aa6ecc06b87c8a5e5cec9f4e",
   "engines": {
     "node": ">=24.0.0"
   },
   "npmScripts": {
     "dev:monthly": "node scripts/dev-monthly.mjs",
-    "test:monthly": "node scripts/test-isolated.mjs --shared timesheet",
+    "test:monthly": "node scripts/test-isolated.mjs --shared timesheet timesheet-formulas",
     "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "node scripts/dev-server.mjs --watch",
     "dev:web": "npm --workspace @workbench/web run dev",
@@ -31,7 +31,7 @@
     "typecheck": "npm run typecheck:server && npm run typecheck:web",
     "typecheck:server": "tsc -p tsconfig.json --noEmit",
     "typecheck:web": "tsc -p packages/web/tsconfig.json --noEmit",
-    "test": "node scripts/test-isolated.mjs --shared isolation repository recovery work-records periods projects timesheet ledger",
+    "test": "node scripts/test-isolated.mjs --shared isolation repository recovery work-records periods projects timesheet ledger timesheet-formulas",
     "test:evidence-writing": "node scripts/test-isolated.mjs --unit evidence-writing && node scripts/test-isolated.mjs --unit evidence-writing-boundaries && node scripts/test-isolated.mjs --unit evidence-directed && node scripts/test-isolated.mjs --unit evidence-semantic-entry && node scripts/test-isolated.mjs --unit evidence-citation-contract",
     "test:stability": "node scripts/test-isolated.mjs --unit system-stability && node scripts/test-isolated.mjs --unit workbench-count && node scripts/test-isolated.mjs --unit trash-fact-review",
     "test:business-ai": "node scripts/test-isolated.mjs --unit phase5-business-assistant",
@@ -63,7 +63,7 @@
     "test:legacy:all": "npm run test:legacy && node scripts/test-isolated.mjs e2e kb-e2e agent-e2e vision-e2e ocr-e2e",
     "test:legacy:repository": "node packages/server/test/repository-boundary.mjs",
     "test:legacy:runtime-layout": "node packages/server/test/runtime-layout.mjs",
-    "test:browser": "node scripts/test-isolated.mjs --shared response-scope-browser projects-browser periods-browser timesheet-browser ledger-browser work-records-browser ai-draft"
+    "test:browser": "node scripts/test-isolated.mjs --shared response-scope-browser projects-browser periods-browser timesheet-browser ledger-browser work-records-browser ai-draft work-documents-browser templates-schedule-browser"
   },
   "files": [
     {
@@ -72,7 +72,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "a4cda0dce92c515d1b7b51e77bdc084ba138e31cb131caab0b622cc7dde89157"
+      "sha256": "7c0d0040d689b4c582b9849c6cc8606cdfde8097125d02172d438e6ef7a13532"
     },
     {
       "path": "packages/server/package.json",
@@ -164,7 +164,7 @@
     },
     {
       "path": "packages/server/src/api/routes-work.ts",
-      "sha256": "6b8e972d294f6aff6cae011ca0663404c003e23652deff5d6e67b6883459fcfb"
+      "sha256": "a0a9e8cd430f79360944cf9a165167f266e6557278f4435808159125275fa145"
     },
     {
       "path": "packages/server/src/api/routes-workflow-config.ts",
@@ -596,7 +596,7 @@
     },
     {
       "path": "packages/server/src/domain/periods.ts",
-      "sha256": "c8d42f321affdd13914acf68f44b64a642efb57bc8562aec8baeab8594816c6b"
+      "sha256": "6ad46e38e7eeb028acc60d77801d7e154eccd2cc189831d6e50f89ee6a79abd3"
     },
     {
       "path": "packages/server/src/domain/policy-reference.ts",
@@ -635,8 +635,12 @@
       "sha256": "29bbbe9b30d4b23d3fe81ca58805b7b18f234b44477f989730321a3a8485a98c"
     },
     {
+      "path": "packages/server/src/domain/timesheet-formulas.ts",
+      "sha256": "6d456e674916bb122241f15a850bd25f6da1234c88638c974fcd76cd701953b7"
+    },
+    {
       "path": "packages/server/src/domain/timesheet-layout.ts",
-      "sha256": "61664bd3bc75ba4736d04c46ce4f22def3580003863471c8ec45a34c8cf2dd4d"
+      "sha256": "d7776c282d880dd70b5871813faabaf579fd2a773fa33d204d249844ba1f8a16"
     },
     {
       "path": "packages/server/src/domain/timesheet-preferences.ts",
@@ -648,7 +652,7 @@
     },
     {
       "path": "packages/server/src/domain/timesheets.ts",
-      "sha256": "e6fe52cb682d962d0c12015170e70472f25d987a3bf1ab72cc0d6a696a240f1f"
+      "sha256": "eb852a51c11b897825d7e748016bc5e64d2535bde7af5db1fd33c4972dff516b"
     },
     {
       "path": "packages/server/src/domain/versions.ts",
@@ -747,16 +751,28 @@
       "sha256": "81150aef84e31fe50fd3e62c3c7e765d77860877ed729ce079aceff5dd123e67"
     },
     {
+      "path": "packages/server/test/shared/templates-schedule-browser.ts",
+      "sha256": "be7807258d60636795e0921a27cb7910ba2af9288795a4192e19304671121cdd"
+    },
+    {
       "path": "packages/server/test/shared/timesheet-browser.ts",
-      "sha256": "a06a5cb481aa4793233063b2faf7b3433079de65f308a0200f49f2dcafbcd45e"
+      "sha256": "63fdbdeda6d9d1aeafc415f5d2a72b4f9cac5829ef9eaa656312e716ebba7fd1"
     },
     {
       "path": "packages/server/test/shared/timesheet-fixture.ts",
       "sha256": "ee327d56f1d6e0fc5fe7de4d60846c7a9049aacfc9d78c5cc3bf57e22b1ebc60"
     },
     {
+      "path": "packages/server/test/shared/timesheet-formulas.ts",
+      "sha256": "a5c14c34d8308f6f3a74a6158d39cb1dd2646f498d1aff95020d22c0e01495c3"
+    },
+    {
       "path": "packages/server/test/shared/timesheet.ts",
       "sha256": "e7bb032cb921917f5fb2713ca07b40cb10e6f8012b8dcec6ca67baa66c17b553"
+    },
+    {
+      "path": "packages/server/test/shared/work-documents-browser.ts",
+      "sha256": "87b66d095f093fffd87097b2eb05d0f66e6decd55079ee5c5574a37e4a763835"
     },
     {
       "path": "packages/server/test/shared/work-records-browser.ts",
@@ -839,12 +855,20 @@
       "sha256": "8b1da50450f1bca877c168bf9028ea43bfc28f24922175b31a8c0fa253d0428d"
     },
     {
+      "path": "packages/web/src/components/PeriodRuleEditor.tsx",
+      "sha256": "bcbcb8a3c457ca6959a706ff1ec3de0e44154042ac9ee875317ba17f7f13664f"
+    },
+    {
       "path": "packages/web/src/components/ProjectReportReview.tsx",
       "sha256": "c098369455e889ef72fb9a534bed18d6072dd2cadee63fb108aeefa8f1fded04"
     },
     {
       "path": "packages/web/src/components/ReferenceFolder.tsx",
       "sha256": "31f2ef1af6885c081db6b2ed8598026d3f077008964da567cb100f508b5c9d58"
+    },
+    {
+      "path": "packages/web/src/components/TemplateChoices.tsx",
+      "sha256": "98463954828d977a967cf9cd224322ab699184b0a733f80f50a10bc7e7a164df"
     },
     {
       "path": "packages/web/src/components/TemplateFieldRecognition.tsx",
@@ -856,7 +880,7 @@
     },
     {
       "path": "packages/web/src/components/WorkDocuments.tsx",
-      "sha256": "bd0a9e2cdb111e0eddad09aee577c7a8029b8e08a686943c5af1e2bdc2a3e01d"
+      "sha256": "3ca7dd5b7586ea1b5ffa27824d7c38d0e16a0fce106f27435372cd8c89012ac0"
     },
     {
       "path": "packages/web/src/components/WorkExecution.tsx",
@@ -940,11 +964,11 @@
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
-      "sha256": "622edec6b5eb16a3c46406f1b6cd4982c92914ebba0e8f939eb964c66ef3e387"
+      "sha256": "a75f8aa6cab244f7a52e082ae95ce0bf4a174672868c22cdfacda3e6ef7e93b0"
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "4a1c9c28416b01a5d301a54f99d8e7c07339e0e3e7861b5cd846bd3d82d94dca"
+      "sha256": "b84a092f9ec5f340167f1d98f1cbc0b1a43942e9bd59870920b897d1bcc505ee"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
@@ -980,7 +1004,7 @@
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "e079a46feea94f9e68ed82e170bf00dbccfe29bd92a37444cee8229a88e66766"
+      "sha256": "43d335e72b83e5b3d1e0588f22f992f024856413f4524ffea850bbf232d353c4"
     },
     {
       "path": "packages/web/src/styles.css",
@@ -2491,139 +2515,139 @@
       "method": "POST",
       "path": "/api/workbenches/:id/archive",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 271
+      "line": 283
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/complete",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 291
+      "line": 303
     },
     {
       "method": "DELETE",
       "path": "/api/workbenches/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 314
+      "line": 326
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/instantiate",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 368
+      "line": 380
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/recalc",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 378
+      "line": 390
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 389
+      "line": 401
     },
     {
       "method": "GET",
       "path": "/api/folders/subdirs",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 444
+      "line": 456
     },
     {
       "method": "POST",
       "path": "/api/workbenches/:id/bind-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 509
+      "line": 521
     },
     {
       "method": "DELETE",
       "path": "/api/workbenches/:id/bind-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 528
+      "line": 540
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/bound-folder",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 543
+      "line": 555
     },
     {
       "method": "PUT",
       "path": "/api/workbenches/:id/output-mode",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 571
+      "line": 583
     },
     {
       "method": "PUT",
       "path": "/api/positions/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 602
+      "line": 614
     },
     {
       "method": "PUT",
       "path": "/api/checklist/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 650
+      "line": 662
     },
     {
       "method": "GET",
       "path": "/api/position-templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 668
+      "line": 680
     },
     {
       "method": "POST",
       "path": "/api/position-templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 678
+      "line": 690
     },
     {
       "method": "PUT",
       "path": "/api/position-templates/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 682
+      "line": 694
     },
     {
       "method": "DELETE",
       "path": "/api/position-templates/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 686
+      "line": 698
     },
     {
       "method": "GET",
       "path": "/api/position-templates/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 712
+      "line": 724
     },
     {
       "method": "PUT",
       "path": "/api/position-templates/:id/templates",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 730
+      "line": 742
     },
     {
       "method": "GET",
       "path": "/api/workbenches/:id/position-docs",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 740
+      "line": 752
     },
     {
       "method": "POST",
       "path": "/api/materials",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 773
+      "line": 785
     },
     {
       "method": "POST",
       "path": "/api/evidences",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 777
+      "line": 789
     },
     {
       "method": "DELETE",
       "path": "/api/rules/:kind/:id",
       "file": "packages/server/src/api/routes-work.ts",
-      "line": 781
+      "line": 793
     },
     {
       "method": "GET",
