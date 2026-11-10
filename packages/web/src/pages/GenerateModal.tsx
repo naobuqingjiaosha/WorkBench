@@ -237,7 +237,7 @@ export function GenerateModal({
     }).toString()}`,
   );
 
-  const refs = useApi<{ items: Artifact[] }>(`/api/artifacts?workbenchId=${workbenchId}&limit=${periodId?500:60}`);
+  const refs = useApi<{ items: Artifact[] }>(`/api/artifacts?workbenchId=${workbenchId}${periodId?`&periodId=${periodId}`:''}&limit=${periodId?500:60}`);
   const referenceItems=refs.data?.items.filter(a=>!periodId||(a as Artifact&{work_period_id?:number}).work_period_id===periodId)??[];
 
   useEffect(() => {

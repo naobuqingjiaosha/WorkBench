@@ -52,6 +52,7 @@ export function registerFileRoutes(app: FastifyInstance): void {
   app.get('/api/artifacts', async (req, reply) => {
     try {
       const r = listArtifacts({
+        periodId: qInt(req,'periodId'),
         workbenchId: qInt(req, 'workbenchId') ?? null,
         kind: (q(req, 'kind') as ArtifactKind) ?? null,
         checklistItemId: qInt(req, 'checklistItemId') ?? null,

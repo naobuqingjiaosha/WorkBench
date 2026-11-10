@@ -1,0 +1,81 @@
+import assert from 'node:assert/strict';
+import {bootstrap} from '../../src/core/bootstrap.ts';
+import {closeDatabase} from '../../src/db/index.ts';
+import {projectFixture} from './project-fixture.ts';
+import {withBrowserPage} from './browser-fixture.ts';
+
+bootstrap();
+const type=projectFixture();
+closeDatabase();
+
+await withBrowserPage(async(page,base)=>{
+  const button=(name:string|RegExp)=>page.getByRole('button',{name,exact:typeof name==='string'});
+  const read=async(path:string)=>(await (await fetch(base+path)).json()).data;
+  async function create(name:string,historical:boolean) {
+    await page.goto(base+'/#/workbench?create=1');
+    await button(/^项目工作/).click();
+    await page.getByLabel(/^项目分类/).selectOption('information');
+    await page.getByLabel(/具体项目类型/).selectOption(String(type.typeId));
+    await page.getByLabel(/项目名称/).fill(name);
+    if(historical)await page.getByLabel(/补录已结束项目/).check();
+    assert.equal(await page.getByLabel('开始日期',{exact:true}).inputValue(),'');
+    await button('取消').click();
+    await button('继续编辑').click();
+    assert.equal(await page.getByLabel(/项目名称/).inputValue(),name);
+    await button('创建').click();
+    await page.waitForURL(/workbench\?id=\d+/);
+    await page.getByText('业务与档案状态',{exact:true}).waitFor();
+    return Number(new URLSearchParams(page.url().split('?')[1]).get('id'));
+  }
+
+  const active=await create('合成在办交付',false);
+  await button(/^材料核对（/).click();
+  const review=page.getByPlaceholder('核对说明 / 不适用原因');
+  const select=review.locator('..').getByRole('combobox');
+  await select.selectOption('verified');
+  await button('保存核对').click();
+  await page.getByText(/材料数量不足或关联文件已丢失/).waitFor();
+  await review.fill('合成验收核对意见');
+  await button(/^流程与清单/).click();
+  await button('继续编辑').click();
+  assert.equal(await review.inputValue(),'合成验收核对意见');
+  const bytes=Buffer.from('集成用的合成交付文件。','utf8');
+  await page.getByLabel('上传 交付证明').setInputFiles({name:'合成交付说明.txt',mimeType:'text/plain',buffer:bytes});
+  await page.getByRole('link',{name:'合成交付说明.txt'}).waitFor();
+  assert.equal(await review.inputValue(),'合成验收核对意见');
+  assert.equal(await select.inputValue(),'verified');
+  await button('保存核对').click();
+  await page.getByText('已保存核对结果',{exact:true}).waitFor();
+  const files=await read('/api/artifacts?workbenchId='+active);
+  assert.equal(files.items.length,1);
+  const attachment=files.items[0];
+  assert.equal(attachment.position_code,'accept');
+  assert.ok(attachment.checklist_item_id);
+  assert.deepEqual(Buffer.from(await (await fetch(base+'/api/artifacts/'+attachment.id+'/file')).arrayBuffer()),bytes);
+  await button(/^流程与清单/).click();
+  await page.locator('.timeline').getByRole('combobox').selectOption('done');
+  await page.getByText('阶段已办理完毕，可核对材料并结束工作。').waitFor();
+  await page.getByText('工作设置与归档',{exact:true}).click();
+  await button('完成工作').click();
+  await page.getByText('业务已结束，可核对材料和档案。').waitFor();
+  await button('核对并归档').click();
+  await button('恢复至原列表').waitFor();
+  assert.equal((await read('/api/workbenches/'+active)).workbench.archive_status,'done');
+
+  const history=await create('合成历史归集',true);
+  await page.getByText(/业务：已结束（历史补录）.*档案：整理中/).waitFor();
+  assert.equal((await read('/api/workbenches/'+history)).workbench.start_date,null);
+  await page.getByLabel('上传 交付证明').setInputFiles({name:'合成历史证明.txt',mimeType:'text/plain',buffer:bytes});
+  await page.getByRole('link',{name:'合成历史证明.txt'}).waitFor();
+  await select.selectOption('verified');
+  await button('保存核对').click();
+  await page.getByText(/业务：已结束（历史补录）.*档案：已备齐/).waitFor();
+  await page.reload();
+  await page.getByRole('link',{name:'合成历史证明.txt'}).waitFor();
+  const restored=await read('/api/workbenches/'+history);
+  assert.equal(restored.workbench.actual_end_date,null);
+  assert.equal(restored.positions[0].status,'pending');
+  assert.equal(restored.positions[0].started_at,null);
+  assert.equal(restored.positions[0].finished_at,null);
+  console.log('Chromium 实际完成在办项目创建、核对失败、离开保护、附件上传及下载字节比对、阶段完成与归档；历史项目重开后材料齐备，日期留空。');
+});

@@ -512,6 +512,7 @@ export function reindexWorkbench(workbenchId: number): number {
 /* ------------------------------ 读取 ------------------------------ */
 
 export interface ListArtifactsQuery {
+  periodId?: number;
   workbenchId?: number | null;
   kind?: ArtifactKind | null;
   checklistItemId?: number | null;
@@ -528,6 +529,7 @@ export function listArtifacts(q: ListArtifactsQuery = {}): { total: number; item
     where.push('workbench_id = ?');
     params.push(q.workbenchId);
   }
+  if(q.periodId!==undefined){where.push('work_period_id = ?');params.push(q.periodId);}
   if (q.kind) {
     where.push('kind = ?');
     params.push(q.kind);

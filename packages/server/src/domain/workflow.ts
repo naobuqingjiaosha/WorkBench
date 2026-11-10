@@ -17,7 +17,7 @@ export function listWorkflowInbox() {
     }>("SELECT p.*,w.name FROM work_period p JOIN workbench w ON w.id=p.workbench_id WHERE p.status='open' AND w.deleted_at IS NULL AND w.archived_at IS NULL AND w.status<>'done' ORDER BY p.due_date,p.id").map(p => {
         const readiness=periodReadiness(p.id);
         return {...p,overdue:p.due_date<today,missing:readiness.missing,canComplete:readiness.canComplete,
-            nextAction:readiness.canComplete?'文件已生成，可下载或继续编辑':readiness.monthly?
+            nextAction:readiness.canComplete?(readiness.finalCount?'文件已生成，可下载或继续编辑':'准备本期内容，按需选择模板'):readiness.monthly?
                 !readiness.recordCount&&!readiness.draftCount?'新增检查记录':!readiness.recordsReady?'编辑草稿／生成检查文件':'核对必要附件':readiness.missing[0]};
     });
     // 独立期次只使用 periodReadiness；旧排期投影不能再次计算同一工作的待办。

@@ -1,7 +1,7 @@
 import {readFileSync,existsSync} from 'node:fs';
 import {all,get,run} from '../db/index.ts';
 import {reviewMemoryFacts} from './memory-facts.ts';
-import {inspectionSourceSignature} from './inspections.ts';
+import {inspectionSourceSignature,listInspections} from './inspections.ts';
 import {getTemplate} from './service.ts';
 import {requirePeriod} from './periods.ts';
 import {DATA_ROOT} from '../core/config.ts';
@@ -32,7 +32,7 @@ export function documentSourceSignature(workbenchId:number|null|undefined,period
  const w=workbenchId?get('SELECT name,summary,business_content,profile,owner,counterpart,contract_no,contract_amount,start_date,plan_end_date FROM workbench WHERE id=?',[workbenchId]):null;
  const p=periodId?get<{content:string;scheduled_date:string|null;source_period_ids:string}>('SELECT content,scheduled_date,source_period_ids FROM work_period WHERE id=?',[periodId]):null;
  const ids:number[]=p?JSON.parse(p.source_period_ids):[];
- const linked=ids.map(id=>[get('SELECT id,workbench_id,report_period,content,status,scheduled_date,reported_on FROM work_period WHERE id=?',[id]),all('SELECT * FROM inspection_record WHERE period_id=? ORDER BY id',[id])]);
+ const linked=ids.map(id=>[get('SELECT id,workbench_id,report_period,content,status,scheduled_date,reported_on FROM work_period WHERE id=?',[id]),listInspections(id).sort((a,b)=>a.id-b.id)]);
  const files=workbenchId?all<Artifact & {work_period_id:number|null}>('SELECT * FROM artifact WHERE deleted_at IS NULL AND (workbench_id=? OR work_period_id IN ('+(ids.map(()=>'?').join(',')||'NULL')+')) ORDER BY id',[workbenchId,...ids])
   .filter(a=> (ids.includes(a.work_period_id!) ? a.kind!=='generated'||!!a.is_final : sourceArtifactIds.includes(a.id)))
   .filter(a=>!get('SELECT id FROM business_ai_run WHERE artifact_id=?',[a.id]))

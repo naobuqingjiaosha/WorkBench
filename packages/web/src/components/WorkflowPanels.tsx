@@ -50,6 +50,7 @@ interface CheckItem {
     title: string;
     kind:string;
     position_name: string;
+    detail: string | null;
     required: number;
     review_status: string;
     review_note: string;
@@ -68,9 +69,10 @@ export function ProjectReadiness({ workbenchId, onChanged }: {
         documents: {positionId:number;positionCode:string;shortfall:number;items:{templateId:number;name:string;required:number;finalized:boolean}[]}[];
         missing: number;
     }>(`/api/workbenches/${workbenchId}/readiness`);
-    if (!data.data || (!data.data.items.length && !data.data.documents.length))
-        return null;
-    return <Card title={`工作材料核对 · ${data.data.missing} 项必备材料未确认`} collapsible><p>上传文件只代表已提供。确认符合要求后才能完成阶段；不适用须记录原因。</p>{data.data.items.map(i => <CheckRow key={`${i.id}-${i.review_status}-${i.files.length}`} workbenchId={workbenchId} item={i} reload={()=>{data.reload();onChanged?.();}}/>)}{data.data.documents.map(d => <StageDocumentRequirements workbenchId={workbenchId} key={d.positionId} stage={d} reload={data.reload}/>)}</Card>;
+    if (data.error) return <p role="alert">材料读取失败：{data.error.message} <Button onClick={data.reload}>重试</Button></p>;
+    if (!data.data) return <p role="status">正在读取项目材料…</p>;
+    if (!data.data.items.length && !data.data.documents.length) return <p>此工作没有配置阶段材料。</p>;
+    return <Card title={`工作材料核对 · ${data.data.missing} 项必备材料未确认`}><p>上传文件只代表已提供。确认符合要求后才能完成阶段；不适用须记录原因。</p>{data.data.items.map(i => <CheckRow key={i.id} workbenchId={workbenchId} item={i} reload={()=>{data.reload();onChanged?.();}}/>)}{data.data.documents.map(d => <StageDocumentRequirements workbenchId={workbenchId} key={d.positionId} stage={d} reload={data.reload}/>)}</Card>;
 }
 function StageDocumentRequirements({stage, reload,workbenchId}: {workbenchId:number;stage:{positionId:number;positionCode:string;shortfall:number;items:{templateId:number;name:string;required:number;finalized:boolean}[]};reload:()=>void}) {
     const {busy,run}=useAction(),lock=useRef(false);
@@ -89,8 +91,14 @@ function CheckRow({ item: i, reload,workbenchId }: {
     item: CheckItem;
     reload: () => void;
 }) {
-    const [status, setStatus] = useState(i.review_status), [note, setNote] = useState(i.review_note), { busy, run } = useAction();
-    return <div className="col" style={{ padding: 8, borderBottom: '1px solid var(--border)' }}><strong>{i.position_name} · {i.title} {i.required ? '（必备）' : '（可选）'}</strong><div>{i.files.map(f => <a style={{ marginRight: 12 }} href={`/api/artifacts/${f.id}/file`} key={f.id}>{f.file_name}{f.exists ? '' : '（文件丢失）'}</a>)}</div><div className="row"><Select value={status} onChange={setStatus} options={[{ value: 'pending', label: '未核对' }, { value: 'verified', label: '确认符合本项要求' }, { value: 'na', label: '不适用' }]}/><Input value={note} onChange={setNote} placeholder="核对说明 / 不适用原因"/><label>上传本项资料<input type="file" aria-label={`上传 ${i.title}`} disabled={busy} onChange={e=>{const file=e.target.files?.[0];if(!file)return;void run(async()=>{const form=new FormData();form.append('workbenchId',String(workbenchId));form.append('checklistItemId',String(i.id));form.append('file',file);await api.upload(i.kind==='evidence'?'/api/artifacts/evidence':'/api/artifacts/upload',form);reload();});}}/></label><Button disabled={busy} onClick={() => void run(async () => { await api.put(`/api/checklist/${i.id}/review`, { status, note }); reload(); })}>保存核对</Button><Button disabled={busy||!note.trim()} onClick={()=>void run(async()=>{await api.put(`/api/checklist/${i.id}/requirement`,{required:!i.required,reason:note});reload();})}>{i.required?'调整为选备':'调整为必备'}（需依据）</Button></div></div>;
+    const [draft,setDraft]=useState<{status:string;note:string}|null>(null), {busy,run}=useAction();
+    const status=draft?.status??i.review_status, note=draft?.note??i.review_note;
+    const save=async()=>{
+      await api.put(`/api/checklist/${i.id}/review`,{status,note});
+      setDraft(null);reload();
+    };
+    useEditorGuard({dirty:status!==i.review_status||note!==i.review_note,busy,save,discard:()=>setDraft(null)});
+    return <div className="col" style={{ padding: 8, borderBottom: '1px solid var(--border)' }}><strong>{i.position_name} · {i.title} {i.required ? '（必备）' : '（可选）'}</strong>{i.detail&&<small>{i.detail}</small>}<div>{i.files.map(f => <a style={{ marginRight: 12 }} href={`/api/artifacts/${f.id}/file`} key={f.id}>{f.file_name}{f.exists ? '' : '（文件丢失）'}</a>)}</div><div className="row"><Select disabled={busy} value={status} onChange={status=>setDraft({status,note})} options={[{ value: 'pending', label: '未核对' }, { value: 'verified', label: '确认符合本项要求' }, { value: 'na', label: '不适用' }]}/><Input disabled={busy} value={note} onChange={note=>setDraft({status,note})} placeholder="核对说明 / 不适用原因"/><label>上传本项资料<input type="file" aria-label={`上传 ${i.title}`} disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;void run(async()=>{const form=new FormData();form.append('workbenchId',String(workbenchId));form.append('checklistItemId',String(i.id));form.append('file',file);await api.upload(i.kind==='evidence'?'/api/artifacts/evidence':'/api/artifacts/upload',form);reload();});}}/></label><Button disabled={busy} onClick={() => void run(save,'已保存核对结果')}>保存核对</Button><Button disabled={busy||!note.trim()} onClick={()=>void run(async()=>{await api.put(`/api/checklist/${i.id}/requirement`,{required:!i.required,reason:note});reload();})}>{i.required?'调整为选备':'调整为必备'}（需依据）</Button></div></div>;
 }
 interface Memory {
     id: number;

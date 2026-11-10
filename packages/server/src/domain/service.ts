@@ -4,7 +4,8 @@ import { snapshotTemplateRevision } from './template-history.ts';
 import { workTypeNavigation, type NavigationGroup } from './work-type-navigation.ts';
 import {invalidateLegacyDocumentSources} from './document-source.ts';
 import { ApiError } from '../api/reply.ts';
-import { templateFingerprint, assertPeriodReady, savePeriodRule, syncPeriods, todayShanghai } from './periods.ts';
+import { inspectDossier, stageMaterialGaps } from './dossier.ts';
+import { templateFingerprint, savePeriodRule, syncPeriods, todayShanghai, validDate } from './periods.ts';
 import { assertFinalArtifact } from './finalization.ts';
 /**
  * 领域服务：工作类型 / 工作台 / 阶段 / 清单 / 模板 / 生成
@@ -871,6 +872,7 @@ export interface PositionInstance {
   name: string;
   seq: number;
   status: string;
+  description: string | null;
   started_at: string | null;
   finished_at: string | null;
   owner: string | null;
@@ -1247,6 +1249,7 @@ export interface Workbench {
   last_done_period: string | null;
   archive_status: string | null;
   template_ids:string|null;
+  template_requirements:string|null;
   /**
    * 绑定的外部资料目录绝对路径；NULL = 仍用 dataRoot 下的 folder_path（迁移 010）。
    * 老库（还没跑 010）查出来是 undefined，与 NULL 同义。
@@ -1343,8 +1346,18 @@ export function createWorkbench(input: CreateWorkbenchInput): Workbench {
   // 在建目录前校验，拒绝隐藏的旧模板且不留下空目录。
   if (input.templateIds?.some(id => !Number.isSafeInteger(id) || !getTemplate(id) || getTemplate(id)!.archived_at || !templateSupportsWorkType(getTemplate(id)!, wt.id))) throw new ApiError('BAD_TEMPLATES','模板不存在、已停用或不属于当前工作类型');
   if(input.historical&&wt.domain!=='project')throw new ApiError('BAD_HISTORY','历史结束补录仅适用于项目实施');
-  if(input.historical && input.actualEndDate && (!Number.isFinite(Date.parse(input.actualEndDate+'T00:00:00Z')) || new Date(input.actualEndDate+'T00:00:00Z').toISOString().slice(0,10)!==input.actualEndDate)) throw new ApiError('BAD_DATE','实际结束日期无效；暂不确定可留空待核对');
+  if (wt.domain === 'project') {
+    for (const date of [input.startDate, input.planEndDate, input.actualEndDate]) if (date) validDate(date);
+    if (input.historical && input.startDate && input.actualEndDate && input.startDate > input.actualEndDate)
+      throw new ApiError('BAD_DATE', '实际结束日期不能早于项目开始日期');
+  }
   if(wt.mode==='process' && input.recurrence && input.recurrence!=='once') throw new ApiError('STAGE_PERIOD_CONFLICT','阶段式工作暂不支持独立期次，请单独建立周期报送工作');
+  if(input.recurrence && !RECURRENCES.has(input.recurrence))throw new ApiError('BAD_RULE','提醒频率无效');
+  if(input.recurrence && input.recurrence!=='once'){
+    if(wt.period_defaults)throw new ApiError('CONFIG_OVERRIDE','本类型使用独立期次，请按已发布规则办理');
+    const inRange=(n:number|null|undefined,min:number,max:number)=>n==null||(Number.isInteger(n)&&n>=min&&n<=max);
+    if(!inRange(input.recurDay,1,28)||!inRange(input.remindDays,0,365)||!inRange(input.recurMonth,1,12))throw new ApiError('BAD_RULE','提醒日号、月份或提前天数超出范围');
+  }
   const code = input.code?.trim() || nextWorkbenchCode(wt);
   const folderName = workbenchFolderName(code, input.name);
   const folderRel = toPosix(join(DIRS.workbench, folderName));
@@ -1368,7 +1381,7 @@ export function createWorkbench(input: CreateWorkbenchInput): Workbench {
         input.counterpart ?? null,
         input.contractNo ?? null,
         input.contractAmount ?? null,
-        input.startDate ?? (input.historical?null:dateOnly()),
+        input.startDate || (wt.domain==='project' ? null : dateOnly()),
         input.planEndDate ?? null,
         folderRel,
         input.summary ?? null,
@@ -1411,7 +1424,7 @@ export function createWorkbench(input: CreateWorkbenchInput): Workbench {
   // Only paths created by this transaction may be removed on failure. Existing paths are untouched.
   for(const dir of [rootAbs,join(rootAbs,DIRS.generated),join(rootAbs,DIRS.source)]){if(!existsSync(dir)){ensureDir(dir);createdDirectories.push(dir);}}
 
-  run('UPDATE workbench SET rules_snapshot=?,historical=?,source_config_version_id=? WHERE id=?',[JSON.stringify({type:wt,positions:listPositions(wt.id),publishedConfigId:published.id,configuration:published.payload,instanceChoices:{firstPeriod:input.firstPeriod??null,templateIds:input.templateIds??null}}),input.historical?1:0,published.id,id]);
+  run('UPDATE workbench SET rules_snapshot=?,historical=?,source_config_version_id=? WHERE id=?',[JSON.stringify({type:wt,positions:listPositions(wt.id),publishedConfigId:published.id,configuration:published.payload,instanceChoices:{firstPeriod:input.firstPeriod??null,templateIds:input.templateIds??null,...(recurrence==='once'?{}:{reminder:{recurrence,day:input.recurDay??1,month:input.recurMonth??1,advance:input.remindDays??3}})}}),input.historical?1:0,published.id,id]);
   // Explicit empty selection is fixed for new instances; old null retains legacy fallback.
   setBoundTemplateIds(id,input.templateIds??[],[]);
   if (wt.mode === 'process') instantiatePositions(id,true);
@@ -1471,6 +1484,11 @@ export function setBoundTemplateIds(workbenchId:number,ids:number[],requiredIds:
  return clean;
 }
 
+/** Required output identities survive changes to the selectable template catalog. */
+export function requiredWorkbenchTemplates(work: Workbench): number[] {
+  return JSON.parse(work.template_requirements ?? work.template_ids ?? '[]') as number[];
+}
+
 /**
  * 这份工作「出文书」时该显示哪些模板。
  *
@@ -1482,8 +1500,7 @@ export function listTemplatesForWorkbench(workbenchId: number): (Template & { wo
   if (!wb) return [];
   const bound = getBoundTemplateIds(workbenchId);
   const all = wb.source_config_version_id ? (bound.map(id=>getTemplate(id)).filter((t):t is Template=>!!t&&!t.archived_at).map(t=>({...t,work_type_name:null}))) : listTemplates({ workTypeId: wb.work_type_id });
-  const configured=get<{template_requirements:string|null}>('SELECT template_requirements FROM workbench WHERE id=?',[workbenchId])?.template_requirements;
-  const required=new Set<number>(configured?JSON.parse(configured):bound);
+  const required=new Set(requiredWorkbenchTemplates(wb));
   if (!bound.length && wb.template_ids == null) return all.map((t) => ({ ...t, bound: false, required:false }));
   const set = new Set(bound);
   const picked = all.filter((t) => set.has(t.id));
@@ -1967,8 +1984,17 @@ export function updateWorkbench(id: number, patch: Partial<Workbench>): void {
     return;
   }
   const current=getWorkbench(id);
+  if (current && getWorkType(current.work_type_id)?.domain==='project') {
+    for (const key of ['start_date','plan_end_date','actual_end_date'] as const) {
+      if (patch[key] && patch[key]!==current[key]) validDate(patch[key]);
+    }
+    const start=patch.start_date===undefined ? current.start_date : patch.start_date;
+    const end=patch.actual_end_date===undefined ? current.actual_end_date : patch.actual_end_date;
+    if ((start!==current.start_date || end!==current.actual_end_date) && start && end && start>end)
+      throw new ApiError('BAD_DATE','实际结束日期不能早于项目开始日期');
+  }
+  if(patch.status && !['active','paused','done','archived'].includes(patch.status)) throw new ApiError('BAD_STATUS','工作状态无效');
   if(current?.archived_at && patch.status && patch.status !== 'archived') { unarchiveWorkbench(id); }
-  if(patch.status && !['active','paused','done','archived'].includes(patch.status)) throw new Error('工作状态无效');
   const allowed = ['name', 'status', 'priority', 'owner', 'counterpart', 'contract_no', 'contract_amount', 'start_date', 'plan_end_date', 'actual_end_date', 'summary', 'business_content', 'tags', 'profile', 'progress'];
   const fields: string[] = [];
   const params: (string | number | null)[] = [];
@@ -2018,6 +2044,7 @@ function isActiveWorkbenchStatus(v: string | null | undefined): v is (typeof ACT
  */
 export function archiveWorkbench(id: number): void {
   const wb=getWorkbench(id);
+  if (wb?.archived_at && wb.status==='archived') return;
   if(wb?.status==='done')assertWorkReady(id);
   const r = run(
     `UPDATE workbench SET
@@ -2100,35 +2127,16 @@ function dueDay(v:string|null|undefined):string|null{
  *   周期性工作 完成的是**这一期** —— 除了记完成时间，还要写 last_done_at，
  *              排期逻辑靠它把下一期推到下个月/下个季度，工作本身继续留着。
  */
-function assertStageReady(positionId:number):void{
- const pos=get<PositionInstance>('SELECT * FROM position_instance WHERE id=?',[positionId]);
- if(pos){const docs=listWorkbenchPositionDocs(pos.workbench_id).items.find(d=>d.positionId===positionId)?.items??[];
-  for(const doc of docs.filter(d=>d.required)){const files=all<Artifact>("SELECT * FROM artifact WHERE workbench_id=? AND position_code=? AND template_id=? AND kind='generated' AND is_final=1 AND deleted_at IS NULL",[pos.workbench_id,pos.code,doc.templateId]);if(!files.some(a=>{try{assertFinalArtifact(a);return true;}catch{return false;}}))throw new Error(`必备文书“${doc.name}”尚未定稿或文件丢失`);}
- }
- const items=all<{id:number;kind:string;required:number;review_status:string;review_note:string;min_count:number}>('SELECT * FROM checklist_item WHERE position_instance_id=? AND required=1',[positionId]);
- for(const item of items){
-  if(pos && checklistSatisfied(item,pos.workbench_id))continue;
-  throw new ApiError('MATERIAL_MISSING','此阶段仍有必备材料未核对、数量不足或文件丢失，请重新核对或注明不适用原因',409);
- }
+function assertStageReady(pos: PositionInstance): void {
+  const docs = listWorkbenchPositionDocs(pos.workbench_id).items.find(d => d.positionId === pos.id);
+  const gap = stageMaterialGaps(pos.workbench_id, pos, docs)[0];
+  if (gap) throw new ApiError(gap.code, gap.message, 409);
 }
-function assertWorkReady(id:number):void{
- if(get('SELECT workbench_id FROM work_period_rule WHERE workbench_id=?',[id])){
-  if(getWorkbench(id)?.status!=='done')throw new Error('此工作已启用独立期次，请进入所选期次确认已上报');
-  for(const p of all<{id:number;status:string}>('SELECT id,status FROM work_period WHERE workbench_id=?',[id])){
-   if(p.status!=='done')throw new ApiError('PERIODS_OPEN','仍有未完成期次',409);
-   assertPeriodReady(p.id);
-  }
- }
- for(const p of all<PositionInstance>('SELECT * FROM position_instance WHERE workbench_id=? AND deleted_at IS NULL',[id])) {
-  if(p.status==='skipped' && p.note?.trim())continue;
-  if(p.status!=='done'&&!getWorkbench(id)?.historical)throw new ApiError('STAGES_OPEN','仍有未结束阶段，请先完成或注明不适用原因',409);
-  assertStageReady(p.id);
- }
- for(const t of (get('SELECT workbench_id FROM work_period_rule WHERE workbench_id=?',[id])?[]:listTemplatesForWorkbench(id).filter(t=>t.required))){
-  const files=all<Artifact>('SELECT * FROM artifact WHERE workbench_id=? AND template_id=? AND position_code IS NULL AND is_final=1 AND deleted_at IS NULL',[id,t.id]);
-  if(!files.some(a=>{try{assertFinalArtifact(a);return true;}catch{return false;}}))throw new ApiError('FINAL_MISSING',`必备文书“${t.name}”尚未定稿或文件丢失`,409);
- }
- if(get("SELECT id FROM quick_todo WHERE workbench_id=? AND status='open'",[id]))throw new ApiError('TASKS_OPEN','仍有未办结的交付或协调事项',409);
+
+function assertWorkReady(id: number): void {
+  const {work, periodic, gaps} = inspectDossier(id);
+  if (periodic && work.status !== 'done') throw new ApiError('PERIODS_OPEN', '请在期次内办理，全部期次完成后可结束整个周期工作', 409);
+  if (gaps[0]) throw new ApiError(gaps[0].code, gaps[0].message, 409);
 }
 export function completeWorkbench(id: number): { status: string; last_done_at: string | null; nextDue: string | null } {
   const wb=getWorkbench(id); if(!wb) throw new Error('工作台不存在');
@@ -2290,9 +2298,9 @@ export function instantiatePositions(workbenchId: number, initial = false): numb
       const folderRel = toPosix(relative(rootAbs, stageAbs));
       if (!existing) {
         const r = run(
-          `INSERT INTO position_instance (workbench_id, position_template_id, code, name, seq, status, folder_rel, sort_order)
-           VALUES (?,?,?,?,?,?,?,?)`,
-          [workbenchId, p.id, p.code, p.name, p.seq, idx === 0 ? 'doing' : 'pending', folderRel, p.sort_order ?? p.seq * 10],
+          `INSERT INTO position_instance (workbench_id, position_template_id, code, name, seq, status, folder_rel, sort_order, description)
+           VALUES (?,?,?,?,?,?,?,?,?)`,
+          [workbenchId, p.id, p.code, p.name, p.seq, !wb.historical && idx === 0 ? 'doing' : 'pending', folderRel, p.sort_order ?? p.seq * 10, p.description ?? null],
         );
         created += 1;
         run('UPDATE position_instance SET folder_name=?,period_dir=?,doc_requirements=? WHERE id=?', [p.folder_name,p.period_dir??null,JSON.stringify(listPositionDocBindings(p.id).map(({templateId,name,required,seq})=>({templateId,name,required,seq,...wb.source_config_version_id&&getTemplate(templateId)?{digest:templateFingerprint(getTemplate(templateId)!)}:{}}))), r.lastInsertRowid]);
@@ -2364,7 +2372,7 @@ export interface WorkbenchDetail {
    * 界面要直接显示，否则用户不知道文件到底落在哪（契约 §5 最后一条）。
    */
   positions: (PositionInstance & {
-    checklist: (ChecklistItem & { artifact_count: number })[];
+    checklist: (ChecklistItem & { artifact_count: number; satisfied: boolean })[];
     /**
      * 阶段配置的期次规则：NULL = 不按期次分目录。
      * 格式串可以是 A 型两级（`{yyyy}\{mm}月` → `2026\10月`）。
@@ -2447,13 +2455,13 @@ export function getWorkbenchDetail(id: number, refreshProgress = true): Workbenc
         `SELECT c.*, (SELECT COUNT(*) FROM artifact a WHERE a.checklist_item_id = c.id AND ${liveFilter('artifact', 'a')}) AS artifact_count
            FROM checklist_item c WHERE c.position_instance_id = ? ORDER BY c.kind DESC, c.sort_order, c.id`,
         [p.id],
-      ),
+      ).map(c=>({...c,satisfied:checklistSatisfied(c,id)})),
     };
   });
   const flat = withChecklist.flatMap((p) => p.checklist);
   const material = flat.filter((c) => c.kind === 'material');
   const evidence = flat.filter((c) => c.kind === 'evidence');
-  const isDone = (c: ChecklistItem) => checklistSatisfied(c as ChecklistItem & {review_status:string;review_note:string},id);
+  const isDone = (c: {satisfied:boolean}) => c.satisfied;
   const externalRoot = (wb.external_root ?? '').trim() || null;
   return {
     workbench: {
@@ -2524,12 +2532,15 @@ export function setPositionStatus(positionInstanceId: number, status: string, pa
     'SELECT * FROM position_instance WHERE id = ? AND deleted_at IS NULL',
     [positionInstanceId],
   );
-  if (!pos) return;
+  if (!pos) throw new ApiError('NOT_FOUND','阶段不存在',404);
   if(!['pending','doing','blocked','done','skipped'].includes(status))throw new ApiError('BAD_STATUS','阶段状态无效');
   if(status==='skipped' && !(patch.note??pos.note??'').trim())throw new ApiError('REASON_REQUIRED','不适用阶段必须记录原因');
-  if(status==='done')assertStageReady(positionInstanceId);
-  const started = pos.started_at ?? (status === 'doing' || status === 'done' ? now : null);
-  const finished = status === 'done' ? now : status === 'doing' || status === 'pending' ? null : pos.finished_at;
+  if(status==='done')assertStageReady(pos);
+  // A retrospective classification has no known event time. Re-saving the
+  // same status must also preserve the original completion timestamp.
+  const preserveTime = Boolean(getWorkbench(pos.workbench_id)?.historical) || status === pos.status;
+  const started = preserveTime ? pos.started_at : pos.started_at ?? (status === 'doing' || status === 'done' ? now : null);
+  const finished = preserveTime ? pos.finished_at : status === 'done' ? now : null;
   run(
     `UPDATE position_instance SET status = ?, started_at = ?, finished_at = ?,
        note = COALESCE(?, note), owner = COALESCE(?, owner),

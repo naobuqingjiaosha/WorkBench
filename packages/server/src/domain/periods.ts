@@ -64,7 +64,19 @@ export function periodNativeFields(p: WorkPeriod): Record<string, string> {
     const year = p.report_date.slice(0, 4), month = p.report_date.slice(5, 7);
     const quarter=String(Math.ceil(Number(month)/3));
     const content=[p.content,...listInspections(p.id).map(inspectionText)].filter(Boolean).join('\n\n');
-    return { ...inspectionCollectionFields(p),'内容':content,'业务内容':content,'本期内容':content, '报告期': p.report_period, '报告月份': `${year}-${month}`, '年份':year,'本季度':quarter,'下季度':String(Number(quarter)%4+1),'下季度年份':String(Number(year)+(quarter==='4'?1:0)), '_年份': year, '_月份': month, '_本月': `${year}年${Number(month)}月` };
+    let quarterFields:Record<string,string>={};
+    if(/^\d{4}-Q[1-4]$/.test(p.report_period)){
+        const ids=validateSourcePeriods(p.id,JSON.parse(p.source_period_ids));
+        const sources=ids.map(id=>requirePeriod(id));
+        const records=sources.flatMap(source=>listInspections(source.id).map(row=>
+            `${source.report_period} · ${requireWorkbench(source.workbench_id).name} · 检查 #${row.id} 修订 ${row.revision}\n${inspectionText(row)}`));
+        quarterFields={
+            '季度参考范围':sources.map(source=>`${requireWorkbench(source.workbench_id).name} · ${source.report_period}（期次 #${source.id}）`).join('\n'),
+            '范围内已确认检查':records.join('\n\n'),
+            '范围内已确认检查次数':ids.length?String(records.length):'',
+        };
+    }
+    return { ...quarterFields,...inspectionCollectionFields(p),'内容':content,'业务内容':content,'本期内容':content, '报告期': p.report_period, '报告月份': `${year}-${month}`, '年份':year,'本季度':quarter,'下季度':String(Number(quarter)%4+1),'下季度年份':String(Number(year)+(quarter==='4'?1:0)), '_年份': year, '_月份': month, '_本月': `${year}年${Number(month)}月` };
 }
 export function templateFingerprint(t: Template): string {
     const path = templateAbsPath(t), vars = varsAbsPath(t);
@@ -249,12 +261,21 @@ export function updatePeriod(id: number, b: Record<string, unknown>) {
     if(requireWorkbench(p.workbench_id).archived_at)throw new ApiError('ARCHIVED','请先恢复归档工作',409);
     return tx(() => {
         if (p.status === 'done' && b.status === 'done' && Object.keys(b).length === 1){assertPeriodReady(id);return p;}
-        if(['content','scheduled_date','source_period_ids'].some(k=>b[k]!==undefined&&b[k]!==p[k as keyof WorkPeriod]))invalidateLegacyDocumentSources(p.workbench_id,id);
+        const sourceIds=b.source_period_ids===undefined?undefined:validateSourcePeriods(id,b.source_period_ids);
+        if(b.expected!==undefined){
+            if(!b.expected||typeof b.expected!=='object'||Array.isArray(b.expected))throw new ApiError('BAD_EXPECTED','原期次字段格式无效');
+            for(const [field,value] of Object.entries(b.expected)){
+                if(!['content','scheduled_date','source_period_ids'].includes(field))throw new ApiError('BAD_EXPECTED','未知期次字段');
+                const requested=field==='source_period_ids'&&sourceIds?JSON.stringify(sourceIds):b[field];
+                if(p[field as keyof WorkPeriod]!==value&&p[field as keyof WorkPeriod]!==requested)throw new ApiError('PERIOD_CHANGED','其他入口已修改本期内容或安排。当前输入保留，请核对最新记录后再保存',409,{field,current:p[field as keyof WorkPeriod],arrangement:{scheduled_date:p.scheduled_date,source_period_ids:p.source_period_ids}});
+            }
+        }
+        if(b.content!==undefined&&b.content!==p.content||b.scheduled_date!==undefined&&(b.scheduled_date||null)!==p.scheduled_date||sourceIds&&JSON.stringify(sourceIds)!==p.source_period_ids)invalidateLegacyDocumentSources(p.workbench_id,id);
         if (b.due_date !== undefined) {
             run('UPDATE work_period SET due_date=? WHERE id=?', [validDate(b.due_date), id]);
             event(id, 'deadline', String(b.due_date));
         }
-        if (b.content !== undefined) {
+        if (b.content !== undefined && b.content!==p.content) {
             if (typeof b.content !== 'string' || b.content.length > 100000)
                 throw new ApiError('BAD_CONTENT', '内容过长');
             run('UPDATE work_period SET content=? WHERE id=?', [b.content, id]);
@@ -263,7 +284,7 @@ export function updatePeriod(id: number, b: Record<string, unknown>) {
         if(b.reported_on!==undefined)throw new ApiError('REPORT_RETIRED','报送管理已取消，历史记录只读保留',409);
         if(b.steps!==undefined){const steps=parsePeriodSteps(b.steps);run('UPDATE work_period SET steps=? WHERE id=?',[JSON.stringify(steps),id]);event(id,'steps',JSON.stringify(steps));}
         if(b.scheduled_date!==undefined){const date=b.scheduled_date===null||b.scheduled_date===''?null:validDate(b.scheduled_date);run('UPDATE work_period SET scheduled_date=? WHERE id=?',[date,id]);event(id,'scheduled',date??'取消安排');}
-        if(b.source_period_ids!==undefined){const ids=validateSourcePeriods(id,b.source_period_ids);run('UPDATE work_period SET source_period_ids=? WHERE id=?',[JSON.stringify(ids),id]);event(id,'sources',JSON.stringify(ids));}
+        if(sourceIds && JSON.stringify(sourceIds)!==p.source_period_ids){run('UPDATE work_period SET source_period_ids=? WHERE id=?',[JSON.stringify(sourceIds),id]);event(id,'sources',JSON.stringify(sourceIds));}
         if (b.status !== undefined) {
             if (!['open', 'done'].includes(String(b.status)))
                 throw new ApiError('BAD_STATUS', '状态无效');

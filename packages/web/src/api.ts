@@ -1,5 +1,5 @@
 /** 后端接口客户端 —— 所有请求的唯一出口，统一错误处理 */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface ApiErrorShape {
   code: string;
@@ -138,49 +138,36 @@ export function useApi<T>(path: string | null, deps: unknown[] = []): {
   error: ApiErrorShape | undefined;
   reload: () => void;
 } {
-  const [data, setData] = useState<T>();
+  // Keep a response and its owner together. A failed request for B must never expose A's data.
+  const [result, setResult] = useState<{path: string; data?: T; error?: ApiErrorShape}>();
   const [loading, setLoading] = useState(Boolean(path));
-  const [error, setError] = useState<ApiErrorShape>();
   const [tick, setTick] = useState(0);
-  const [completedPath,setCompletedPath]=useState<string|null>(null);
-  const alive = useRef(true);
 
   useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let current=true;const controller=new AbortController();
     if (!path) {
-      setData(undefined);
+      setResult(undefined);
       setLoading(false);
       return;
     }
-    setError(undefined);setLoading(true);
-    api
-      .get<T>(path,controller.signal)
-      .then((d) => {
-        if (alive.current && current) {
-          setCompletedPath(path);
-          setData(d);
-          setError(undefined);
-        }
-      })
-      .catch((e: ApiErrorShape) => {
-        if (alive.current && current) {setCompletedPath(path);setError(e);}
-      })
-      .finally(() => {
-        if (alive.current && current) setLoading(false);
-      });
-    return ()=>{current=false;controller.abort();};
+    const controller = new AbortController();
+    setLoading(true);
+    setResult(previous => previous?.path === path ? {path, data: previous.data} : undefined);
+    api.get<T>(path, controller.signal).then(data => {
+      if (!controller.signal.aborted) setResult({path, data});
+    }).catch((error: ApiErrorShape) => {
+      if (!controller.signal.aborted) {
+        setResult(previous => ({path, error, data: previous?.path === path ? previous.data : undefined}));
+      }
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false);
+    });
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path, tick, ...deps]);
 
-  const reload = useCallback(() => setTick((t) => t + 1), []);
-  return { data:completedPath===path?data:undefined, loading:Boolean(path)&&(loading||completedPath!==path), error:completedPath===path?error:undefined, reload };
+  const reload = useCallback(() => setTick(t => t + 1), []);
+  const current = result?.path === path ? result : undefined;
+  return {data: current?.data, error: current?.error, loading: Boolean(path) && (loading || !current), reload};
 }
 
 /* ------------------------------- 类型定义 ------------------------------- */
@@ -217,6 +204,7 @@ export interface ScheduleState {
   shouldRemind: boolean;
   overdueDays: number;
   doneThisPeriod: boolean;
+  doneThroughCurrentPeriod: boolean;
   /** 给人看的排期说明，如「每月 5 号」 */
   label: string;
 }
@@ -327,6 +315,8 @@ export interface Workbench {
   period_done?:number;
   period_due?:string|null;
   historical?: number;
+  archive_status?: string | null;
+  actual_end_date?: string | null;
   status: string;
   priority: string;
   owner: string | null;
@@ -361,6 +351,7 @@ export interface Workbench {
 }
 
 export interface ChecklistItem {
+  satisfied: boolean;
   review_status:string;
   review_note:string;
   id: number;

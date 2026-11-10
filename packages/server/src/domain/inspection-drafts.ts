@@ -35,7 +35,7 @@ export function sourceChanged(d:ReturnType<typeof requireDraft>){
 export function assertDraftSource(d:ReturnType<typeof requireDraft>){if(sourceChanged(d))throw new ApiError('SOURCE_CHANGED','历史来源已更正或删除，请切换来源或解除引用后继续采用',409);}
 export function draftContext(periodId:number){
  const p=scope(periodId),[y,m]=p.report_period.split('-').map(Number),previous=new Date(Date.UTC(y!,m!-2,1)).toISOString().slice(0,7);
- const candidates=all<Inspection&{month:string}>('SELECT i.*,p.report_period AS month FROM inspection_record i JOIN work_period p ON p.id=i.period_id WHERE p.workbench_id=? AND p.report_period<=? ORDER BY p.report_period DESC,i.inspection_date DESC,i.id DESC',[p.workbench_id,previous]);
+ const candidates=all<Inspection&{month:string}>('SELECT i.*,p.report_period AS month FROM inspection_record i JOIN work_period p ON p.id=i.period_id WHERE p.workbench_id=? AND p.report_period<=? AND NOT EXISTS (SELECT 1 FROM ledger_entry e WHERE e.inspection_id=i.id AND e.status<>\'confirmed\') ORDER BY p.report_period DESC,i.inspection_date DESC,i.id DESC',[p.workbench_id,previous]);
  const ids=all<{id:number}>('SELECT id FROM inspection_draft WHERE period_id=? ORDER BY id DESC',[periodId]);
  return {workbenchId:p.workbench_id,periodId,month:p.report_period,previous,candidates,drafts:ids.map(({id})=>draftView(periodId,id))};
 }
@@ -75,7 +75,7 @@ export function patchDraft(periodId:number,id:number,b:Record<string,unknown>){
   for(const k of ['project','supervised_unit','subject','content','method','supervisor'] as const)if(provenance[k]!=='用户输入'&&provenance[k]!=='用户确认'){fields[k]=r?.[k]??'';provenance[k]=r?'历史参考':'';}
  }else{
   const patch=clean(b.fields,true);
-  for(const [key,value] of Object.entries(patch)){const k=key as Field;fields[k]=value;provenance[k]=b.origin==='ai'?'AI建议':'用户输入';}
+  for(const [key,value] of Object.entries(patch)){const k=key as Field;fields[k]=value;provenance[k]=b.origin==='ai'||Array.isArray(b.aiFields)&&b.aiFields.includes(k)?'AI建议':'用户输入';}
  }
  if(fields.inspection_date){validDate(fields.inspection_date);if(!fields.inspection_date.startsWith(scope(periodId).report_period+'-'))throw new ApiError('BAD_DATE','实际检查日期必须属于本月');}
  if(JSON.stringify([fields,provenance,source])===JSON.stringify([d.fields,d.provenance,d.source]))return draftView(periodId,id);
@@ -87,11 +87,11 @@ export function adoptDraft(periodId:number,id:number,revision:number){
  if(d.inspection_id&&requireInspection(d.inspection_id,periodId).revision!==d.inspection_revision)throw new ApiError('STALE_INSPECTION','实际检查已从另一入口更正，请核对该记录',409);
  if(d.accepted_revision===revision)return draftView(periodId,id);
  const required=['project','inspection_date','subject','content','result'] as const;
- const complete=required.every(k=>d.fields[k].trim());
+ if(!required.every(k=>d.fields[k].trim()))throw new ApiError('INCOMPLETE_FACTS','请先核对项目、日期、监督事项、内容和结果；草稿可随时保存。',409);
  tx(()=>{
   let recordId=d.inspection_id,recordRevision=d.inspection_revision;
   if(recordId&&requireInspection(recordId,periodId).revision!==recordRevision)throw new ApiError('STALE_INSPECTION','实际检查已从另一入口更正，请新建草稿或核对该记录后继续',409);
-  if(complete){const old=recordId?requireInspection(recordId,periodId):null;const saved=saveInspection(periodId,{...d.fields,revision:old?.revision},recordId??undefined);recordId=saved.id;recordRevision=saved.revision;}
+  {const old=recordId?requireInspection(recordId,periodId):null;const saved=saveInspection(periodId,{...d.fields,revision:old?.revision},recordId??undefined);recordId=saved.id;recordRevision=saved.revision;}
   const provenance={...d.provenance};for(const k of draftFields)if(d.fields[k])provenance[k]='用户确认';
   run('UPDATE inspection_draft SET inspection_id=?,inspection_revision=?,accepted_revision=?,provenance=? WHERE id=?',[recordId,recordRevision,revision,JSON.stringify(provenance),id]);
  });return draftView(periodId,id);

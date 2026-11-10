@@ -1,0 +1,128 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {join} from 'node:path';
+import PizZip from 'pizzip';
+import {withBrowserPage} from './browser-fixture.ts';
+
+await withBrowserPage(async(page,base)=>{
+let token='';
+async function request(path:string,method='GET',body?:object|FormData){
+  const form=body instanceof FormData;
+  const response=await fetch(base+path,{method,headers:{'x-workbench-token':token,...body&&!form?{'content-type':'application/json'}:{}},body:form?body:body?JSON.stringify(body):undefined});
+  const result=await response.json();assert.ok(response.ok,result.error?.message||path);return result.data;
+}
+function wordTemplate(title:string,lines:string[]){
+  const zip=new PizZip(),word='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  zip.file('[Content_Types].xml','<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  zip.file('_rels/.rels','<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  const paragraphs=[title,...lines].map((line,i)=>'<w:p><w:pPr><w:spacing w:after="180"/></w:pPr><w:r><w:rPr><w:rFonts w:eastAsia="宋体"/><w:sz w:val="'+(i===0?36:24)+'"/></w:rPr><w:t>'+line+'</w:t></w:r></w:p>').join('');
+  zip.file('word/document.xml',`<w:document xmlns:w="${word}"><w:body>${paragraphs}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:bottom="1440" w:left="1440" w:right="1440"/></w:sectPr></w:body></w:document>`);
+  return zip.generate({type:'uint8array'});
+}
+  token=(await request('/api/session')).token;
+  const types=(await request('/api/work-types')).items;
+  const type=(code:string)=>types.find((t:{code:string})=>t.code===code);
+  const year=new Date().getFullYear()-1;
+  async function setup(code:string,name:string,first:string,lines?:string[]){
+    const wt=type(code),templateIds:number[]=[];
+    if(lines){
+      const form=new FormData();form.append('name',name);form.append('workTypeId',String(wt.id));
+      form.append('file',new Blob([wordTemplate(name,lines)]),name+'.docx');
+      templateIds.push((await request('/api/templates/upload','POST',form)).items[0].template.id);
+    }
+    const work=await request('/api/workbenches','POST',{workTypeId:wt.id,publishedConfigId:wt.published_config_id,name,firstPeriod:first,templateIds});
+    const p=(await request(`/api/workbenches/${work.id}/periods`)).items.find((p:{report_period:string})=>p.report_period===first);
+    return {work,p};
+  }
+  async function openPeriod(scope:{work:{id:number};p:{id:number}}){
+    await page.goto(base+`/#/workbench?id=${scope.work.id}&periodId=${scope.p.id}`);
+    await page.locator('.period-workspace').waitFor();
+  }
+  async function generateAndRead(name:string,expected:string[],scope:{work:{id:number};p:{id:number}},sample:string){
+    await page.getByRole('button',{name:name+' · 生成',exact:true}).click();
+    const modal=page.getByRole('dialog').last();
+    await modal.getByRole('button',{name:'保存草稿',exact:true}).click();
+    const link=page.locator('.result-row').getByRole('link',{name:'下载',exact:true}).first();
+    await link.waitFor();
+    const artifactId=Number((await link.getAttribute('href')).split('/')[3]);
+    const {artifact:record}=await request('/api/artifacts/'+artifactId);
+    assert.equal(record.workbench_id,scope.work.id);assert.equal(record.work_period_id,scope.p.id);assert.equal(record.is_final,0);
+    const downloading=page.waitForEvent('download');
+    await link.click();const download=await downloading;
+    const data=readFileSync(await download.path());
+    const xml=new PizZip(data).file('word/document.xml')!.asText();
+    for(const value of expected)assert.ok(xml.includes(value),'生成文书缺少 '+value);
+    assert.ok(!xml.includes('{报告期}'));
+    const outputPath=process.env.PERIOD_SAMPLE_DIR;
+    if(outputPath)writeFileSync(join(outputPath,sample+'.docx'),data);
+    await page.reload();await link.waitFor();assert.equal((await link.getAttribute('href')).split('/')[3],String(artifactId));
+  }
+
+  // New generic reminder through the same form used by a person.
+  await page.goto(base+'/#/workbench?create=1');
+  await page.getByRole('button',{name:/行政管理工作/}).click();
+  await page.getByLabel('工作类型',{exact:false}).first().selectOption(String(type('admin').id));
+  await page.getByPlaceholder('例如：清廉工程月度监督检查').fill('合成周期提醒');
+  await page.getByLabel('到期日号',{exact:false}).fill('32');
+  assert.equal(await page.getByRole('button',{name:'创建',exact:true}).isDisabled(),true);
+  await page.getByLabel('到期日号',{exact:false}).fill('28');
+  await page.getByLabel('提前提醒天数',{exact:false}).fill('31');
+  await page.getByRole('button',{name:'创建',exact:true}).click();
+  const done=page.getByRole('button',{name:'完成本期',exact:true});await done.waitFor();
+  const reminderUrl=page.url();
+  await page.goto(base+'/#/dashboard');
+  await page.locator('#home-inbox').getByText('合成周期提醒',{exact:true}).waitFor();
+  await page.goto(reminderUrl);await done.click();
+  await page.getByText(/本期已完成，下一期/).waitFor();
+
+  const meeting=await setup('safety-report','安全例会纪要',year+'-10',['办理期次 {报告期}','会议记录 {业务内容}']);
+  await openPeriod(meeting);
+  const content=page.getByPlaceholder('填写工作安排、实际情况、会议记录或拟稿要点…');
+  await content.fill('合成例会 已核对演练名单，后续日期待定。');
+  // A second editor saves after this page loaded. Keep both values visible until the user chooses.
+  await request('/api/periods/'+meeting.p.id,'PUT',{content:'另一入口的合成记录',expected:{content:''}});
+  await page.getByRole('button',{name:'保存业务内容',exact:true}).click();
+  await page.getByText('另一入口的合成记录',{exact:true}).waitFor();
+  assert.ok((await content.inputValue()).includes('后续日期待定'));
+  await page.getByRole('button',{name:'保留我的输入，继续核对',exact:true}).click();
+  await page.getByRole('button',{name:'保存业务内容',exact:true}).click();
+  await page.getByText('业务内容已保存',{exact:true}).waitFor();
+  await page.getByText('参考资料与附件',{exact:false}).first().click();
+  await page.getByLabel('添加参考资料',{exact:true}).setInputFiles({name:'合成议程.txt',mimeType:'text/plain',buffer:Buffer.from('合成议程：核对演练名单')});
+  await page.getByText('合成议程.txt',{exact:true}).waitFor();
+  await generateAndRead('安全例会纪要',[year+'-10','合成例会','后续日期待定'],meeting,'safety-minutes');
+
+  const monthly=await setup('integrity-monthly-inspection','合成月度监督',year+'-10');
+  await openPeriod(monthly);
+  await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
+  await page.getByRole('button',{name:'新建检查记录',exact:true}).click();
+  await page.getByLabel('检查项目',{exact:false}).first().fill('合成项目');
+  await page.getByLabel('检查重点',{exact:false}).first().fill('核对合成标识');
+  await page.getByRole('button',{name:'保存草稿',exact:true}).click();
+  await page.reload();await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
+  assert.equal(await page.getByLabel('检查项目',{exact:false}).first().inputValue(),'合成项目');
+  assert.equal(await page.getByRole('button',{name:'确认实际检查',exact:true}).isDisabled(),true);
+  await page.getByLabel('实际检查日期（未知可留空）',{exact:false}).fill(year+'-10-15');
+  await page.getByLabel('检查内容／清单',{exact:false}).fill('合成记录核对两件样品');
+  await page.getByLabel('实际结果／待确认写法',{exact:false}).fill('一件标识待更换');
+  await page.getByRole('button',{name:'确认实际检查',exact:true}).click();
+  await page.getByRole('button',{name:'确认并登记',exact:true}).click();
+  await page.getByText('已登记实际检查',{exact:true}).waitFor();
+
+  const summary=await setup('integrity-quarter-summary','季度监督汇报',year+'-Q4',['办理期次 {报告期}','参考范围 {季度参考范围}','范围内确认检查 {范围内已确认检查次数} 次','已登记检查 {范围内已确认检查}']);
+  await openPeriod(summary);
+  await page.getByLabel('合成月度监督 · '+year+'-10',{exact:true}).check();
+  const november=(await request(`/api/workbenches/${monthly.work.id}/periods`)).items.find((p:{report_period:string})=>p.report_period===year+'-11');
+  await request('/api/periods/'+summary.p.id,'PUT',{scheduled_date:year+'-12-01',source_period_ids:[november.id]});
+  await page.getByRole('button',{name:'保存安排与参考范围',exact:true}).click();
+  await page.getByText('已保存范围：合成月度监督 · '+year+'-11',{exact:true}).waitFor();
+  await page.getByText('本页选择：合成月度监督 · '+year+'-10',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'保留本页修改，继续核对',exact:true}).click();
+  assert.equal(await page.getByLabel('安排日期（可选）',{exact:true}).inputValue(),year+'-12-01');
+  await page.getByRole('button',{name:'保存安排与参考范围',exact:true}).click();
+  await page.getByText('已保存本期安排与参考范围',{exact:true}).waitFor();
+  await page.reload();
+  assert.equal(await page.getByLabel('合成月度监督 · '+year+'-10',{exact:true}).isChecked(),true);
+  await generateAndRead('季度监督汇报',[year+'-Q4','合成月度监督','范围内确认检查 1 次','一件标识待更换'],summary,'quarter-review');
+  console.log('浏览器验收通过：提醒新建、通知、完成本期，例会填报、参考附件、保存下载，检查草稿重开与明确登记，季度选期、统计、Word 生成与重开。');
+});

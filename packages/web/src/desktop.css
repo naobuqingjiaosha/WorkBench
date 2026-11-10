@@ -365,3 +365,85 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .topbar:where(:not(.dashboard-topbar):not(.detail-topbar)) { margin: 12px 16px; }
   .sidebar.mobile-open { top: 0; }
 }
+
+/* Home: primary work lists, compact context, and optional supporting content. */
+.page-dashboard:has(.home-focused) { overflow-y: auto; }
+.home-page.home-focused { flex: none; display: block; min-height: 0; }
+.home-focused .home-header { flex-wrap: wrap; margin-bottom: 12px; }
+.home-focused .home-header-actions { flex-wrap: wrap; }
+.home-focused .home-bell { display: flex; width: auto; gap: 6px; padding: 6px 10px; }
+.home-notice-count { border-radius: 12px; padding: 1px 6px; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 600; }
+.home-stat-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 10px 0 18px; color: var(--text-2); font-size: 13px; }
+.home-stat-line strong { margin-left: 5px; color: var(--text); font-variant-numeric: tabular-nums; }
+.home-stat-line .loading { padding: 0; }
+.home-main-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(270px, 1fr); gap: 20px; align-items: start; }
+.home-primary, .home-secondary { display: flex; flex-direction: column; min-width: 0; gap: 20px; }
+.home-focused .card { height: auto; min-height: 0; }
+.home-focused .card-body { flex: none; min-height: 0; overflow: visible; }
+.home-focused .home-action-row { flex: none; min-height: 84px; }
+.home-focused .home-inbox .home-action-row > .btn { background: transparent; color: var(--primary); border-color: var(--line-strong); }
+.home-focused .home-continue .home-action-row > .btn { background: transparent; color: var(--text); border-color: var(--line-strong); }
+.home-focused .home-action-row > .btn:hover { background: var(--primary-soft); }
+.home-focused .home-deadlines > .card-body > p { margin: 0 0 12px; }
+.home-deadline-list { list-style: none; padding: 0; margin: 0; }
+.home-deadline-list li + li { border-top: 1px solid var(--line); }
+.home-deadline-list a { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.home-deadline-list a:hover strong { color: var(--primary); text-decoration: underline; }
+.home-deadline-date { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; }
+.home-deadline-date time { font-variant-numeric: tabular-nums; }
+.home-deadline-date .tag { font-size: 11px; }
+.home-calendar-disclosure { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.home-calendar-disclosure > summary { color: var(--text-2); font-size: 13px; cursor: pointer; }
+.home-focused .home-calendar { border: 0; margin-top: 8px; }
+.home-focused .home-calendar .card-head, .home-focused .home-calendar .card-body { padding-left: 0; padding-right: 0; }
+.home-secondary-disclosure { border: 1px solid var(--line); border-radius: 8px; background: var(--surface, white); }
+.home-secondary-disclosure > summary { padding: 14px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.home-secondary-disclosure > summary span { display: block; margin: 5px 0 0 15px; font-size: 12px; font-weight: 400; color: var(--text-2); }
+.home-focused .home-secondary-disclosure .home-files { border: 0; min-height: 0; }
+.home-focused .home-secondary-disclosure .card-head { display: none; }
+.home-focused .home-record-link { min-height: 48px; font-size: 14px; gap: 10px; }
+.home-focused .home-record-link > span { font-size: 12px; }
+.home-notifications h4 { margin: 20px 0 8px; }
+.home-notice-row { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.home-notice-row > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.home-notice-row p { margin: 4px 0 0; font-size: 13px; color: var(--text-2); }
+.home-notice-row > .btn { flex-shrink: 0; }
+@media (max-width: 1100px) {
+  .home-main-grid { grid-template-columns: minmax(0, 1fr); }
+  .home-primary, .home-secondary { gap: 16px; }
+}
+@media (max-width: 600px) {
+  .home-focused .home-header-actions { gap: 8px; }
+  .home-focused .home-search { flex: 1 0 100%; width: 100%; }
+  .home-focused .home-header-actions > .btn-primary { margin-left: auto; }
+  .home-focused .card-head { flex-wrap: wrap; gap: 10px; }
+  .home-focused .home-action-row, .home-focused .home-continue .home-action-row { grid-template-columns: 32px minmax(0, 1fr); gap: 8px 12px; }
+  .home-focused .home-symbol { width: 32px; height: 36px; }
+  .home-focused .home-action-row > .tag { grid-column: 2; }
+  .home-focused .home-action-row > .btn { grid-column: 2; justify-self: start; width: auto; min-width: 90px; }
+  .home-focused .home-pagination { flex-wrap: wrap; }
+  .home-notice-row { align-items: flex-start; flex-direction: column; }
+  .home-stat-line { column-gap: 16px; }
+}
+
+/* Work list only: scroll rows separately from the bottom pagination. */
+.page-workbench > .workbench-list { flex: 1 0 auto; }
+.page-workbench > .workbench-list > .workbench-list-card {
+  flex: 1 0 auto; min-height: 300px; display: flex; flex-direction: column;
+}
+.page-workbench > .workbench-list > .workbench-list-card > .card-body {
+  flex: 1; min-height: 220px; display: flex; flex-direction: column; overflow: hidden;
+}
+.workbench-list-content { flex: 1; min-height: 160px; overflow: auto; display: flex; flex-direction: column; }
+.workbench-list-content > .empty { width: 100%; margin: auto 0; flex-shrink: 0; }
+.workbench-list-content > .table { min-width: 640px; flex-shrink: 0; }
+.page-workbench > .workbench-list > .workbench-list-card > .card-body > .workbench-list-pagination {
+  position: static; flex-shrink: 0; margin-top: 12px; padding: 12px 0 0;
+  border-top: 1px solid var(--line); background: var(--panel); z-index: auto;
+}
+@media (min-width: 1000px) and (min-height: 600px) {
+  .page-workbench > .workbench-list { flex: 1; min-height: 0; }
+  .page-workbench > .workbench-list > .workbench-list-card { flex: 1; min-height: 260px; }
+  .page-workbench > .workbench-list > .workbench-list-card > .card-body { min-height: 0; }
+  .workbench-list-content { min-height: 0; }
+}

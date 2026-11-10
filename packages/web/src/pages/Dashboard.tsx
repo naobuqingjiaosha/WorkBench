@@ -8,11 +8,12 @@ import {FilePreviewButton} from '../components/FilePreview';
 import {LoadError, NavIcon} from '../components/DesignSystem';
 
 type HomeAction = {key:string; workId?:number; name:string; detail:string; status:string; tone:'err'|'warn'|'info'; icon:string; action:string; href?:string; todoId?:number; due?:string};
-function inboxActions(data:Inbox|undefined):HomeAction[] {
+function inboxActions(data:Inbox|undefined,works:Workbench[]):HomeAction[] {
   if (!data) return [];
   const actions:HomeAction[] = [
-    ...data.periods.map(p=>({key:`period-${p.id}`,workId:p.workbench_id,name:p.name,detail:`${p.report_period} · ${p.missing[0]||p.nextAction}`,status:p.overdue?'已逾期':/核对|确认|复核/.test(p.nextAction||'')?'待核对':'待处理',tone:p.overdue?'err' as const:'warn' as const,icon:/工时/.test(p.name)?'person':'files',action:/核对.*草稿/.test(p.nextAction||'')?'核对草稿':/核对/.test(p.nextAction||'')?'核对材料':'继续办理',href:`#/workbench?id=${p.workbench_id}&periodId=${p.id}`,due:p.due_date})),
-    ...data.other.map((p,i)=>({key:`other-${i}`,workId:p.workbenchId,name:p.workbenchName,detail:`${p.title} · ${p.reason}`,status:/缺|材料/.test(p.reason)?'待补材料':'待处理',tone:'warn' as const,icon:'wrench',action:'查看清单',href:`#${p.href}`})),
+    ...data.periods.map(p=>({key:`period-${p.id}`,workId:p.workbench_id,name:p.name,detail:`${p.report_period} · ${p.missing[0]||(p.nextAction==='文件已生成，可下载或继续编辑'?'查看本期材料与成果':p.nextAction)}`,status:p.overdue?'已逾期':/核对|确认|复核/.test(p.nextAction||'')?'待核对':'待处理',tone:p.overdue?'err' as const:'warn' as const,icon:/工时/.test(p.name)?'person':'files',action:/核对.*草稿/.test(p.nextAction||'')?'核对草稿':/核对/.test(p.nextAction||'')?'核对材料':'继续办理',href:`#/workbench?id=${p.workbench_id}&periodId=${p.id}`,due:p.due_date})),
+    ...works.filter(w=>w.schedule?.recurring&&w.schedule.shouldRemind&&(w.schedule.daysUntil??0)>0).map(w=>({key:`remind-${w.id}`,workId:w.id,name:w.name,detail:`${w.schedule!.label} · 到期 ${w.schedule!.nextDue}`,status:'即将到期',tone:'warn' as const,icon:'clock',action:'查看提醒',href:`#/workbench?id=${w.id}`,due:w.schedule!.nextDue??undefined})),
+    ...data.other.map((p,i)=>({key:`other-${i}`,workId:p.workbenchId,name:p.workbenchName,detail:`${p.title} · ${p.reason}`,status:/缺|材料/.test(p.reason)?'待补材料':'待处理',tone:'warn' as const,icon:'wrench',action:['overdue','dueToday'].includes(p.kind)?'办理本期':'查看清单',href:`#${p.href}`})),
     ...data.todos.map(p=>({key:`todo-${p.id}`,name:p.title,detail:[p.due_date&&`截止 ${p.due_date}`,p.note].filter(Boolean).join(' · ')||'未设置截止时间',status:'待处理',tone:'info' as const,icon:'records',action:'完成',todoId:p.id,due:p.due_date||undefined})),
     ...data.timesheets.map(p=>({key:`hours-${p.id}`,workId:p.workbench_id??undefined,name:'部门月度工时',detail:`${p.month} · ${p.exceptions?`${p.exceptions} 项异常`:'待人工复核定稿'}`,status:'待核对',tone:'warn' as const,icon:'person',action:'继续办理',href:`#/workbench?task=timesheets&runId=${p.id}${p.workbench_id?`&id=${p.workbench_id}`:''}${p.period_id?`&periodId=${p.period_id}`:''}`})),
   ];
@@ -36,25 +37,46 @@ function HomeInboxSort({value,onChange,refresh,disabled}:{value:string;onChange:
 export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,string>)=>void}) {
   const all=useWorkbenchCollection(), inbox=useWorkflowInbox();
   const files=useApi<{items:Artifact[]}>('/api/artifacts?kind=generated&limit=2');
+  const [notifications,setNotifications]=useState(false);
   const [search,setSearch]=useState(false),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[actionError,setActionError]=useState(''),[sort,setSort]=useState('urgent');
-  const items=all.data?.items??[], active=items.filter(w=>!['done','archived'].includes(w.status)), actions=inboxActions(inbox.data);
+  const items=all.data?.items??[], active=items.filter(w=>!['done','archived'].includes(w.status)), actions=inboxActions(inbox.data,active);
   if(sort==='name')actions.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
-  const pendingIds=new Set(actions.map(a=>a.workId).filter(Boolean));
-  const recent=[...active].filter(w=>!pendingIds.has(w.id)).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).slice(0,3);
+  const recent=[...items].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||b.id-a.id).slice(0,5);
+  const deadlines=workDeadlines(active,inbox.data?.periods??[]);
   const reviewIds=new Set(actions.filter(a=>a.workId&&(a.status==='待核对'||/核对|确认|复核/.test(a.detail))).map(a=>a.workId));
   const reviewCount=active.filter(w=>reviewIds.has(w.id)).length;
   const pageCount=Math.max(1,Math.ceil(actions.length/3)), safePage=Math.min(page,pageCount-1);
   const now=new Date(), month=`${now.getFullYear()}年${now.getMonth()+1}月`;
   const refresh=async()=>{setBusy(true);try{await inbox.refresh();}finally{setBusy(false);}};
   const complete=async(id:number)=>{setBusy(true);setActionError('');try{await api.put(`/api/quick-todos/${id}`,{status:'done'});inbox.reload();}catch(e){setActionError((e as Error).message);}finally{setBusy(false);}};
-  return <div className="home-page">
+  const showInbox=(key?:string)=>{
+    const index=key?actions.findIndex(a=>a.key===key):-1;
+    setPage(index<0?0:Math.floor(index/3));setNotifications(false);
+    requestAnimationFrame(()=>{const target=document.getElementById('home-inbox');target?.scrollIntoView({block:'start'});target?.focus();});
+  };
+  return <div className="home-page home-focused">
     <header className="home-header">
-      <div><h2>工作台</h2><p>{month} · {all.error?'工作数量读取失败':all.loading?'正在读取工作':`${active.length}项在办工作`} · {inbox.error?'待办读取失败':inbox.loading?'正在读取待办':`${actions.length}项待处理`}</p></div>
-      <div className="home-header-actions"><button className="home-search" onClick={()=>setSearch(true)}><HomeIcon name="search"/><span>搜索工作、成果、模板</span></button><button className="btn home-bell" aria-label="查看待处理事项" onClick={()=>{document.getElementById('home-inbox')?.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('home-inbox')?.focus();}}><HomeIcon name="bell"/></button><Button kind="primary" onClick={()=>go('workbench',{create:'1'})}>＋ 新建工作</Button></div>
+      <div><h2>工作台</h2><p>{month} · 从需要你处理的事项开始</p></div>
+      <div className="home-header-actions"><button className="home-search" onClick={()=>setSearch(true)}><HomeIcon name="search"/><span>搜索工作、成果、模板</span></button><button className="btn home-bell" aria-label="查看通知与提醒" aria-haspopup="dialog" onClick={()=>setNotifications(true)}><HomeIcon name="bell"/><span>通知</span>{!inbox.loading&&!inbox.error&&actions.length>0&&<span className="home-notice-count" aria-label={`${actions.length}项待处理`}>{actions.length}</span>}{(inbox.error||inbox.syncError)&&<span aria-label="提醒信息不完整">!</span>}</button><Button kind="primary" onClick={()=>go('workbench',{create:'1'})}>＋ 新建工作</Button></div>
     </header>
     {search&&<Modal open title="搜索工作、成果、模板" wide onClose={()=>setSearch(false)}><GlobalSearch go={go}/></Modal>}
-    <div className="dashboard-grid">
-      <div className="dashboard-stack">
+    {notifications&&<Modal open title="通知与提醒" onClose={()=>setNotifications(false)} footer={<Button onClick={()=>showInbox()}>查看全部待处理</Button>}>
+      <div className="home-notifications">
+        <p className="muted">查看待处理事项与已登记的截止安排。</p>
+        {inbox.syncError&&<p className="notice notice-err" role="alert">期次同步失败，提醒可能不完整。<Button size="sm" disabled={busy} onClick={()=>void refresh()}>重新同步</Button></p>}
+        <h4>待处理事项</h4>
+        {inbox.error?<LoadError error={inbox.error} retry={inbox.reload}/>:!inbox.data&&inbox.loading?<Loading/>:!actions.length?<Empty text="当前没有待处理提醒。"/>:actions.slice(0,5).map(a=><div className="home-notice-row" key={a.key}><div><strong>{a.name}</strong><p>{a.detail}</p></div>{a.href?<a className="btn btn-sm" href={a.href}>{a.action}</a>:<Button size="sm" onClick={()=>showInbox(a.key)}>查看待办</Button>}</div>)}
+        {actions.length>5&&!inbox.error&&<p className="small muted">显示前5项，共{actions.length}项；可查看全部待处理。</p>}
+        <h4>近期截止</h4>
+        {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<><DeadlineList entries={deadlines.slice(0,5)}/>{deadlines.length>5&&<p className="small muted">显示前5项截止，完整安排见首页“近期截止”。</p>}</>}
+      </div>
+    </Modal>}
+    <section className="home-stat-line" aria-label="工作统计">
+      {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading text="正在读取工作统计…"/>:<><span>在办 <strong>{active.length}</strong></span><span title="在办工作中有明确待核对、确认或复核事项的工作数">待核对 <strong>{inbox.error||inbox.syncError?'—':inbox.loading?'…':reviewCount}</strong></span><span>已结束 <strong>{items.filter(w=>w.status==='done').length}</strong></span></>}
+      <span>待处理 <strong>{inbox.error||inbox.syncError?'—':inbox.loading?'…':actions.length}</strong></span>
+    </section>
+    <div className="home-main-grid">
+      <div className="home-primary">
         <div id="home-inbox" tabIndex={-1}>
           <Card className="home-inbox" title={<HomeTitle icon="bell">待我处理</HomeTitle>} extra={<HomeInboxSort value={sort} onChange={value=>{setSort(value);setPage(0);}} disabled={busy||inbox.loading} refresh={()=>void refresh()}/> }>
             {inbox.syncError&&<div className="notice notice-err" role="alert">期次同步失败：{inbox.syncError}。当前待办可能不完整，请刷新重试。</div>}
@@ -64,34 +86,57 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
             {inbox.data?.otherTruncated&&<p className="small muted">其他待办较多，请进入工作查看完整清单。</p>}
           </Card>
         </div>
-        <Card className="home-continue" title={<HomeTitle icon="clock">继续办理</HomeTitle>} extra={<Button kind="ghost" size="sm" onClick={()=>go('workbench')}>全部工作 →</Button>}>
-          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:!recent.length?<Empty text={active.length?'当前在办工作已列在待我处理中。':'还没有在办工作，从新建工作开始。'} action={<Button onClick={()=>go('workbench',active.length?{}:{create:'1'})}>{active.length?'查看全部工作':'新建工作'}</Button>}/>:recent.map((w,i)=><div className="home-action-row" key={w.id}><span className={`home-symbol tone-${['blue','purple','green'][i]}`}><HomeIcon name={w.work_type_mode==='process'?(i===1?'cloud':'monitor'):'files'}/></span><div className="home-row-text"><strong title={w.name}>{w.name}</strong><p>{w.work_type_name} · 更新 {fmtTime(w.updated_at)}</p></div><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>继续办理</Button></div>)}
+        <Card className="home-continue" title={<HomeTitle icon="clock">最近工作</HomeTitle>} extra={<Button kind="ghost" size="sm" onClick={()=>go('workbench')}>全部工作 →</Button>}>
+          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:!recent.length?<Empty text="还没有工作，从新建工作开始。" action={<Button onClick={()=>go('workbench',{create:'1'})}>新建工作</Button>}/>:recent.map((w,i)=><div className="home-action-row" key={w.id}><span className={`home-symbol tone-${['blue','purple','green'][i%3]}`}><HomeIcon name={w.work_type_mode==='process'?(i===1?'cloud':'monitor'):'files'}/></span><div className="home-row-text"><strong title={w.name}>{w.name}</strong><p>{w.work_type_name} · {w.status==='done'?'已结束':w.status==='archived'?'已归档':'在办'} · 更新 {fmtTime(w.updated_at)}</p></div><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>打开工作</Button></div>)}
         </Card>
       </div>
-      <div className="dashboard-stack">
-        <Card className="home-overview" title={<HomeTitle icon="chart">工作概览</HomeTitle>}>
-          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<div className="summary-grid"><div>在办<strong>{active.length}</strong></div><div title="在办工作中有明确待核对、待确认或待复核事项的工作数；属于在办子集">待核对<strong>{inbox.error||inbox.syncError?'—':inbox.loading?'…':reviewCount}</strong></div><div>已结束<strong>{items.filter(w=>w.status==='done').length}</strong></div></div>}
+      <aside className="home-secondary" aria-label="截止与辅助入口">
+        <Card className="home-deadlines" title="近期截止">
+          <p className="small muted">在办工作的期次截止与计划结束</p>
+          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<RecentDeadlines entries={deadlines}/>}
+          <details className="home-calendar-disclosure"><summary>查看完整月历</summary>{!all.error&&!all.loading&&<WorkCalendar items={items} go={go}/>}</details>
         </Card>
-        <WorkCalendar items={items} go={go}/>
+        <details className="home-secondary-disclosure"><summary>最近成果 <span>查看预览与定稿状态</span></summary>
         <Card className={`home-files${!files.loading&&!files.error&&!files.data?.items.length?' home-files-empty':''}`} title={<HomeTitle icon="files">最近成果</HomeTitle>}>
           {files.error?<LoadError error={files.error} retry={files.reload}/>:files.loading?<Loading/>:!files.data?.items.length?<Empty text="尚无生成成果，进入工作编辑草稿后生成。"/>:files.data.items.map(a=><div className="home-file-row" key={a.id}><span className={`home-file-icon ${/\.xlsx?$/i.test(a.file_name)?'excel':''}`}>{/\.xlsx?$/i.test(a.file_name)?'X':/\.docx?$/i.test(a.file_name)?'W':'文'}</span><div className="home-row-text"><strong title={a.title||a.file_name}>{a.title||a.file_name}</strong><p>{fmtTime(a.created_at)}</p></div><Tag kind={a.is_final?'ok':'default'}>{a.is_final==null?'未标注':a.is_final?'已定稿':'草稿'}</Tag><FilePreviewButton artifact={a}/></div>)}
           <p className="home-file-note">ⓘ 文件生成与业务完成分别记录。</p>
         </Card>
-        <button className="home-record-link" onClick={()=>go('records')}><HomeIcon name="records"/><strong>随手记工作</strong><span>›</span></button>
-      </div>
+        </details>
+        <button className="home-record-link" onClick={()=>go('records')}><HomeIcon name="records"/><strong>随手记</strong><span>记录工作 →</span></button>
+      </aside>
     </div>
   </div>;
+}
+
+type Deadline = {key:string;workId:number;name:string;date:string;label:string;periodId?:number};
+function workDeadlines(items:Workbench[],periods:Inbox['periods']):Deadline[] {
+  return items.flatMap(w=>{
+    const dates=new Map<string,string[]>();
+    for(const [raw,label] of [[w.period_due,'期次截止'],[w.schedule?.nextDue,'周期提醒'],[w.plan_end_date,'计划结束']] as const){
+      if(!raw||!/^\d{4}-\d{2}-\d{2}/.test(raw))continue;
+      const date=raw.slice(0,10);dates.set(date,[...(dates.get(date)??[]),label]);
+    }
+    return [...dates].map(([date,labels])=>({key:`${w.id}-${date}`,workId:w.id,name:w.name,date,label:labels.join(' / '),periodId:labels.includes('期次截止')?periods.find(p=>p.workbench_id===w.id&&p.due_date?.slice(0,10)===date)?.id:undefined}));
+  }).sort((a,b)=>a.date.localeCompare(b.date)||a.workId-b.workId);
+}
+function DeadlineList({entries}:{entries:Deadline[]}) {
+  const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  return !entries.length?<Empty text="暂无已登记的截止安排。"/>:<ul className="home-deadline-list">{entries.map(d=><li key={d.key}><a href={`#/workbench?id=${d.workId}${d.periodId?`&periodId=${d.periodId}`:''}`}><span className="home-deadline-date"><time dateTime={d.date}>{d.date}</time>{d.date<=today&&<Tag kind={d.date<today?'err':'warn'}>{d.date<today?'已逾期':'今天'}</Tag>}</span><strong>{d.name}</strong><span className="small muted">{d.label}</span></a></li>)}</ul>;
+}
+function RecentDeadlines({entries}:{entries:Deadline[]}) {
+  const [expanded,setExpanded]=useState(false);
+  return <><DeadlineList entries={expanded?entries:entries.slice(0,5)}/>{entries.length>5&&<Button kind="ghost" size="sm" onClick={()=>setExpanded(!expanded)}>{expanded?'收起截止安排':`查看全部 ${entries.length} 项截止`}</Button>}</>;
 }
 
 function WorkCalendar({items,go}:{items:Workbench[];go:(k:RouteKey,p?:Record<string,string>)=>void}) {
   const today=new Date(),[month,setMonth]=useState(()=>new Date(today.getFullYear(),today.getMonth(),1)),[day,setDay]=useState(today.getDate());
   const key=month.getFullYear()+'-'+String(month.getMonth()+1).padStart(2,'0'),date=key+'-'+String(day).padStart(2,'0');
-  const due=items.filter(w=>w.period_due?.slice(0,10)===date||w.plan_end_date?.slice(0,10)===date);
+  const due=items.filter(w=>w.schedule?.nextDue===date||w.period_due?.slice(0,10)===date||w.plan_end_date?.slice(0,10)===date);
   const first=(new Date(month.getFullYear(),month.getMonth(),1).getDay()+6)%7,days=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
   const cells=Math.ceil((first+days)/7)*7;
   const change=(n:number)=>{setMonth(new Date(month.getFullYear(),month.getMonth()+n,1));setDay(1);};
   return <Card className="home-calendar" title={<span>日程 <button className="home-month" aria-label="今天" title="返回本月，定位今天" onClick={()=>{setMonth(new Date(today.getFullYear(),today.getMonth(),1));setDay(today.getDate());}}>{month.getFullYear()}年{month.getMonth()+1}月</button></span>} extra={<><button className="home-calendar-nav" aria-label="上个月" onClick={()=>change(-1)}>‹</button><button className="home-calendar-nav" aria-label="下个月" onClick={()=>change(1)}>›</button></>}>
-    <div className="calendar-grid">{['一','二','三','四','五','六','日'].map(d=><span key={d}>{d}</span>)}{Array.from({length:cells},(_,i)=>{const d=i-first+1,dt=key+'-'+String(d).padStart(2,'0'),inMonth=d>0&&d<=days;return inMonth?<button key={i} aria-label={dt} aria-pressed={d===day} className={d===day?'selected':items.some(w=>w.period_due?.startsWith(dt)||w.plan_end_date?.startsWith(dt))?'has-event':''} onClick={()=>setDay(d)}>{d}</button>:<span className="calendar-outside" key={i}>{new Date(month.getFullYear(),month.getMonth(),d).getDate()}</span>;})}</div>
+    <div className="calendar-grid">{['一','二','三','四','五','六','日'].map(d=><span key={d}>{d}</span>)}{Array.from({length:cells},(_,i)=>{const d=i-first+1,dt=key+'-'+String(d).padStart(2,'0'),inMonth=d>0&&d<=days;return inMonth?<button key={i} aria-label={dt} aria-pressed={d===day} className={d===day?'selected':items.some(w=>w.schedule?.nextDue===dt||w.period_due?.startsWith(dt)||w.plan_end_date?.startsWith(dt))?'has-event':''} onClick={()=>setDay(d)}>{d}</button>:<span className="calendar-outside" key={i}>{new Date(month.getFullYear(),month.getMonth(),d).getDate()}</span>;})}</div>
     <div className="calendar-events">{due.length?due.map(w=><button key={w.id} onClick={()=>go('workbench',{id:String(w.id)})}>{month.getMonth()+1}月{day}日 · {w.name}<span className="muted">（截止 / 计划结束）</span></button>):<span>{month.getMonth()+1}月{day}日 · 暂无已登记的安排</span>}</div>
   </Card>;
 }

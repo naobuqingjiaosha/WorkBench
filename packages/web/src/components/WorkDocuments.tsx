@@ -17,7 +17,7 @@ export function WorkDocuments({workbenchId,workTypeId,periodId,content,onContent
  const saveContent=async()=>{await onSaveContent();setContentDirty(false);setSavedContent(content);};
  useEditorGuard({dirty:contentDirty&&content!==savedContent,save:saveContent,discard:()=>{onContentChange(savedContent);setContentDirty(false);}});
  const pool=useApi<{items:Template[]}>(`/api/templates?workTypeId=${workTypeId}`);
- const files=useApi<{items:(Artifact&{work_period_id:number|null;template_id:number|null;is_final:number;inspection_draft_id?:number|null;inspection_id?:number|null;inspection_revision?:number;version_group?:string;revision?:number;generation_values?:Record<string,string>})[]}>(`/api/artifacts?workbenchId=${workbenchId}&limit=500`);
+ const files=useApi<{items:(Artifact&{work_period_id:number|null;template_id:number|null;is_final:number;inspection_draft_id?:number|null;inspection_id?:number|null;inspection_revision?:number;version_group?:string;revision?:number;generation_values?:Record<string,string>})[]}>(`/api/artifacts?workbenchId=${workbenchId}${periodId?`&periodId=${periodId}`:''}&limit=500`);
  useEffect(()=>{if(refreshKey!==undefined)files.reload();},[refreshKey]);
  const [choosing,setChoosing]=useState(false),[picked,setPicked]=useState<number[]>([]),[required,setRequired]=useState<number[]>([]);
  const [resultMaterials,setResultMaterials]=useState<Record<string,number|null>>({});
