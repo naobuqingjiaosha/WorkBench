@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "ffa0d03f954b34904de830c886a45ea73214d4ac",
+  "committedBase": "5b9070fae5e450849dade8c06c8fb7be39929577",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -636,7 +636,7 @@
     },
     {
       "path": "packages/server/src/domain/timesheet-layout.ts",
-      "sha256": "44b4fb19e13fe98bd398f0e6a1b1b447024b6d8930e7bdec65145826b5847543"
+      "sha256": "61664bd3bc75ba4736d04c46ce4f22def3580003863471c8ec45a34c8cf2dd4d"
     },
     {
       "path": "packages/server/src/domain/timesheet-preferences.ts",
@@ -648,7 +648,7 @@
     },
     {
       "path": "packages/server/src/domain/timesheets.ts",
-      "sha256": "8bb83f996e7285383dc302e05a19a0ec81e41cca8b359aacfb2ef91f39700ac4"
+      "sha256": "e6fe52cb682d962d0c12015170e70472f25d987a3bf1ab72cc0d6a696a240f1f"
     },
     {
       "path": "packages/server/src/domain/versions.ts",
@@ -716,7 +716,7 @@
     },
     {
       "path": "packages/server/test/shared/periods-browser.ts",
-      "sha256": "175635987de042360e0a89d1896e45cd8a9f37fbec38a42b15681d584a45c0b0"
+      "sha256": "260d1087b8634edeca782235b6573cb28e68c51bde12996755718072bba766af"
     },
     {
       "path": "packages/server/test/shared/periods.ts",
@@ -756,7 +756,7 @@
     },
     {
       "path": "packages/server/test/shared/timesheet.ts",
-      "sha256": "94ee51497a049b3334fe69b1041465367a82de853c7ef57b93cedb8371c40792"
+      "sha256": "e7bb032cb921917f5fb2713ca07b40cb10e6f8012b8dcec6ca67baa66c17b553"
     },
     {
       "path": "packages/server/test/shared/work-records-browser.ts",
@@ -816,7 +816,7 @@
     },
     {
       "path": "packages/web/src/components/InspectionDrafts.tsx",
-      "sha256": "34367e8dad79b9155963fa1e9ebb7c98ce3e9a120955a02e1e15a70123f00ab3"
+      "sha256": "4d14cd6d82db8d6fe00889370ff8a4572a80a12d0edbfef940da2f7cc514d2fb"
     },
     {
       "path": "packages/web/src/components/InspectionRecords.tsx",

@@ -103,8 +103,21 @@ function wordTemplate(title:string,lines:string[]){
   await page.getByRole('button',{name:'新建检查记录',exact:true}).click();
   await page.getByLabel('检查项目',{exact:false}).first().fill('合成项目');
   await page.getByLabel('检查重点',{exact:false}).first().fill('核对合成标识');
+  // Commit the actual write, then drop only its acknowledgement before reopening.
+  const draftPath='/api/periods/'+monthly.p.id+'/drafts';
+  const partial=(await request(draftPath)).drafts[0];
+  const saveUrl=base+draftPath+'/'+partial.id;
+  await page.route(saveUrl,async (route:any)=>{
+    const response=await route.fetch();
+    assert.equal(response.status(),200);
+    await route.abort('failed');
+  },{times:1});
+  const lost=page.waitForEvent('requestfailed',(r:any)=>r.method()==='PUT'&&r.url()===saveUrl);
   await page.getByRole('button',{name:'保存草稿',exact:true}).click();
+  await lost;
   await page.reload();await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
+  await page.getByText('已核对上次修改已保存，已载入最新草稿。',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).isDisabled(),true);
   assert.equal(await page.getByLabel('检查项目',{exact:false}).first().inputValue(),'合成项目');
   assert.equal(await page.getByRole('button',{name:'确认实际检查',exact:true}).isDisabled(),true);
   await page.getByLabel('实际检查日期（未知可留空）',{exact:false}).fill(year+'-10-15');
@@ -129,5 +142,43 @@ function wordTemplate(title:string,lines:string[]){
   await page.reload();
   assert.equal(await page.getByLabel('合成月度监督 · '+year+'-10',{exact:true}).isChecked(),true);
   await generateAndRead('季度监督汇报',[year+'-Q4','合成月度监督','范围内确认检查 1 次','一件标识待更换'],summary,'quarter-review');
+  // Equal text with a different origin is still a real conflict. Preserve the human input.
+  await openPeriod(monthly);
+  await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
+  const subject=page.getByLabel('检查重点',{exact:false}).first();
+  const human='人工补充检查重点';
+  await subject.fill(human);
+  const saved=(await request(draftPath)).drafts[0];
+  const latestMethod='另一页已核对的方法';
+  await request(draftPath+'/'+saved.id,'PUT',{revision:saved.revision,fields:{subject:human,method:latestMethod},aiFields:['subject']});
+  const saveDraft=page.getByRole('button',{name:'保存草稿',exact:true});
+  const review=page.getByRole('region',{name:'核对草稿修改',exact:true});
+  await saveDraft.click();
+  await review.getByText('已保存（AI建议）：'+human,{exact:true}).waitFor();
+  await review.getByText('本页（用户输入）：'+human,{exact:true}).waitFor();
+  assert.equal(await saveDraft.isDisabled(),true);
+  assert.equal(await page.getByRole('button',{name:'确认实际检查',exact:true}).isDisabled(),true);
+  await page.reload();await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
+  await review.getByText('已保存（用户输入）：'+latestMethod,{exact:true}).waitFor();
+  assert.equal(await subject.inputValue(),human);
+  await review.getByRole('button',{name:'保留本页修改并继续核对',exact:true}).click();
+  assert.equal(await page.getByLabel('检查方法',{exact:false}).first().inputValue(),latestMethod);
+  assert.equal((await request(draftPath)).drafts[0].provenance.subject,'AI建议');
+  const modified=page.waitForResponse((r:any)=>r.request().method()==='PUT'&&r.url()===saveUrl);
+  await saveDraft.click(); await modified;
+  const resolved=(await request(draftPath)).drafts[0];
+  assert.equal(resolved.provenance.subject,'用户输入');
+  assert.equal(resolved.fields.subject,human);
+  assert.equal(resolved.fields.method,latestMethod);
+  assert.equal(resolved.provenance.method,'用户输入');
+  assert.equal((await request('/api/periods/'+monthly.p.id+'/inspections')).records[0].subject,'核对合成标识');
+  // Choosing the saved version discards only these local edits and performs no write.
+  await subject.fill('待放弃的本页内容');
+  const remote=await request(draftPath+'/'+saved.id,'PUT',{revision:resolved.revision,fields:{subject:'保留另一页已保存版本'}});
+  await saveDraft.click();
+  await review.getByRole('button',{name:'载入已保存版本',exact:true}).click();
+  assert.equal(await subject.inputValue(),remote.fields.subject);
+  assert.equal(await saveDraft.isDisabled(),true);
+  assert.equal((await request(draftPath)).drafts[0].revision,remote.revision);
   console.log('浏览器验收通过：提醒新建、通知、完成本期，例会填报、参考附件、保存下载，检查草稿重开与明确登记，季度选期、统计、Word 生成与重开。');
 });

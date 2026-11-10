@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "40cfd664a10e54a8bf8aaf8036ec4085cfd3e8c29987ab83826c9690d1350d38",
+      "sha256": "a8d2b2d62dd9215e46f54d01b23011b7547cd1abed2634fdc7d8fec4a16b57e4",
       "linksTo": [
         "docs/guides/INSTALLATION.md",
         "docs/management/PROJECT_PLAN.md",
@@ -1593,7 +1593,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "655f9cd6df2dad3e476b8baeae1d45f1f77968ca97c33c14b8eb739375d78a05",
+      "sha256": "702826890c089d7c14ca8e2cac453c38c19bf63d22234e4838392273a37ba4a6",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1699,7 +1699,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "213cb9a51b691658067207c46a0fac85dcc5e7a489540fc67622628e56fcb460",
+      "sha256": "ccd9aa57b395ed85a01218e3d659cabf988986ff9a7606285555a8f7378cf9a2",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

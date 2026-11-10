@@ -4,8 +4,9 @@ import {bootstrap} from '../../src/core/bootstrap.ts';
 import {closeDatabase, get, getDb} from '../../src/db/index.ts';
 import {syncPeriods} from '../../src/domain/periods.ts';
 import {createWorkbench} from '../../src/domain/service.ts';
-import {calculateTimesheet, createTimesheetRun, editableTimesheetInput, exportTimesheet, finalizeTimesheet, getTimesheetRun, monthDays, storeTimesheetSource, type RunInput} from '../../src/domain/timesheets.ts';
+import {calculateTimesheet, createTimesheetRun, departmentLayout, editableTimesheetInput, exportTimesheet, finalizeTimesheet, getTimesheetRun, monthDays, storeTimesheetSource, type RunInput} from '../../src/domain/timesheets.ts';
 import {applyTimesheetEdit, inspectTimesheetSource} from '../../src/domain/timesheet-workspace.ts';
+import {refreshTimesheetSummary} from '../../src/domain/timesheet-layout.ts';
 import {syntheticTimesheets} from './timesheet-fixture.ts';
 
 bootstrap();
@@ -73,6 +74,9 @@ try {
     assert.equal((sheet.getCell('AK3').value as Date).toISOString().slice(0,10),'2028-02-29');
     assert.equal(sheet.getCell('AL3').value,null);
     assert.equal(sheet.getCell('AM3').value,null);
+    assert.equal(sheet.getCell('I4').text,'周二');
+    assert.equal(sheet.getCell('AK4').text,'周二');
+    assert.equal(sheet.getCell('AL4').value,null);
     const rows=new Map<string,number>();
     sheet.eachRow(row=>{if(row.getCell(3).text===person && row.getCell(4).text!=='研发工时')rows.set(row.getCell(5).text,row.number);});
     assert.deepEqual([...rows.keys()].sort(),[a,b,c].sort());
@@ -88,10 +92,40 @@ try {
     assert.equal(research[0]!.getCell(5).text,'本月研发合计（不分项目）');
     assert.equal(research[0]!.getCell(6).value,null);assert.equal(research[0]!.getCell(9).value,null);
     assert.equal(research[0]!.getCell(10).value,1);assert.equal(research[0]!.getCell(40).result,1);
+    const footer=sheet.getRows(1,sheet.rowCount)!.find(r=>r.getCell(3).text==='部门工时合计')!;
+    assert.ok(footer);
+    assert.equal(footer.getCell('AK').result,6);
+    assert.equal(footer.getCell('AL').value,null);
+    assert.equal(footer.getCell('AM').value,null);
+    assert.equal(footer.getCell('AN').result,13);
+    assert.match(footer.getCell('AN').formula!, /SUMIF\(.*"部门工时"/);
     const summary = book.getWorksheet('人员工时汇总')!;
     assert.equal(summary.getCell('C3').value,1);
     assert.equal(summary.getCell('D3').result,13);
     assert.equal(summary.getCell('E3').result,14);
+    assert.equal(summary.getCell('B4').text,'合计');
+    const checks=book.getWorksheet(`校验_${edited.id}`)!;
+    assert.ok(checks.getColumn('F').values.some(value=>String(value).includes('休息 不分配部门工时')));
+    // A prior export can carry the old generic label and stale formulas under day 31.
+    // Keep separate template totals in place while growing or shortening our own row.
+    footer.getCell(3).value='合计';
+    const other=sheet.addRow([]);
+    other.getCell(3).value='总计';
+    other.getCell('AN').value={formula:`SUM(AN5:AN${footer.number-1})`,result:14};
+    const layout=departmentLayout(book,f.month);
+    for(const length of [31,30,28,29]){
+        refreshTimesheetSummary(book,layout,edited,length);
+        assert.equal(footer.getCell(3).value,'部门工时合计');
+        for(let d=28;d<=31;d++){
+            const daily=footer.getCell(8+d);
+            if(d<=length)assert.match(daily.formula!,/SUMIF/);
+            else assert.equal(daily.value,null);
+        }
+        assert.equal(footer.getCell('AN').result,13);
+        assert.equal(other.getCell(3).value,'总计');
+        assert.equal(other.getCell('AN').result,14);
+        assert.equal(sheet.rowCount,other.number);
+    }
     await assert.rejects(finalizeTimesheet(edited.id,false),/核对/);
     const countArtifacts=()=>get<{n:number}>('SELECT count(*) AS n FROM artifact')!.n;
     const before=countArtifacts();

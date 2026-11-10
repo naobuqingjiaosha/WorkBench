@@ -182,6 +182,7 @@ export async function readMapped(id: string, m: Mapping, month: string, kind: 'r
     return rows;
 }
 const attendanceCodes: Record<string, string> = { '工作': 'work', '正常': 'work', '项目外出': 'project', '出差': 'project', '请假': 'leave', '调休': 'leave', '考试': 'leave', '休息': 'rest', '承揽业务': 'excluded', '技术交流': 'excluded', '洽谈项目': 'excluded', '半天': 'unknown' };
+const nonWorkingLabels:Record<string,string>={rest:'休息',leave:'请假或缺勤',excluded:'不计工时'};
 export function calculateTimesheet(input: {
     month: string;
     rd: DayInput[];
@@ -268,7 +269,7 @@ export function calculateTimesheet(input: {
                 issue('ATT_MISSING', person, date, '缺少已确认的考勤 / 排班，不能按星期猜测');
             else if (['leave', 'rest', 'excluded'].includes(status ?? '')) {
                 if(hours>0)issue('RD_ATT_CONFLICT',person,date,'研发工时与明确休息、缺勤或不计工时的考勤冲突，请核对来源；不得自动视为满勤');
-                basis += `；${a.status} 不分配部门工时`;
+                basis += `；${nonWorkingLabels[a.status!] ?? a.status} 不分配部门工时`;
             }
             else if (status === 'work' || status === 'project') {
                 const assignment=input.assignments[person];
@@ -609,9 +610,6 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
             cell.value = new Date(Date.UTC(year, month - 1, d));
         else
             cell.value = d;
-        const weekday = sheet.getCell(headerRow + 1, 8 + d);
-        if (/^(星期|周)?[一二三四五六日天]$/.test(weekday.text))
-            weekday.value = '星期' + '日一二三四五六'[new Date(Date.UTC(year, month - 1, d)).getUTCDay()];
     }
     sheet.getCell(headerRow,totalCol).value='合计';
     const totalWeekday=sheet.getCell(headerRow+1,totalCol);
@@ -640,7 +638,7 @@ export async function exportTimesheet(id: number): Promise<Buffer> {
     for (const s of book.worksheets)
         s.eachRow(r => r.eachCell(c => { if ((s.name === '封面' || (s === sheet && r.number < headerRow)) && typeof c.value === 'string')
             c.value = c.value.replace(/20\d{2}年度\d{1,2}月/g, `${year}年度${month}月`); }));
-    refreshTimesheetSummary(book,layout,row.result);
+    refreshTimesheetSummary(book,layout,row.result,days);
     const report = book.addWorksheet(`校验_${id}`);
     report.columns = [{ header: '人员', key: 'person', width: 18 }, { header: '日期', key: 'date', width: 14 }, { header: '研发工时', key: 'rd', width: 12 }, { header: '部门工时', key: 'department', width: 12 }, { header: '项目', key: 'project', width: 40 }, { header: '计算依据', key: 'basis', width: 80 }];
     report.addRows(row.result.days);

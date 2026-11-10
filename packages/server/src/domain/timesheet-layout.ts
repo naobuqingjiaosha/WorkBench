@@ -19,7 +19,7 @@ export async function prepareDepartmentBook(book:ExcelJS.Workbook,input:RunInput
  for(let d=1;d<=31;d++){
   s.getCell(layout.headerRow,8+d).value=d<=count?new Date(Date.UTC(year,month-1,d)):null;
   s.getCell(layout.headerRow,8+d).numFmt='d';
-  s.getCell(layout.headerRow+1,8+d).value=d<=count?'星期'+'日一二三四五六'[new Date(Date.UTC(year,month-1,d)).getUTCDay()]:null;
+  s.getCell(layout.headerRow+1,8+d).value=d<=count?'周'+'日一二三四五六'[new Date(Date.UTC(year,month-1,d)).getUTCDay()]:null;
  }
  s.getCell(layout.headerRow,total).value='合计';s.getCell(layout.headerRow+1,total).value='--';
  const wanted=input.requiredPeople;
@@ -76,12 +76,20 @@ export function refreshResearchRows(layout:ReturnType<typeof departmentLayout>,r
  });
 }
 
-export function refreshTimesheetSummary(book:ExcelJS.Workbook,layout:ReturnType<typeof departmentLayout>,result:Calculation){
+export function refreshTimesheetSummary(book:ExcelJS.Workbook,layout:ReturnType<typeof departmentLayout>,result:Calculation,daysInMonth:number){
  const {sheet:s,rows,totalCol}=layout,first=Math.min(...rows.map(r=>r.row)),last=Math.max(...rows.map(r=>r.row));
- let footer=last+1;
- while(s.getCell(footer,3).text&&!/合计|总计|小计/.test(s.getCell(footer,3).text))footer++;
- if(!s.getCell(footer,3).text)s.getCell(footer,3).value='合计';
+ // Reuse our previous footer when a finished workbook becomes the next template.
+ // A template may also contain its own combined totals or research subtotals.
+ let footer:number|undefined,emptyRow:number|undefined;
+ for(let n=last+1;n<=s.rowCount;n++){
+  const r=s.getRow(n),label=r.getCell(3).text.trim(),formula=r.getCell(totalCol).formula;
+  if(label==='部门工时合计'||(['合计','总计'].includes(label)&&formula?.includes('"部门工时"')&&formula.includes('"服务工时"'))){footer=n;break;}
+  if(!r.hasValues)emptyRow??=n;
+ }
+ footer??=emptyRow??s.rowCount+1;
+ s.getCell(footer,3).value='部门工时合计';
  for(let c=9;c<=totalCol;c++){
+  if(c!==totalCol&&c>8+daysInMonth){s.getCell(footer,c).value=null;continue;}
   const letter=s.getColumn(c).letter;
   const value=rows.reduce((sum,r)=>{const v=s.getCell(r.row,c);return sum+Number(v.formula?v.result??0:v.value??0);},0);
   const kinds=`$D$${first}:$D$${last}`,values=`${letter}${first}:${letter}${last}`;
