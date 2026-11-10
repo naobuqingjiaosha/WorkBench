@@ -175,7 +175,18 @@ if (mode === 'generate') {
 } else {
   const errors = [], warnings = [];
   for (const [p, content] of [['docs/README.md', expectedCatalog], ['docs/knowledge-index.json', json(index)], ['docs/reference/source-inventory.json', json(source)]]) {
-    if (!fs.existsSync(abs(p)) || read(p) !== content) errors.push(`索引/目录已过期：${p}；请重新generate`);
+    let expected = content;
+    if (p === 'docs/reference/source-inventory.json' && fs.existsSync(abs(p))) {
+      try {
+        const recorded = JSON.parse(read(p));
+        // Generation context is not freshness: committing the generated index changes HEAD.
+        // All file hashes and structural fields still have to match, including in a Git-less ZIP.
+        if (recorded.committedBase === null || (typeof recorded.committedBase === 'string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(recorded.committedBase))) {
+          expected = json({ ...source, committedBase: recorded.committedBase });
+        }
+      } catch { /* malformed JSON remains a stale index */ }
+    }
+    if (!fs.existsSync(abs(p)) || read(p) !== expected) errors.push(`索引/目录已过期：${p}；请重新generate`);
   }
   for (const d of documents) {
     if (!d.sha256) { errors.push(`缺少文档：${d.path}`); continue; }
