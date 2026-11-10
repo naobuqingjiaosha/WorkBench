@@ -1,12 +1,16 @@
 # 安装与启动指南
 
-文档ID：GUIDE-INSTALLATION。版本：1.4。更新：2026-11-10。性质：当前源码的安装、更新与已有环境接续。
+文档ID：GUIDE-INSTALLATION。版本：1.5。更新：2026-11-10。性质：当前源码的安装、更新与已有环境接续。
 
 ## 首次使用
 
 安装 Node.js 24 和配套 npm 11（其他 npm 主版本尚未适配，会明确停止准备），取得完整仓库后，双击根目录的 `启动工作台.cmd`。不需要先手工运行 npm ci 或 npm run build；启动器会在本机私有缓存准备依赖、构建界面，然后打开浏览器。需要足够磁盘空间；没有可核对的已安装依赖且缓存不完整时才需要访问 npm 依赖源。默认地址为 http://127.0.0.1:8787，以启动窗口显示为准。
 
 新安装的配置和数据默认位于 `%LOCALAPPDATA%\WorkBench\daily`，不会随 Git 传递。已有安装继续使用原配置、数据库、模板和业务文件路径，不自动搬迁。需要自定义时使用绝对路径的 WORKBENCH_HOME；样例 workbench.config.example.json 只说明格式，不要覆盖已有配置。相对路径规则见[资料边界](DATA_BOUNDARIES.md)。模型、OCR 和 Office 仍按实际功能另行配置。
+
+## 在 Windows 试用交付候选
+
+将候选包解压到单独目录，在已安装 Node.js 24 和 npm 11 的电脑双击 `预览候选工作台.cmd`，也可执行 `npm run preview:candidate`。预览按同一锁文件准备运行副本，默认打开 18889，数据保存在该目录对应的 development/candidate 根。首次缺少依赖时需能访问 npm 依赖源。使用合成或已授权副本验证，关闭前先保存；同一目录再次预览可继续原样例。日常库切换须另行安排。
 
 ## 拉取后双击使用最新代码
 
@@ -35,7 +39,7 @@ npm缓存沿用在原仓库解析的配置（本项目默认.npm-cache，也支�
 - 明确使用本目录上次成功的源码副本：`node scripts/start.mjs --last-good --background --start-only --open`。仍须通过源码/界面及依赖可用性、环境身份和迁移兼容检查；不存在已验证副本就拒绝。数据库已升级到该副本不认识的版本时不能回退程序。
 - 历史发布包仅保留显式恢复入口：`node scripts/start.mjs --release --background --start-only --open`。须先停止当前服务，核对原发布包、前端及数据库兼容；此入口拒绝执行缺失迁移或降级。旧 current-release.json 不再控制默认双击，不必删除或手改它。
 
-缓存位于仓库 `.local/source-builds`，每份含配套源码、依赖、界面及 SOURCE_BUILD.json；成功记录为当前运行根的 source-current.json。只运行一个工作台，但保留可核验缓存与备份供恢复，不自动清理用户历史。缓存、配置、数据、测试和日志不上传 GitHub。详细排障见[运维手册](OPERATIONS.md)。
+缓存位于仓库 `.local/source-builds`，每份含配套源码、依赖、界面及 SOURCE_BUILD.json；成功记录为当前运行根的 source-current.json。只运行一个工作台，但保留可核验缓存与备份供恢复，不自动清理用户历史。缓存、私人配置、业务数据、私有测试和运行日志留在本机。共享合成回归随源码提供。详细排障见[运维手册](OPERATIONS.md)。
 
 ## 可选的独立开发预览
 

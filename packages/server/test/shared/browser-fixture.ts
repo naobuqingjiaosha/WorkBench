@@ -17,7 +17,7 @@ export async function withBrowserPage(test: (page: any, base: string) => Promise
     const root=process.cwd();
     execFileSync(process.execPath,[join(root,'node_modules/vite/bin/vite.js'),'build','--outDir',web],{cwd:join(root,'packages/web'),stdio:'pipe'});
   }
-  const moduleName=process.env.PLAYWRIGHT_MODULE ? pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE)).href : 'playwright';
+  const moduleName=process.env.PLAYWRIGHT_MODULE ? pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE)).href : 'playwright-core';
   const {chromium}=await import(moduleName);
   const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE||undefined});
   const server=spawn(process.execPath,['packages/server/src/index.ts'],{stdio:['ignore','pipe','pipe']});

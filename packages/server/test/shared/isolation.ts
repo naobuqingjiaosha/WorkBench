@@ -27,3 +27,5 @@ for (const privateFile of ['workbench.config.json','outputs/result.json','packag
 }
 assert.ok(contentIssues(Buffer.from([0, 1])).includes('binary-content'));
 console.log('隔离验证：环境、路径、凭据与共享用例边界');
+
+assert.ok(contentIssues(Buffer.from(['/Users', 'synthetic', 'folder'].join('/'))).includes('personal-posix-home'));

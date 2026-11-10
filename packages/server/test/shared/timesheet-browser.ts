@@ -33,7 +33,8 @@ await withBrowserPage(async(page,base)=>{
   // Force the recovery path. The copy is retained and a manually verified mapping adopts it.
   const unusual=new ExcelJS.Workbook();await unusual.xlsx.load(fixture.attendance as never);
   unusual.worksheets[0]!.getCell('A1').value='当期参与者';
-  await input.nth(2).setInputFiles(workbookFile('合成考勤.xlsx',Buffer.from(await unusual.xlsx.writeBuffer())));
+  const attendanceBytes=Buffer.from(await unusual.xlsx.writeBuffer());
+  await input.nth(2).setInputFiles(workbookFile('合成考勤.xlsx',attendanceBytes));
   const pending=page.getByRole('region',{name:'待核对考勤'});
   await pending.getByRole('alert').waitFor();
   assert.equal(await button('采用此考勤').isDisabled(),true);
@@ -97,6 +98,10 @@ await withBrowserPage(async(page,base)=>{
   if(process.env.TIMESHEET_SAMPLE_DIR){
     // Explicitly requested deliverables only. Every workbook came from syntheticTimesheets().
     const sample=resolve(process.env.TIMESHEET_SAMPLE_DIR);mkdirSync(sample,{recursive:true});
+    const inputs=join(sample,'试用输入');mkdirSync(inputs,{recursive:true});
+    for(const [name,bytes] of Object.entries({'合成研发.xlsx':fixture.rd,'合成模板.xlsx':fixture.template,'合成考勤.xlsx':attendanceBytes,'合成月报.xlsx':fixture.report})){
+      writeFileSync(join(inputs,name),bytes,{flag:'wx'});
+    }
     const finalFile=await fetch(base+'/api/timesheets/'+latest.id+'/export');
     assert.ok(finalFile.ok);
     writeFileSync(join(sample,'合成工时定稿.xlsx'),Buffer.from(await finalFile.arrayBuffer()));

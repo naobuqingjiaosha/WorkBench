@@ -146,7 +146,7 @@ export async function prepareBuild(root,cache,previous) {
   if(sourceIdentity(stage).id!==identity.id)throw Error('准备期间源码发生变化，请等待 pull 完成后重新启动');
   await prepareDependencies(root,stage,previous,identity);
   console.log('正在构建当前源码的界面…');
-  await command(process.execPath,[join(stage,'node_modules','vite','bin','vite.js'),'build','--outDir',join(stage,'web')],{cwd:join(stage,'packages','web')});
+  await command(process.execPath,[join(stage,'node_modules','vite','bin','vite.js'),'build','--outDir',join(stage,'web')],{cwd:join(stage,'packages','web'),env:{...process.env,NODE_ENV:'production'}});
   if(!existsSync(join(stage,'web','index.html')))throw Error('构建没有生成首页');
   if(sourceIdentity(root).id!==identity.id)throw Error('构建期间源码发生变化，请重新启动');
   // Rebind Windows absolute junctions after all checks, before the directory rename.

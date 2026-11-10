@@ -39,4 +39,4 @@
 
 运行 `node scripts/docs-maintenance.mjs generate` 刷新目录和索引，再运行 `node scripts/docs-maintenance.mjs check`。脚本不启动应用、不读取业务行、不修改日常数据。详细约定见[文档治理](management/DOCUMENT_CONTROL.md)。
 
-data、outputs和旧临时目录通常不随Git分发；本机证据缺失必须如实说明，不能当作代码或验收已通过。测试用例、历史报告与运行快照仅保留本机，不进入共享索引；关联链接在新设备可能不可用。
+data、outputs和旧临时目录通常不随Git分发；本机证据缺失必须如实说明，不能当作代码或验收已通过。合成回归随源码共享；历史私有用例、报告与运行快照仅保留本机，相关链接在新设备可能不可用。

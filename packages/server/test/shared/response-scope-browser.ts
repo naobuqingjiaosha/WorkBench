@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { join, resolve } from 'node:path';
 import { build } from 'esbuild';
-const {chromium} = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE)).href : 'playwright');
+const {chromium} = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE)).href : 'playwright-core');
 const bundle=await build({bundle:true,write:false,minify:true,define:{'process.env.NODE_ENV':'"production"'},
   stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
     import React, {useState} from 'react';

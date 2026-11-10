@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import PizZip from 'pizzip';
 import {withBrowserPage} from './browser-fixture.ts';
@@ -27,7 +27,12 @@ function wordTemplate(title:string,lines:string[]){
     const wt=type(code),templateIds:number[]=[];
     if(lines){
       const form=new FormData();form.append('name',name);form.append('workTypeId',String(wt.id));
-      form.append('file',new Blob([wordTemplate(name,lines)]),name+'.docx');
+      const template=wordTemplate(name,lines);
+      if(process.env.PERIOD_SAMPLE_DIR){
+        const inputs=join(process.env.PERIOD_SAMPLE_DIR,'试用输入');mkdirSync(inputs,{recursive:true});
+        writeFileSync(join(inputs,name+'.docx'),template,{flag:'wx'});
+      }
+      form.append('file',new Blob([template]),name+'.docx');
       templateIds.push((await request('/api/templates/upload','POST',form)).items[0].template.id);
     }
     const work=await request('/api/workbenches','POST',{workTypeId:wt.id,publishedConfigId:wt.published_config_id,name,firstPeriod:first,templateIds});

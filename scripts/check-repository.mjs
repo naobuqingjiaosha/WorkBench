@@ -44,6 +44,7 @@ try {
       const [, local, , remote] = line.trim().split(/\s+/);
       if (!/^[a-f0-9]{40,64}$/.test(local || '') || !/^[a-f0-9]{40,64}$/.test(remote || '')) throw Error('Invalid pre-push input');
       if (/^0+$/.test(local)) continue;
+      checkRef(local);
       // A new branch on an existing remote can share already-delivered history.
       // Only tips advertised by this push destination and present locally may be excluded.
       let revisions = [remote + '..' + local];

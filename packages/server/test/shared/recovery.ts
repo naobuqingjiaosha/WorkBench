@@ -21,6 +21,11 @@ for (const name of readdirSync(migrations).sort().filter(n => n.endsWith('.sql')
 db.exec("INSERT INTO work_type(id,code,name) VALUES(1,'SYN','合成类型')");
 db.exec("INSERT INTO workbench(id,code,name,work_type_id,folder_path) VALUES(1,'SYN001','合成历史',1,'synthetic')");
 db.prepare("INSERT INTO artifact(workbench_id,title,file_rel,file_name) VALUES(1,'样例',?,?)").run(inputPath,inputPath);
+// This old layout stored an absolute managed path plus an external template.
+const managed=join(files,'ledger-copy.xlsx'), external=join(process.env.WORKBENCH_ISOLATION_ROOT!,'external','reference.xlsx');
+writeFileSync(managed,'synthetic path fixture');
+db.prepare('INSERT INTO annual_ledger(id,workbench_id,year,path,digest,metadata) VALUES(1,1,?,?,?,?)')
+  .run('2024',managed,'synthetic',JSON.stringify({sheets:{},templates:{work:managed,supervision:external}}));
 db.close();
 const plan = pendingMigrations(dbFile, root);
 assert.ok(plan.pending.includes('041_workflow_config'));
@@ -47,6 +52,11 @@ const copy = new DatabaseSync(restoredFile,{readOnly:true});
 try {
   const item=copy.prepare('SELECT a.file_rel, w.code FROM artifact a JOIN workbench w ON w.id=a.workbench_id').get()!;
   assert.equal(item.code,'SYN001');
+  const ledger=copy.prepare('SELECT path,metadata FROM annual_ledger WHERE id=1').get()!;
+  const newLedger=join(restored,'files','ledger-copy.xlsx');
+  assert.equal(ledger.path,newLedger);
+  assert.equal(JSON.parse(String(ledger.metadata)).templates.work,newLedger);
+  assert.equal(JSON.parse(String(ledger.metadata)).templates.supervision,external);
   assert.equal(readFileSync(join(restored,'files',String(item.file_rel)),'utf8'),'合成验收材料');
 } finally { copy.close(); }
 assert.notEqual(spawnSync(process.execPath,[script,'restore','--snapshot',snapshot,'--to',restored]).status,0);

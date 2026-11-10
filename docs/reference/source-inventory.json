@@ -8,17 +8,17 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "4830353f899267bb1437cfa8c35bd4cf35acf639",
+  "committedBase": "ffa0d03f954b34904de830c886a45ea73214d4ac",
   "engines": {
     "node": ">=24.0.0"
   },
   "npmScripts": {
     "dev:monthly": "node scripts/dev-monthly.mjs",
-    "test:monthly": "node scripts/test-isolated.mjs --unit monthly-workspaces",
+    "test:monthly": "node scripts/test-isolated.mjs --shared timesheet",
     "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "node scripts/dev-server.mjs --watch",
     "dev:web": "npm --workspace @workbench/web run dev",
-    "build": "npm --workspace @workbench/web run build",
+    "build": "npm --workspace @workbench/web run build --",
     "start": "node scripts/start.mjs",
     "start:auto": "node scripts/start.mjs --auto",
     "server": "node scripts/dev-server.mjs",
@@ -31,7 +31,7 @@
     "typecheck": "npm run typecheck:server && npm run typecheck:web",
     "typecheck:server": "tsc -p tsconfig.json --noEmit",
     "typecheck:web": "tsc -p packages/web/tsconfig.json --noEmit",
-    "test": "npm run test:isolation && npm run test:unit && npm run test:regression && npm run test:workflow && npm run test:policy && npm run test:local-model && npm run test:business && npm run test:business-ai && npm run test:stability && npm run test:evidence-writing && npm run test:work-records && npm run test:inspection-drafts",
+    "test": "node scripts/test-isolated.mjs --shared isolation repository recovery work-records periods projects timesheet ledger",
     "test:evidence-writing": "node scripts/test-isolated.mjs --unit evidence-writing && node scripts/test-isolated.mjs --unit evidence-writing-boundaries && node scripts/test-isolated.mjs --unit evidence-directed && node scripts/test-isolated.mjs --unit evidence-semantic-entry && node scripts/test-isolated.mjs --unit evidence-citation-contract",
     "test:stability": "node scripts/test-isolated.mjs --unit system-stability && node scripts/test-isolated.mjs --unit workbench-count && node scripts/test-isolated.mjs --unit trash-fact-review",
     "test:business-ai": "node scripts/test-isolated.mjs --unit phase5-business-assistant",
@@ -44,28 +44,35 @@
     "test:kb": "node scripts/test-isolated.mjs kb-e2e",
     "test:agent": "node scripts/test-isolated.mjs agent-e2e",
     "test:vision": "node scripts/test-isolated.mjs vision-e2e",
-    "test:all": "npm test && node scripts/test-isolated.mjs e2e kb-e2e agent-e2e vision-e2e ocr-e2e",
+    "test:all": "npm test && npm run test:browser",
     "test:regression": "node scripts/test-isolated.mjs --unit regression && node scripts/test-isolated.mjs --unit template-management && node scripts/test-isolated.mjs --unit template-intelligence && node scripts/test-isolated.mjs --unit template-collections && node scripts/test-isolated.mjs --unit reliability-repairs",
     "test:business": "node scripts/test-isolated.mjs --unit business-architecture && node scripts/test-isolated.mjs --unit phase2-business && node scripts/test-isolated.mjs --unit phase3-experience && node scripts/test-isolated.mjs --unit phase4-inspections",
-    "test:isolation": "node scripts/test-isolation-contract.mjs",
+    "test:isolation": "node scripts/test-isolated.mjs --shared isolation",
     "test:inspection-drafts": "node scripts/test-isolated.mjs --unit inspection-drafts",
-    "test:work-records": "node scripts/test-isolated.mjs --unit work-records",
+    "test:work-records": "node scripts/test-isolated.mjs --shared work-records",
     "repo:check": "node scripts/check-repository.mjs --worktree",
     "repo:check:staged": "node scripts/check-repository.mjs --staged",
     "repo:hooks": "node scripts/install-git-hooks.mjs",
     "prepare": "node scripts/install-git-hooks.mjs",
-    "test:repository": "node packages/server/test/repository-boundary.mjs",
-    "test:runtime-layout": "node packages/server/test/runtime-layout.mjs",
-    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit"
+    "test:repository": "node scripts/test-isolated.mjs --shared repository",
+    "test:runtime-layout": "node scripts/test-isolated.mjs --shared isolation",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
+    "test:legacy": "npm run test:legacy:isolation && npm run test:unit && npm run test:regression && npm run test:workflow && npm run test:policy && npm run test:local-model && npm run test:business && npm run test:business-ai && npm run test:stability && npm run test:evidence-writing && node scripts/test-isolated.mjs --unit work-records && npm run test:inspection-drafts",
+    "preview:candidate": "node scripts/preview.mjs",
+    "test:legacy:isolation": "node scripts/test-isolation-contract.mjs",
+    "test:legacy:all": "npm run test:legacy && node scripts/test-isolated.mjs e2e kb-e2e agent-e2e vision-e2e ocr-e2e",
+    "test:legacy:repository": "node packages/server/test/repository-boundary.mjs",
+    "test:legacy:runtime-layout": "node packages/server/test/runtime-layout.mjs",
+    "test:browser": "node scripts/test-isolated.mjs --shared response-scope-browser projects-browser periods-browser timesheet-browser ledger-browser work-records-browser ai-draft"
   },
   "files": [
     {
       "path": "package-lock.json",
-      "sha256": "67303d35c4cbc34914944eca2d1904836ac78352550c45c9bf480f11776abf5a"
+      "sha256": "c0dbfe8aae06c77554fc309094db82622f0fe5d1ea817e1405eb3354eb76e6af"
     },
     {
       "path": "package.json",
-      "sha256": "b41e3a0eed17fd3991d5bb66c8d334cff94925ceae164944538fe4f91ae4129f"
+      "sha256": "a4cda0dce92c515d1b7b51e77bdc084ba138e31cb131caab0b622cc7dde89157"
     },
     {
       "path": "packages/server/package.json",
@@ -113,7 +120,7 @@
     },
     {
       "path": "packages/server/src/api/routes-files.ts",
-      "sha256": "647daefaf2ba262f1552edc267538b19bda588dc04f4e7a38ac5edc5689957fe"
+      "sha256": "b41a9a2c6dec1d5c63b481e5432b3fe6e820d1d713eca8158ce63201abd9d615"
     },
     {
       "path": "packages/server/src/api/routes-generate.ts",
@@ -121,7 +128,7 @@
     },
     {
       "path": "packages/server/src/api/routes-inspection-drafts.ts",
-      "sha256": "1d0a07d6ad7a7b9d74824817f979c5979827eea65954ec9e1a2a79b2a15def32"
+      "sha256": "b738c9584d9d8a91d6119f08dd3360face63663296d3c9165cb5d0def75f576c"
     },
     {
       "path": "packages/server/src/api/routes-kb.ts",
@@ -129,7 +136,7 @@
     },
     {
       "path": "packages/server/src/api/routes-ledger.ts",
-      "sha256": "ccf3da3448fd8afb044c9d3502e8227a6bbcc8d8ac992eb13e44f73420178841"
+      "sha256": "770b9cea33c46cb8c6620e8c574e141ca5767a2947987c8bcfa2b6ffc2c7b655"
     },
     {
       "path": "packages/server/src/api/routes-preview.ts",
@@ -149,7 +156,7 @@
     },
     {
       "path": "packages/server/src/api/routes-timesheets.ts",
-      "sha256": "32c0d2ddd7aadb1bf85c3a77096afcc6b206da6638a6ddce6e20372dcbcb7a59"
+      "sha256": "3db5ed58d671ed0493181e722c87b43c0ccf191681ce34a9b4fe11dc50e5f32a"
     },
     {
       "path": "packages/server/src/api/routes-vision.ts",
@@ -301,7 +308,7 @@
     },
     {
       "path": "packages/server/src/core/store.ts",
-      "sha256": "cdda3fda9773947aeb5b3e2259f298325fb777c3a63595014c9e8d48a9b3fb3c"
+      "sha256": "3724fda3629320c5610c7dec1d27827ef968fa6361ca0b8e5a3b6b23f7af13ee"
     },
     {
       "path": "packages/server/src/core/template-fields.ts",
@@ -505,7 +512,7 @@
     },
     {
       "path": "packages/server/src/domain/annual-ledger.ts",
-      "sha256": "089359008defbc2185df09748fe8c61fa8a3389227795c24ce37c701330c993c"
+      "sha256": "21b3b6053edf2d13207d259d71cd8e879f8bc991e2d8b3a5d369f47ddb6bbf50"
     },
     {
       "path": "packages/server/src/domain/archive.ts",
@@ -517,11 +524,11 @@
     },
     {
       "path": "packages/server/src/domain/business-evidence.ts",
-      "sha256": "c030a8190d4ceec22079c429c8fad2dd5bce92d4d9ef422ed634f114bd78232e"
+      "sha256": "6efac57979ca8070b459c5447da1b738cb40369df10e30b828d2b5bb471f08ba"
     },
     {
       "path": "packages/server/src/domain/document-source.ts",
-      "sha256": "cfefbf809d38be9142392e10da81400ef7397e7481f833331a4e9c9ce41bf88f"
+      "sha256": "98f93d266a87586c8d6ce649cc901b3644560b6edaf03500671ad41a09e63da2"
     },
     {
       "path": "packages/server/src/domain/document-write.ts",
@@ -529,7 +536,7 @@
     },
     {
       "path": "packages/server/src/domain/dossier.ts",
-      "sha256": "7c077d1f0a053603de18ff51966f03d466aecdc75196faec9cb35a40690735e9"
+      "sha256": "99e69710ec44235265fd4debabe49598469a77a5a2a2c22619c785598623291a"
     },
     {
       "path": "packages/server/src/domain/evidence-checks.ts",
@@ -561,7 +568,7 @@
     },
     {
       "path": "packages/server/src/domain/inspection-drafts.ts",
-      "sha256": "073458d4ee7983951db0858b4d09a4387aaf8ab7c9a5b1fce1e6c354958b9b12"
+      "sha256": "c8b13edbd1da331466ba7e5d5c2d4f3432ece5e46535a88b9ef3709680dab24e"
     },
     {
       "path": "packages/server/src/domain/inspections.ts",
@@ -581,7 +588,7 @@
     },
     {
       "path": "packages/server/src/domain/ledger-office.ts",
-      "sha256": "7401dcd56bc7247e2422874d60d03558317306d03a831eb7e48a162e4a6d4fa5"
+      "sha256": "56e310aa05a2270b30f1fce031fd14ad0e48e7e30097afca5e36f7186d9390d3"
     },
     {
       "path": "packages/server/src/domain/memory-facts.ts",
@@ -589,7 +596,7 @@
     },
     {
       "path": "packages/server/src/domain/periods.ts",
-      "sha256": "dc09e7cac1857f7f8ab19c4dbf1216aa9b101fe532ded074f83b897eb5b5db14"
+      "sha256": "c8d42f321affdd13914acf68f44b64a642efb57bc8562aec8baeab8594816c6b"
     },
     {
       "path": "packages/server/src/domain/policy-reference.ts",
@@ -598,6 +605,10 @@
     {
       "path": "packages/server/src/domain/policy-requirements.ts",
       "sha256": "2a8999e358730f15462877549c0232216123fae2ab8351e3e7030fcdca3b04e4"
+    },
+    {
+      "path": "packages/server/src/domain/project-report.ts",
+      "sha256": "db77cb5062858efee51933018340ba4b433b3dd39504c8e00549afb3442fab01"
     },
     {
       "path": "packages/server/src/domain/schedule.ts",
@@ -609,7 +620,7 @@
     },
     {
       "path": "packages/server/src/domain/service.ts",
-      "sha256": "f8f75759df865a5104981efe3eeffb99790685efb7919095dcaa24db03b5a446"
+      "sha256": "6f90ddb17a4b15fcb383b869bfae26b836f89ca4333f0cd6a089fc7eefca2f45"
     },
     {
       "path": "packages/server/src/domain/template-autofill.ts",
@@ -625,15 +636,19 @@
     },
     {
       "path": "packages/server/src/domain/timesheet-layout.ts",
-      "sha256": "3ee81f996ab8bf00ffaa3ec60499b33871f773effe24d9526bebfdc0c7c963e6"
+      "sha256": "44b4fb19e13fe98bd398f0e6a1b1b447024b6d8930e7bdec65145826b5847543"
+    },
+    {
+      "path": "packages/server/src/domain/timesheet-preferences.ts",
+      "sha256": "ba2ec8a70c5d39a1d8798b201dd37c42fffd94cebf60b5b970cd525b03db8bd3"
     },
     {
       "path": "packages/server/src/domain/timesheet-workspace.ts",
-      "sha256": "9fb68e8a45042ae58c26aa4aaada7720b7cd641f8b358dbbafd7580c3881cd72"
+      "sha256": "9420bbc7301d77839839fb8bdb0a6583368fa8c9494f1a7c0f9aa0d947ae2e2d"
     },
     {
       "path": "packages/server/src/domain/timesheets.ts",
-      "sha256": "4f72e35d1fb995afa5e3c2c5621a92048701f63db82fd7552b189b8e2a181652"
+      "sha256": "8bb83f996e7285383dc302e05a19a0ec81e41cca8b359aacfb2ef91f39700ac4"
     },
     {
       "path": "packages/server/src/domain/versions.ts",
@@ -649,7 +664,7 @@
     },
     {
       "path": "packages/server/src/domain/work-records.ts",
-      "sha256": "596494eff1b2598fd42b5970c103bb9cfe5806ec51f6d15fed3a02a8821ea1f0"
+      "sha256": "ef6781038294d8353315df99a7daf5831de23172e8b1c4e9588790924be63b16"
     },
     {
       "path": "packages/server/src/domain/work-type-navigation.ts",
@@ -669,11 +684,87 @@
     },
     {
       "path": "packages/server/src/domain/workflow.ts",
-      "sha256": "30c225e330919819a9aa0885a41c24ecc9ff23c7c24e3005c86a0869c5643c05"
+      "sha256": "3d673e1ed16c52483a432943d2c3b8bf8c0be1b20e548c9e4857da6bf2dfeb1e"
     },
     {
       "path": "packages/server/src/index.ts",
       "sha256": "f20eeecfc0683307fe5bf6f9d1c983bfc4f2a3fe6a0e58a486821c9eef8e959e"
+    },
+    {
+      "path": "packages/server/test/shared/ai-draft.ts",
+      "sha256": "d028616bfa4af69f8f59df3a42deecf23ab9f36a19efe4cfacd648091dd2338e"
+    },
+    {
+      "path": "packages/server/test/shared/browser-fixture.ts",
+      "sha256": "40133eaf286e358fdf892bfbc071175b60e32f87b3d78ebcb7c7d1b3d414ab6d"
+    },
+    {
+      "path": "packages/server/test/shared/isolation.ts",
+      "sha256": "c77689a81fba5cbe8de3ea904781f5eebd479a9e25e17507b142d31d02873b21"
+    },
+    {
+      "path": "packages/server/test/shared/ledger-browser.ts",
+      "sha256": "5b2c84cf357eab5d703131b098da9204d422617aff5b915e3506a9940dfe61f4"
+    },
+    {
+      "path": "packages/server/test/shared/ledger-fixture.ts",
+      "sha256": "4078254b0d4f290ab9b018f7fe6730ece93d9c38f33a700f2f642768d7b20156"
+    },
+    {
+      "path": "packages/server/test/shared/ledger.ts",
+      "sha256": "2c714f2c484ed81e52f47714ee9e6a4051b4646017ce94c0dc2cf13af98b973e"
+    },
+    {
+      "path": "packages/server/test/shared/periods-browser.ts",
+      "sha256": "175635987de042360e0a89d1896e45cd8a9f37fbec38a42b15681d584a45c0b0"
+    },
+    {
+      "path": "packages/server/test/shared/periods.ts",
+      "sha256": "2bb8dffbad0b4531096795d6c576dc64ec1c69f778ebd4e440304b6d2c4e9f04"
+    },
+    {
+      "path": "packages/server/test/shared/project-fixture.ts",
+      "sha256": "046fab1ed00c4ebf77c5ef08cde14ecdba6337d22d16cd47f525bd749a77de0c"
+    },
+    {
+      "path": "packages/server/test/shared/projects-browser.ts",
+      "sha256": "93846e0d5960f0a51c4a174674362f5550330818cd448670876852dbd503f656"
+    },
+    {
+      "path": "packages/server/test/shared/projects.ts",
+      "sha256": "94064d7ae20febf864ee89a3f6aaa32c51f48cea367f2870cbd45fb8adfd4ed0"
+    },
+    {
+      "path": "packages/server/test/shared/recovery.ts",
+      "sha256": "c185553683ac3747c26b3c03e7433acff45167c19d35643bc27a9116a74b5e6a"
+    },
+    {
+      "path": "packages/server/test/shared/repository.ts",
+      "sha256": "c55eb4a19ce73f604f4949fc726aa5b911f0dd55c45725b78a080d9ad7fac221"
+    },
+    {
+      "path": "packages/server/test/shared/response-scope-browser.ts",
+      "sha256": "81150aef84e31fe50fd3e62c3c7e765d77860877ed729ce079aceff5dd123e67"
+    },
+    {
+      "path": "packages/server/test/shared/timesheet-browser.ts",
+      "sha256": "a06a5cb481aa4793233063b2faf7b3433079de65f308a0200f49f2dcafbcd45e"
+    },
+    {
+      "path": "packages/server/test/shared/timesheet-fixture.ts",
+      "sha256": "ee327d56f1d6e0fc5fe7de4d60846c7a9049aacfc9d78c5cc3bf57e22b1ebc60"
+    },
+    {
+      "path": "packages/server/test/shared/timesheet.ts",
+      "sha256": "94ee51497a049b3334fe69b1041465367a82de853c7ef57b93cedb8371c40792"
+    },
+    {
+      "path": "packages/server/test/shared/work-records-browser.ts",
+      "sha256": "2309d858117079b638f43028abbe48859f30161aaae9c39bcee6ceccede8776f"
+    },
+    {
+      "path": "packages/server/test/shared/work-records.ts",
+      "sha256": "949759aa2ac2d5ffa20f4bf07b899e0197dc1e7c14b233673fd956d2740c893f"
     },
     {
       "path": "packages/web/package.json",
@@ -685,7 +776,7 @@
     },
     {
       "path": "packages/web/src/api.ts",
-      "sha256": "4b88844872216ea0d3ea25591faf9bb34e3c11b6fa6ef78f956c2844e7ee1ffd"
+      "sha256": "66596c9e01c19ddc2f1c1e2aeba6f0909f430b878cd435e0f6ddcc4aafc554b7"
     },
     {
       "path": "packages/web/src/compact.css",
@@ -697,7 +788,7 @@
     },
     {
       "path": "packages/web/src/components/AnnualLedgerWorkspace.tsx",
-      "sha256": "d0a6ebf9826a3446a16575f3e75d346f4518e45c3faf4e2534bfff5ea1f39b0a"
+      "sha256": "084684f648aa591e9ebefbc76814f1ae76e3e63b6c46ae910a490f23f29385ec"
     },
     {
       "path": "packages/web/src/components/BusinessAssistantEvidence.tsx",
@@ -725,7 +816,7 @@
     },
     {
       "path": "packages/web/src/components/InspectionDrafts.tsx",
-      "sha256": "a78ba298dd83f6d3045c8a72705cc824c3006bc4ec87a5533bd6cc607265c12d"
+      "sha256": "34367e8dad79b9155963fa1e9ebb7c98ce3e9a120955a02e1e15a70123f00ab3"
     },
     {
       "path": "packages/web/src/components/InspectionRecords.tsx",
@@ -745,7 +836,11 @@
     },
     {
       "path": "packages/web/src/components/PeriodExecution.tsx",
-      "sha256": "81b2e3abf7937a988bd6d206356633713f4507ba4a948108c17449e76129eb1a"
+      "sha256": "8b1da50450f1bca877c168bf9028ea43bfc28f24922175b31a8c0fa253d0428d"
+    },
+    {
+      "path": "packages/web/src/components/ProjectReportReview.tsx",
+      "sha256": "c098369455e889ef72fb9a534bed18d6072dd2cadee63fb108aeefa8f1fded04"
     },
     {
       "path": "packages/web/src/components/ReferenceFolder.tsx",
@@ -761,11 +856,11 @@
     },
     {
       "path": "packages/web/src/components/WorkDocuments.tsx",
-      "sha256": "396ff6ad2dbbceb7f62feee2a6bec7dc751456fa19062f524285492640e26c7d"
+      "sha256": "bd0a9e2cdb111e0eddad09aee577c7a8029b8e08a686943c5af1e2bdc2a3e01d"
     },
     {
       "path": "packages/web/src/components/WorkExecution.tsx",
-      "sha256": "fe18a9c6f0404ba5aced833857604a1a587ebc48cd8159aeff6cb5fe79915ef4"
+      "sha256": "c095b6ba6ad3406d4bcd9e4b31b62e0082ab9cdad3a4114f80b9cb5c26ed76a3"
     },
     {
       "path": "packages/web/src/components/WorkRecordLinks.tsx",
@@ -785,7 +880,15 @@
     },
     {
       "path": "packages/web/src/components/WorkflowPanels.tsx",
-      "sha256": "e9c0a84edde5552a8e0a24ed42167f00a69fe9936e4ae05cf062708fae7a7805"
+      "sha256": "5dc4d08115f1a22195d20325c39f4005b5096165446dcea5d66ca3616bed7975"
+    },
+    {
+      "path": "packages/web/src/components/project-report-input.ts",
+      "sha256": "df6c4d3e9f241fc1e2aa6466e51bc6b38fa23b209ebe056fa8242063589cad75"
+    },
+    {
+      "path": "packages/web/src/components/timesheet-input.ts",
+      "sha256": "0c6dcf9e0332f72ddf79942f38a86592804204d25a7f83b53d854b4c522a6dda"
     },
     {
       "path": "packages/web/src/components/useUnsavedClose.ts",
@@ -801,7 +904,7 @@
     },
     {
       "path": "packages/web/src/desktop.css",
-      "sha256": "1381456153271b497a04bf298fa464397cfc5360a4c0af1b1198df1c12455218"
+      "sha256": "3934d84c161ea1bb361820ba65132675ad9c22723e426670ee009664f213cfe2"
     },
     {
       "path": "packages/web/src/home.css",
@@ -817,7 +920,7 @@
     },
     {
       "path": "packages/web/src/pages/Dashboard.tsx",
-      "sha256": "b4afd5ec48bec84fefd97bd44333afbf700881c701fa17cec35594fed7f56a4f"
+      "sha256": "f121c08d355b2376db1c6bb52f741817a8ca8c33907e4128121192bc62fd6db6"
     },
     {
       "path": "packages/web/src/pages/DocVersions.tsx",
@@ -829,7 +932,7 @@
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
-      "sha256": "94f8a2dad0547449b3590a820c0f6e1990395bb43623573a57fdf0cff68ff0f1"
+      "sha256": "d4b83e0defdae8b926665caafd419fc159d7416c13873e87174b1c131a27c699"
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
@@ -837,11 +940,11 @@
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
-      "sha256": "c603c444f6d9ddced960a18d42b19f0faf68457df4e2876551a1abbdd6299be5"
+      "sha256": "622edec6b5eb16a3c46406f1b6cd4982c92914ebba0e8f939eb964c66ef3e387"
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "922f28d68397b8cff0ec748ff72e955e58ebf4083ca63b6e03342257c09674b4"
+      "sha256": "4a1c9c28416b01a5d301a54f99d8e7c07339e0e3e7861b5cd846bd3d82d94dca"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
@@ -865,7 +968,7 @@
     },
     {
       "path": "packages/web/src/pages/Timesheets.tsx",
-      "sha256": "bcb57d9fb5b13fbf649a04f20dbdc96c20450ffb8915437e73f234b6c99bf3ff"
+      "sha256": "e9563cd755f843224e2741f918e355fa80dcb8090f3617a0edb876ddb97a6d16"
     },
     {
       "path": "packages/web/src/pages/Trash.tsx",
@@ -877,7 +980,7 @@
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "1304581adfa3da40ebf4c376480539b053e3a2075c8eae714231fe9135b63dc1"
+      "sha256": "e079a46feea94f9e68ed82e170bf00dbccfe29bd92a37444cee8229a88e66766"
     },
     {
       "path": "packages/web/src/styles.css",
@@ -909,7 +1012,7 @@
     },
     {
       "path": "scripts/check-repository.mjs",
-      "sha256": "9b2ddb675be2b8f381ce5caa58677ac77e6b8e47c832da3a1da52c4ba551b354"
+      "sha256": "03d98ec166b88970375cf3c2718144ef6f03db45c9c482847725ccce6be4e228"
     },
     {
       "path": "scripts/dev-monthly.mjs",
@@ -921,7 +1024,7 @@
     },
     {
       "path": "scripts/docs-maintenance.mjs",
-      "sha256": "dcbbece6d2976cd8a60ae0657b37b477e51a78e69dc3cb10c0fac5e6a1c69e99"
+      "sha256": "cbf4d67e2befd37d9febcffbfecfa4902f45d30c3a9bea02519be3ebb8b13a13"
     },
     {
       "path": "scripts/install-git-hooks.mjs",
@@ -933,19 +1036,23 @@
     },
     {
       "path": "scripts/pack.mjs",
-      "sha256": "a2927050eb9ca54712bb15ead00c29bec03e64c7a79145f51634e4dc949568c5"
+      "sha256": "db89798b5782caef88259bffaa28a1941e386ce2bb13be95c850675d48480f34"
+    },
+    {
+      "path": "scripts/preview.mjs",
+      "sha256": "2be6124beb71361c747e609ac131f5a3450a8e46aaed81729887fa276aab6950"
     },
     {
       "path": "scripts/repository-policy.mjs",
-      "sha256": "30f74a1b815326f2eb47d695747b57bebe2fa6e09ccbe2c158700b28ae8979c3"
+      "sha256": "fb7f93a0af52d86a2aaee99d2cfb6ece8853cde839ebbf714457c700128e8128"
     },
     {
       "path": "scripts/snapshot.mjs",
-      "sha256": "61d256050273f568814db563c5f0f0b122a88c5629a12c8c4bc9f3289ae00ead"
+      "sha256": "3d7e8b2c2cae4821f722d57db951dda3282e024cb3b3d414339c9b9036ef34d4"
     },
     {
       "path": "scripts/source-build.mjs",
-      "sha256": "1b02444a092ea020f7d7b1b57c70f54b957912492d8227a61de64848742b5c7a"
+      "sha256": "0935a3417ef5751f3c9bb7f844635e1f39b1fd064083f78a17208dacda9938a2"
     },
     {
       "path": "scripts/source-npm.mjs",
@@ -969,7 +1076,7 @@
     },
     {
       "path": "scripts/test-isolated.mjs",
-      "sha256": "9e9c9b867e1c0bf3e70575ec0c78658bdb0c1101a2f30d528d762a5085eb4a80"
+      "sha256": "e568e577dd8ae996e61de5705b5e7c05f0d59b370d4e3b074319407b3731562b"
     },
     {
       "path": "scripts/test-preflight.mjs",
@@ -1508,145 +1615,145 @@
       "method": "GET",
       "path": "/api/artifacts/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 71
+      "line": 72
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/file",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 93
+      "line": 94
     },
     {
       "method": "POST",
       "path": "/api/artifacts/upload",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 107
+      "line": 108
     },
     {
       "method": "POST",
       "path": "/api/artifacts/evidence",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 195
+      "line": 196
     },
     {
       "method": "PUT",
       "path": "/api/artifacts/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 279
+      "line": 280
     },
     {
       "method": "DELETE",
       "path": "/api/artifacts/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 320
+      "line": 321
     },
     {
       "method": "GET",
       "path": "/api/search",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 367
+      "line": 368
     },
     {
       "method": "GET",
       "path": "/api/files/stats",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 385
+      "line": 386
     },
     {
       "method": "POST",
       "path": "/api/files/reindex",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 438
+      "line": 439
     },
     {
       "method": "POST",
       "path": "/api/files/import-folder",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 462
+      "line": 463
     },
     {
       "method": "GET",
       "path": "/api/files/generated",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 536
+      "line": 537
     },
     {
       "method": "GET",
       "path": "/api/ocr/status",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 548
+      "line": 549
     },
     {
       "method": "POST",
       "path": "/api/ocr/scan-missing",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 557
+      "line": 558
     },
     {
       "method": "POST",
       "path": "/api/ocr/artifacts/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 582
+      "line": 583
     },
     {
       "method": "POST",
       "path": "/api/ocr/prepare",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 602
+      "line": 603
     },
     {
       "method": "POST",
       "path": "/api/ocr/cancel",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 618
+      "line": 619
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/versions",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 644
+      "line": 645
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/mark-final",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 667
+      "line": 668
     },
     {
       "method": "POST",
       "path": "/api/artifacts/:id/rollback-to/:revision",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 687
+      "line": 688
     },
     {
       "method": "GET",
       "path": "/api/artifacts/:id/diff",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 708
+      "line": 709
     },
     {
       "method": "GET",
       "path": "/api/trash",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 759
+      "line": 760
     },
     {
       "method": "POST",
       "path": "/api/trash/:kind/:id/restore",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 772
+      "line": 773
     },
     {
       "method": "DELETE",
       "path": "/api/trash/:kind/:id",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 803
+      "line": 804
     },
     {
       "method": "DELETE",
       "path": "/api/trash",
       "file": "packages/server/src/api/routes-files.ts",
-      "line": 833
+      "line": 834
     },
     {
       "method": "GET",
@@ -1740,9 +1847,15 @@
     },
     {
       "method": "POST",
-      "path": "/api/periods/:id/drafts/:draftId/generate",
+      "path": "/api/periods/:id/drafts/:draftId/adopt",
       "file": "packages/server/src/api/routes-inspection-drafts.ts",
       "line": 10
+    },
+    {
+      "method": "POST",
+      "path": "/api/periods/:id/drafts/:draftId/generate",
+      "file": "packages/server/src/api/routes-inspection-drafts.ts",
+      "line": 11
     },
     {
       "method": "GET",
@@ -2216,73 +2329,73 @@
       "method": "GET",
       "path": "/api/timesheets/preferences/:id",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 14
+      "line": 15
     },
     {
       "method": "PUT",
       "path": "/api/timesheets/preferences/:id",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 15
+      "line": 16
     },
     {
       "method": "POST",
       "path": "/api/timesheets/inspect",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 16
+      "line": 17
     },
     {
       "method": "POST",
       "path": "/api/timesheets/:id/suggest",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 17
+      "line": 18
     },
     {
       "method": "POST",
       "path": "/api/timesheets/:id/edit",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 18
+      "line": 19
     },
     {
       "method": "POST",
       "path": "/api/timesheets/library/:id",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 19
+      "line": 20
     },
     {
       "method": "POST",
       "path": "/api/timesheets/sources",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 24
+      "line": 25
     },
     {
       "method": "GET",
-      "path": "/api/timesheets",
-      "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 41
-    },
-    {
-      "method": "POST",
       "path": "/api/timesheets",
       "file": "packages/server/src/api/routes-timesheets.ts",
       "line": 42
     },
     {
+      "method": "POST",
+      "path": "/api/timesheets",
+      "file": "packages/server/src/api/routes-timesheets.ts",
+      "line": 43
+    },
+    {
       "method": "GET",
       "path": "/api/timesheets/:id",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 51
+      "line": 53
     },
     {
       "method": "GET",
       "path": "/api/timesheets/:id/export",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 57
+      "line": 62
     },
     {
       "method": "POST",
       "path": "/api/timesheets/:id/finalize",
       "file": "packages/server/src/api/routes-timesheets.ts",
-      "line": 64
+      "line": 69
     },
     {
       "method": "POST",

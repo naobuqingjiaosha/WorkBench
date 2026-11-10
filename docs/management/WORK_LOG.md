@@ -1,10 +1,88 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.30。更新：2026-11-10。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.37。更新：2026-11-10。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-10｜GOV-02 / GOV-05 / GOV-11 / GOV-12 / GOV-13｜个人工作台整体验收与候选交付
+
+从 `main/913b002` 和已有未提交工作开始，保留原修改，使用 `codex/workbench-delivery`。以需求、基点源码与实际运行交叉核对，修复落在现有 React、Fastify、SQLite、工作类型及实例快照上。各批提交、候选包摘要和配套验证见[开发进度](../../DEVELOPMENT_PROGRESS.md)。本机已知日常指针为 `d2b1d8ffa9f8`，本轮未切换。以下三个案例的旧用户操作和 Windows 已加载版本均未知。
+
+| 交付案例 | 需求、旧理解与实现 | 旧验证与交付断点 | 本轮从界面到成果的复核 |
+|---|---|---|---|
+| 工时整数与月度归属 | 已要求今后分配整小时、保持个人总量；旧需求保留了这一条，旧迭代将它单列待办。基点 `timesheets.ts` 仍按 0.01 小时均分。 | 早先批次验证人员或文件识别，未核对整数输出；旧构建成功不能证明新口径进入成果。历史九月原件保留。 | `33fb212` 实施工时链路，`37a9631` 修复独立反例。浏览器实算与导出；按模板、研发、考勤单元格独立逐项对账，别名人员的驻场项目、扣薪和人工调整保留，冲突时阻止定稿。 |
+| 重复提醒被建成单次 | 简单事项只需提醒，创建页有频率与提醒日；基点 `Workbench.tsx` 提交固定 `once`，通用行政新建还会被服务端引向工作记录。 | 选项和文案已在源码中，旧页面/构建检查未贯穿创建、重开和下一次到期。当时日常包中的实际点击没有证据。 | 合成工作从新建到首页查看、提前提醒、办完本期和重开均走真实页面；下次日期推进，工作仍在办，没有多建材料期次。 |
+| 历史项目日期与材料就绪 | 历史结束可确认，未知日期应留空。旧表单预置当天并发送；项目页面就绪清单与完成、归档服务分别计算，含阶段的工作可能漏核工作级必备文书。 | 基点后端本可接受空日期，绕开表单的检查会漏过误填。局部流程能生成文件，也无法证明已有真实证明或具备归档条件。 | 统一页面与提交门槛。真实页面核对未填历史日期、附件下载与缺件拒绝、人工注明不适用、重开项目；隔离服务另验工作级文书、停用模板及旧快照。 |
+
+**验证条件与修复。** 原源码交付规则排除全部用例，干净检出按旧 `npm test` 寻找私有测试失败。现将生成合成夹具的用例及隔离运行器随源码交付，真实附件、配置与旧机专属证据仍只留本机。浏览器复测了切至 B 遇 503 后只显示失败、重试读取 B。旧库升级和数据库加文件快照在新目录恢复，核对内部绝对路径重定位、外部引用标识及文件内容，拒绝损坏快照与覆盖已有目录。例会、清廉月季、年度台账、真实文件渲染与限制详见[本轮核验矩阵](QUALITY_AND_ACCEPTANCE.md#41-本轮隔离验证)。项目未增加迁移，未修改日常库、原件或历史成果。
+
+**文档与接续。** GPT_CONTEXT 衔接候选入口，CONTEXT 区分完成、收起和归档，PRODUCT_REQUIREMENTS 与 SYSTEM_ARCHITECTURE 对齐工时、期次与材料规则，DEVELOPMENT_PROGRESS 区分源码、候选和日常。GOV 队列继续承接 Windows 启动与 Office、真实授权样例及模型验收。已有业务批次及后续候选身份以开发进度和包内清单为准。
+
+## 2026-11-10｜GOV-12 / GOV-13｜人员范围仅依据本月明确名单
+
+**依据与边界：** 用户明确当前未纳入人员继续不纳入，但不能把姓名写死成规则或永久黑名单；其他来源人员也不自动加入确认范围。本项在Darwin、Mac原仓库main/913b002a613d4b06b0a67172b009885af6fb30d1串行实施，保留起点22项未提交修改，空索引。不读取或改写正式人员名单、偏好或历史，不迁移、不更新日常实例，不新建代理/会话或转云端，不add/commit/push。
+
+**五个应用文件：** packages/server/src/domain/timesheet-workspace.ts移除模板人员特定姓名过滤与默认excluded名单，返回完整来源候选，旧偏好原样读取；MonthlyTimesheet.tsx去掉姓名专属示例，把历史偏好仅显示为参考，模板候选与本月明确名单分开。沿用原名单文本框作为用户确认入口，空名单提示并禁算；独立切月旧名单只作候选，不自动确认新月。packages/web/src/components/project-report-input.ts的模板安装函数不再填入requiredPeople或assignments，只更新来源候选并保护已有清单/参与关系。packages/server/src/api/routes-timesheets.ts及domain/timesheets.ts在新建计算前要求非空明确名单，取消回退模板人员；仅重建已有的通用“名单外”派生排除标记，之后用户明确纳入不会被旧自动标记阻挡，其他人工依据保留。现有显式加人入口保留，不因去掉过滤就自动加任何人，不设置替代姓名特例，不改变整数分配。
+
+**验证：** 新增仅本机packages/server/test/monthly-roster-scope.ts，经根隔离入口完成9组：默认无排除、旧偏好只读、完整模板候选但不预填、已确认子集保护、无/空/重复名单无写入、模板/研发/考勤额外人员不参与实际计算、以后明确扩员及原加人入口、旧历史不变、月报/考勤采用不改名单、真实React SSR候选/名单/异期草稿。测试姓名全部为合成内容。运行源码与scripts扫描确认原三处特定姓名引用均已移除；另核对运行代码没有模板/偏好自动赋值为requiredPeople的残留路径，不把静态扫描当作真实名单验收。npm run typecheck通过；原月报15组和工时输入12组分别回归通过，月报模板初始预填断言按新授权改为名单/参与保持空，原清单和来源保护断言保留。82模块隔离构建通过，主包约1.51MB体积提示仍在，未扩展拆包。测试正常退出并清理专属根，证据仅本机outputs/monthly-roster-scope-20261110；新增与调整的测试及所有夹具/报告继续被既有规则忽略。
+
+**文档复核：** GPT_CONTEXT整合当前人员范围及未应用状态；CONTEXT区分本月明确名单与来源候选；PRODUCT_REQUIREMENTS明确名单外默认不纳入、无姓名规则、以后显式变更及不自动扩员；SYSTEM_ARCHITECTURE说明候选展示、无名单API保护与通用派生排除重建；DEVELOPMENT_PROGRESS按当前实现及各组验证范围整合。五根按全文口径和本会话既有上下文复核，未覆盖其他任务有效结论。USER_GUIDE补名单操作，MONTHLY_DEVELOPMENT替换个人默认排除文案并区分旧环境发布事实与当前源码候选；PROJECT_PLAN沿用GOV-12/13，QUALITY_AND_ACCEPTANCE区分SSR/接口与实际交互。索引generate/check、repo:check及git diff --check按本机报告核实。
+
+**保存与未验收：** 五个应用文件及必要文档已保存，原月报解析/预览、考勤辅助函数、首页/列表应用文件与任务起点字节一致，其他无关改动保留。HEAD与空索引不变，日常指针仍d2b1d8ffa9f8，未运行或更新日常版本、未操作正式数据。本月范围通过“保留既有明确名单、来源仅候选、空名单不计算”保护；不能声称已经查验或修改真实人员名单。锁屏下未执行浏览器：偏好慢响应、实际填写/清空、模板切换、切月/返回、草稿保存重开、响应式仍待解锁；无Office、真实业务/模型、完整旧套件、独立审查或跨进程验收。建议提交说明：fix(timesheets): use explicit monthly roster without name-specific defaults。工作区混有前序修改，不可全量视为本项。
+
+## 2026-11-10｜GOV-12 / GOV-13｜独立本月项目月报导入与确认
+
+**目标与依据：** 用户明确部门项目资料是当月开展项目的独立XLSX，按WorkBuddy交接区分研发人日约束、上期部门模板、考勤、月报项目参考与经营项目正式名称/合同。本项只在Darwin及原Mac仓库实施，main/913b002a613d4b06b0a67172b009885af6fb30d1、上游tracking同SHA、空索引；起点17项修改和此前两项输入修复保留。用户已给出实际附件的核验结构，本项无需打开原件，未复制真实附件至仓库、测试或日志；合成用例不含真实项目明细。不创建代理/会话，不转云端，不提交推送或更新日常实例。
+
+**源码增量：** 新增packages/server/src/domain/project-report.ts，按唯一表头发现项目名、建设单位、本月完成及比例，跳空页、容许移位和空格换行；歧义/重复表头、公式字段、缺失名称及异月拒绝。同名项目逐源行保留，100%和进度截至某日不排除项目；仅从月报标题读明确年月，未知年份留给用户确认。明确模板项目名称与客户/合同表头可提取参考，歧义警告，不从建设单位推合同。修改timesheet-workspace.ts和api/routes-timesheets.ts，在既有inspect增加project-report种类及模板catalog；原考勤人工映射保留。修改domain/timesheets.ts，复用原run输入JSON保存月报选择、最多10份替换来源及实际来源字段快照，计算重验digest/月/源行/确认，定稿前核对副本；不改分配算法、人员排除或迁移。
+
+新增packages/web/src/components/project-report-input.ts和ProjectReportReview.tsx，集中候选、逐项名称/月份确认、明确合并与可选简称、原参与关系保护。修改MonthlyTimesheet.tsx增加独立入口、失败重读、取消、替换及“重新核对此月报”入口；后上传模板时可直接重新读取已有月报及当前模板名称，不需重新上传文件。采用仅补入清单，既有项目和未涉及简称保留，人员参与不自动扩展；模板先后顺序不覆盖已选项目/参与关系。相同文件重复上传会保留副本但不重复添加清单项；替换保留此前来源。候选纳入原草稿与离开保护，恢复须重读/重新确认，跨期不串用，待采用禁算。来源采用快照只供追溯，之后手工清单以当前输入为准，不反推人员工时。原timesheet-input.ts未改。
+
+**验证与证据：** npm run typecheck通过。新增本机packages/server/test/monthly-project-report.ts，只从node scripts/test-isolated.mjs --unit monthly-project-report运行：15组通过，覆盖14项同结构合成XLSX、空页/移位/换行表头、错误/空/公式/歧义、年月与下月计划边界、同名与模糊建议、100%保留、明确名称/合并/简称冲突、真正同字节重复上传、取消/替换及来源历史、模板顺序和不扩展人员参与、后端拒绝/真实期次计算/历史溯源。inspect与无效请求全表不变；计算后仅按明确参与项目得到工时。实际React SSR检查独立预览、已采用重新核对入口、草稿重新验证与异期拒载，不是浏览器操作。原monthly-input-repair的12组回归通过；次数不累计为全套或独立验收。monthly-input-build经原隔离入口完成82模块构建；主JS约1.51MB，存在1500kB阈值提示，未扩大到拆包优化。所有测试正常结束、专属根清理；本机证据outputs/monthly-project-report-20261110，测试源码、HTML、夹具与日志被既有规则忽略。
+
+**文档复核：** GPT_CONTEXT整合当前月报范围及运行限制；CONTEXT定义月报与工时/模板/合同的区别；PRODUCT_REQUIREMENTS在PR-15整合输入用途与明确采用条件；SYSTEM_ARCHITECTURE替换“不支持独立项目导入”旧口径，说明解析器、前端确认与run快照；DEVELOPMENT_PROGRESS区分15组月报、12组回归、静态渲染与未验浏览器。五根按全文口径及原上下文核对，未改无关业务结论。USER_GUIDE补操作步骤，PROJECT_PLAN沿用GOV-12/13，QUALITY_AND_ACCEPTANCE更新覆盖边界；docs/knowledge-index.json及docs/reference/source-inventory.json由生成器更新。generate/check、repo:check及git diff --check实际结果见本机报告，非功能验收替代品。
+
+**交付与限制：** 七个应用源码文件及必要文档实际保存；原Dashboard.tsx、Workbench.tsx、desktop.css和timesheet-input.ts字节与任务起点一致，其他无关文件保留。HEAD及空索引不变，不add/commit/push，不运行日常应用或访问正式数据库，日常指针仍为d2b1d8ffa9f8。Mac锁屏，未绕过：原生文件重选、真实点击/取消/返回/切期、草稿重开及响应式待解锁；实际附件适配、Office打印重算、真实整月对账、全套、跨进程压力和独立审查未验。无新模型/Office调用，不改历史3:2:3、整数规则及特定人员排除。上传未收到编号仍无新增幂等保证，取消副本保留不自动删除。建议提交说明：feat(timesheets): review monthly project reports before adoption。当前工作区仍混有前序修改，不可整包视为此项。
+
+## 2026-11-10｜GOV-12 / GOV-13｜工时期次锁月与考勤识别失败恢复
+
+**目标与依据：** 用户授权继续理顺两项明确缺陷，不再以工作列表待确认阻断本项。Darwin、Mac原仓库与main/913b002a613d4b06b0a67172b009885af6fb30d1核实，空索引；起点13项既有首页/列表及文档修改保留，不创建代理或其他会话。不开日常业务页、不更新日常实例，不add/commit/push。
+
+**应用文件：** 修改packages/web/src/pages/MonthlyTimesheet.tsx：从所属期次核对并锁定月份，独立工时仍可选月；草稿/历史检查工作、期次、月份，异范围草稿不载入且不覆盖原存储；偏好异步返回不覆盖已有名单分配，URL版本不自动盖掉恢复的待核对考勤。新增未跟踪源码packages/web/src/components/timesheet-input.ts集中范围匹配、验证键与显式采用检查。上传先保留pendingAttendance，识别失败保留副本供手动映射和重试；验证后由用户采用为主/补充来源或显式替换主考勤，旧来源此前保持，替换保留补充输入，取消不删文件；文件控件值重置以支持同文件重选。待采用禁算，映射编辑和草稿恢复清除验证，操作中锁定输入并沿用离开保护。修改packages/server/src/api/routes-timesheets.ts和domain/timesheet-workspace.ts：原inspect仅为考勤接收可选mapping，经原schema/readMapped验证；自动识别、源月份与日期拒绝、计算算法保持。不新增迁移、端点或业务规则，不处理项目清单导入/整数分配。
+
+**复现与验证：** 隔离合成考勤确认上传成功但自动/人工映射均报MAPPING_REQUIRED；旧React SSR绑定月控件仍可编辑，后端异月请求拒绝。最终npm run typecheck通过；node scripts/test-isolated.mjs --unit monthly-input-repair通过12组，包括上传、横表/逐行映射、错误/异月拒绝、自动识别兼容、采用/补充/替换/取消纯状态、范围匹配、绑定期次异月无写入和真实计算保存；inspect及拒绝请求前后全表一致。实际React SSR比较修前/后绑定月份禁用、独立月份可选和恢复草稿，明确不是浏览器操作。node scripts/test-isolated.mjs --unit monthly-input-build完成80模块隔离构建。最终回归首次因沙箱随机回环端口listen EPERM未进入用例，获正常隔离执行权限后通过；仅该失败入口留下的空标记根按时间及内容确认并清理，其他未知根未动。成功入口正常退出并清理数据/构建根。证据outputs/monthly-input-repair-20261110；两个新增本机test脚本、夹具及报告均被现有规则忽略，不上传。
+
+**文档复核：** 五根全文按本会话上下文复核：GPT_CONTEXT整合最新有限授权及锁屏边界；CONTEXT术语不变、正文不改；PRODUCT_REQUIREMENTS整合期次归属及候选验证/采用验收；SYSTEM_ARCHITECTURE记录前端待核对状态与原inspect扩展；DEVELOPMENT_PROGRESS区分候选、各批验证与日常版本。USER_GUIDE新增尚未应用日常的操作说明，PROJECT_PLAN沿用GOV-12/13，QUALITY_AND_ACCEPTANCE区分SSR/接口/纯状态与真实交互；WORK_LOG记录实际增量。docs/knowledge-index.json和docs/reference/source-inventory.json由生成器更新；generate/check、repo:check及git diff --check结果见本机报告。两次长Unicode文档脚本因解码失败未执行，改用显式Unicode字面量/补丁后保存，未造成部分文档覆盖。
+
+**交付及未完成：** 四个应用源码文件和必要文档实际保存；原Dashboard.tsx、Workbench.tsx、desktop.css及其他无关跟踪文件与任务基线核对不变。HEAD、空索引不变，不提交推送、不迁移或更新日常实例；source-current仍d2b1d8ffa9f8。Mac锁屏及内置浏览器不可用为已知现状，本项未尝试解锁或浏览器操作；真实文件选择器重选、切期/返回/取消、慢请求互斥、保存重开草稿及响应式仍待解锁后验收，不把SSR冒充操作。非独立审查，未跑旧全套、Office/真实模型/真实业务及跨进程压力。建议提交说明：fix(timesheets): preserve period scope and validate attendance before adoption。当前工作区混有前序改动，不可整包视为本次变更。
+
+## 2026-11-10｜GOV-13｜工作列表底部分页与空态居中
+
+**依据与范围：** 实际读取用户截图5116.jpg（Mac Downloads/workbench-layout-reference），确认对象为“我的工作台”工作列表而非Dashboard。用户明确指定分页在卡片底部、空态在剩余区域水平垂直居中，仅修此页。Darwin/原项目核对；main HEAD913b002a613d4b06b0a67172b009885af6fb30d1，原12项首页差异全部保留，索引为空；.agents/skills不存在。无add/commit/push，不启动代理或其他聊天。
+
+**文件与原因：** packages/web/src/pages/Workbench.tsx仅给列表根/卡片/分页增加专属类，并将原列表状态/表格包入独立内容容器；分页事件、筛选逻辑和详情保持。packages/web/src/desktop.css追加限定样式：内容分配剩余高度，空态auto边距居中，分页从旧sticky跟流改为独立底部区域；表格顶部排列、桌面内部滚动，窄屏横向滚动和短窗主页面滚动保留。Dashboard.tsx与此前首页CSS字节未改，不改公共Card/Empty、接口、依赖或数据库。仅本机新增packages/server/test/work-list-layout.ts及outputs/work-list-layout-20261110证据，复用隔离入口构建、HTTP及合成数据库，测试/截图不共享。
+
+**验证：** npm run typecheck通过，node scripts/test-isolated.mjs --unit work-list-layout内79模块构建通过。41项合成工作来自真实测试HTTP；专属代理只读返回0项/3项。Mac内置浏览器实测空态新建/取消、3行顶部对齐、41项三页20/20/1行及末页禁用、上一页/下一页、搜索空态与清除后返回第一页；桌面内容scrollTop达到1132而底部分页位置不变。1366×850、1280×600、1366×650、640×360、390×844截图及DOM几何检查通过，空态中心误差小于2px，分页贴卡片底部内边距；短窗口点击下一页自动滚动至可见位置，无覆盖。无浏览器error日志。76张合成表前后相同；测试服务exit0，代理/页面/视口覆盖及临时数据根均清理。首次reload快照仍在加载，等待实际3项标题后再检查，不把初始空数据当通过；短窗首张截图有尺寸切换瞬态，最终短窗分页截图另行实测。
+
+**日常应用：** 用户已授权测试通过后按原安全启动器更新。本机Safari唯一窗口含起始页及空工作列表标签，无编辑表单；无其他工作台测试页。原health/source-current/SOURCE_BUILD一致为909fd081130c、PID4327，迁移42份完整且无pending，知识批处理空闲。候选与旧运行副本仅Workbench.tsx/desktop.css两文件差异，prepareBuild复用本机依赖并构建通过。先校验SQLite/配置/内部文件/旧指针备份，再经正常node scripts/start.mjs --background --start-only及原确认提示安全停止/接续，未强杀或迁移；启动器另存停机备份。新sourceBuildId=d2b1d8ffa9f82762ce3104cd1a654cabeef786c7c46db8bc7ffe6bf05e588878，PID4974；两份备份quick_check及77表内容匹配，原DB/schema/配置/内部文件不变。health及HTML/JS/CSS与候选相符，source-current由启动器更新，原副本/历史备份保留，无current-release指针。没有刷新真实页或触发首页期次同步，用户刷新列表即可查看。备份路径与完整身份见本机report.txt及daily-*.json；未执行恢复演练。
+
+**文档与交付：** 五根全文按现有上下文复核：GPT_CONTEXT改当前指定页及运行身份，CONTEXT术语不变不改，PRODUCT_REQUIREMENTS补列表验收及当前范围，SYSTEM_ARCHITECTURE说明专属布局，DEVELOPMENT_PROGRESS更新验证/运行边界。USER_GUIDE补列表滚动与筛选，现有GOV-13及质量矩阵同步，索引generate/check、repo:check和diff检查按收尾实际结果记录。本地保存并应用此Mac，不暂存/提交/推送，其他设备未发布，等待用户确认此页。未跑旧完整套件、其他页完整流程、Windows/Office、真实业务/模型、全量无障碍或恢复压力；作者验证非独立审查。建议提交说明：fix(workbench): anchor list pagination and center empty state。
+
+## 2026-11-10｜GOV-13｜Mac首页办理优先与通知入口
+
+**依据与范围：** 用户确认待我处理/最近工作优先，保留搜索、新建及通知，日历改近期截止、统计缩一行，成果/随手记后置；强调入口真正能用、逐页确认。本轮仅Mac原项目，Darwin及仓库根实时确认；开工main、实时GitHub main均为913b002a613d4b06b0a67172b009885af6fb30d1，工作区干净。未复制项目、转云端或启动其他代理。当前明确不add/commit/push，不推进其他页面。首页实现与隔离验收完成后，用户追加授权将其安全应用到同一Mac日常实例，要求先核对候选、输入安全、迁移及备份，保留真实数据。
+
+**文件与变化：** packages/web/src/pages/Dashboard.tsx将原概览卡改为单行统计，将继续办理改为按更新时间展示最近五项工作并标明状态；保留搜索、新建及待办操作。铃铛改为可关闭的通知摘要，复用待处理/截止信息，提供正确工作/期次跳转或待办分页定位与焦点恢复。截止按在办工作既有期次/计划日期排序，同日合并说明，超五项可展开；完整月历、成果预览及随手记保留于次级区。复验发现无模板期次的后端通用提示误称文件已生成，首页限定改为中性“查看本期材料与成果”；未改后端或其他页面。packages/web/src/desktop.css新增首页限定主次网格、自然高度、通知及窄屏样式，不改其他页面业务。没有新增接口、数据表、订阅或推送权限。
+
+**验证与本机证据：** npm run typecheck通过；node scripts/test-isolated.mjs --unit home-focus从根隔离入口创建随机端口test后端、匿名SQLite与合成文本，核对health身份和数据库路径；隔离79模块构建通过。Mac内置浏览器实际覆盖搜索命中/取消，新建取消及真实创建后返回，最近/全部工作、通知与截止的正确工作/期次落点，待办排序/分页/明确完成，通知定位及Escape焦点恢复，月历翻月/今天/选日，成果展开预览关闭，随手记进入与返回。代理注入空/加载/503及同步失败，提示、重试与恢复通过。截图检查1280×720、1280×600、1366×650、1024×768、640×360和390×844；窄屏无横向溢出，小高度可滚动到操作。只读阶段76表一致；创建只新增工作/规则/期次/事件，完成只改目标待办并增事件，既有工作/阶段/清单/成果行不变。补充视口阶段76表一致。两次专属服务正常退出，页面/视口覆盖及合成数据根已清理，日常服务未关闭。证据仅本机outputs/home-focus-20261110，含report.txt、截图、请求记录及前后表快照；新增本机packages/server/test/home-focus.ts被既有规则忽略，不共享。
+
+**验证过程限制：** 首次沙箱回环监听EPERM，获正常执行权限后使用同一隔离入口成功；不是应用失败。一次根npm build传参被嵌套npm吞掉，将旧隔离产物重新打包到该临时根的web/dist，未覆盖项目dist或日常资源；改用workspace明确的build -- --outDir后重新构建并刷新，最终再从根隔离入口构建补验。少数定位器因原生summary角色、标签空格或旧构建未命中，读取当前DOM后改用真实目标复验；不将尝试视为通过。作者限定检查，非独立审查；未运行旧全套、其他页面完整流程、Windows、Office、真实业务/模型、原生系统缩放、全量无障碍/性能及跨进程压力。后端通用nextAction口径保留为边界，未扩大到其他页面整改。
+
+**文档复核与交付：** 全文复核五份根文档：GPT_CONTEXT更新Mac接续及首页验收门槛；CONTEXT业务术语无变化，正文不改；PRODUCT_REQUIREMENTS整合已确认首页需求及本轮授权；SYSTEM_ARCHITECTURE更新首页复用和布局方式；DEVELOPMENT_PROGRESS更新实际基点、限定验证及Mac日常应用状态。同步USER_GUIDE、PROJECT_PLAN与QUALITY_AND_ACCEPTANCE；历史结果保留其适用范围。生成docs/README.md、docs/knowledge-index.json及docs/reference/source-inventory.json，仅实际变化纳入清单；维护/边界检查与git diff --check结果见本机报告。文件已保存，未暂存/提交/推送；首页已按后续授权应用到Mac日常实例，其他设备未发布，等待用户验收首页后再处理下一页。建议提交说明：feat(home): prioritize pending work and keep actionable notifications。
+
+**同任务日常应用：** Darwin/原仓库、HEAD及12项首页差异重新核对；Safari唯一窗口/标签为起始页，内置浏览器无标签，无工作台未保存编辑页。原daily PID3008、source-current及SOURCE_BUILD/health均为cee397ca73dc；旧发布指针不存在。只读迁移全集42项，无pending或未知项；原工作/期次/成果/OCR及内部文件为空，知识批处理未运行。新旧可共享源码只有Dashboard.tsx和desktop.css不同；prepareBuild核对复制本机依赖，79模块构建成功，新候选909fd081130c。仅本机outputs/home-focus-20261110/daily-snapshot.mjs保存SQLite一致副本、配置、内部空目录与旧源码指针，quick_check及逐表/文件/配置摘要与原位置匹配；初次因backups父目录不存在失败，修正本机备份工具recursive创建后成功，未触及原数据库。正常node scripts/start.mjs --background --start-only，经原确认提示后安全shutdown，不强杀、不另开端口、不打开业务页；启动器另存数据库备份，成功后自行更新source-current，previousId保留原版，新PID4327。77表（包含内部表）内容及schema、配置和内部文件前后不变；health/data身份、HTML及JS/CSS字节与候选一致，无待迁移、更新锁释放。无新增迁移、应用源码修改、模型/Office调用、真实业务写操作或其他设备部署；没有直接启动探测真实库，也未为截图触发期次同步。用户打开http://127.0.0.1:8787后验收实际首页。备份、身份、校验与限制详见仅本机daily-apply-report.txt、daily-before/after/runtime.json；外部原件不在备份范围，未执行恢复演练。五根再次按全文复核：GPT_CONTEXT/DEVELOPMENT_PROGRESS更新运行事实，PRODUCT_REQUIREMENTS整合追加安全应用授权，CONTEXT术语与SYSTEM_ARCHITECTURE结构无新增变化；USER_GUIDE、原GOV-11/13及质量矩阵相应同步，重新生成/检查索引。
 
 ## 2026-11-10｜GOV-11 / GOV-13｜拉取后双击运行当前源码
 

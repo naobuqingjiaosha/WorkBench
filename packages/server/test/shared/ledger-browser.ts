@@ -64,6 +64,10 @@ await withBrowserPage(async(page,base)=>{
   assert.equal(record.subject,'合成交付核对');assert.equal(record.inspection_date,'2028-02-12');
   if(process.env.LEDGER_SAMPLE_DIR){
     mkdirSync(process.env.LEDGER_SAMPLE_DIR,{recursive:true});
+    const inputs=join(process.env.LEDGER_SAMPLE_DIR,'试用输入');mkdirSync(inputs,{recursive:true});
+    for(const [name,bytes] of Object.entries({'合成年度台账.xlsx':files.ledger,'工作记录表模板.xlsx':files.work,'监督情况表模板.xlsx':files.supervision})){
+      writeFileSync(join(inputs,name),bytes,{flag:'wx'});
+    }
     for(const [file,name] of [[state.ledger.path,'年度台账'],[workDoc.path,'工作记录表'],[supervision.path,'监督情况表']]){
       writeFileSync(join(process.env.LEDGER_SAMPLE_DIR,name+'-合成样例.xlsx'),readFileSync(file),{flag:'wx'});
     }

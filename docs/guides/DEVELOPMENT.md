@@ -1,8 +1,8 @@
 # 开发与验证指南
 
-文档ID：GUIDE-DEVELOPMENT。版本：1.20。更新：2026-11-10。适用：本仓库开发工作区；不会自动授权日常发布。
+文档ID：GUIDE-DEVELOPMENT。版本：1.21。更新：2026-11-10。适用：本仓库开发工作区；不会自动授权日常发布。
 
-共享范围为源码、依赖/构建规则、通用工具、开发文档和配置样例；真实资料、本机配置、测试用例、夹具、tsconfig.test.json及历史验证产物均保留本机、不上传。具体见[源码与资料边界](DATA_BOUNDARIES.md)，跨机阅读与资源缺项处理见[换机清单](DEVICE_HANDOFF.md)。
+共享范围包括应用、构建规则、通用工具、文档、配置样例与 `packages/server/test/shared` 内的合成回归。实际资料、配置、历史私有用例及验收产物保留本机。详见[资料边界](DATA_BOUNDARIES.md)。
 
 首次获取源码后的配置、安装和日常启动见[安装指南](INSTALLATION.md)；根README仅维护项目介绍。
 
@@ -30,13 +30,9 @@ npm ci会重建node_modules；已有环境不是每次任务都要运行，更�
 
 应用依赖齐备后可运行npm run typecheck核对源码类型。纯文档任务只执行文档及共享边界检查，不重跑应用测试。
 
-用例齐备时才通过隔离入口运行相关专项，例如：
+新克隆用 `npm ci` 安装锁定依赖，再运行 `npm test`。指定场景用 `node scripts/test-isolated.mjs --shared timesheet`。这些用例生成自己的来源文件、日期、预期与 SQLite 数据，结束回收。浏览器驱动已按锁文件固定。首次运行 `npx playwright-core install chromium` 安装匹配的浏览器，之后用 `npm run test:browser` 回放；可通过 PLAYWRIGHT_MODULE、PLAYWRIGHT_BROWSERS_PATH 指向已安装工具，CANDIDATE_WEB_DIST 可指定要复验的已构建界面。
 
-```powershell
-node scripts/test-isolated.mjs --unit inspection-drafts
-```
-
-先确认packages/server/test中存在所需用例及其依赖夹具；npm run typecheck:tests还需要本机tsconfig.test.json。npm test和npm run test:all引用的部分隔离契约脚本与用例同样仅在旧机，不能因根package.json有命令就认为新克隆可运行。缺失时记录未执行及所缺资源；依据当前授权另行接续或在隔离环境重建匿名验证，不创建空测试绕过失败，不连接日常库补样本。按改动范围选检查，不反复运行无关全套。
+`npm run test:legacy:all` 保留原机完整套件；`--unit <名称>` 单独运行已安装的私有专项。缺旧用例明确报错。共享通过和历史全套分别记录。
 
 隔离启动器在子进程执行前设置数据库、文件、运行、备份、OCR、前端等绝对路径，并预加载test-preflight。不要直接运行业务测试文件，也不要先静态import应用再设置隔离变量。
 
@@ -46,7 +42,7 @@ macOS测试入口先解析系统临时目录的真实路径，以兼容/var系�
 
 ### 3.1 RK-11/RK-12限定回归的重复执行
 
-以下运行方法适用于本机存在`packages/server/test/rk-repair.ts`、`rk-isolation.ts`、`rk-ui-replay.mjs`的开发环境。用例和证据按用户约定不随Git分发；新克隆只会取得本指南、正式风险表和通用隔离入口。接续者应先核对文件，缺失时经当前授权私下接续这三份本机用例，或按下列验收条件重建匿名验证；不能把缺文件或仅API退出0当作页面已通过。已有本机测试类型配置可单独接续，应用构建不依赖它。不得把测试复制进共享源码目录绕过交付边界。
+以下运行方法适用于本机存在`packages/server/test/rk-repair.ts`、`rk-isolation.ts`、`rk-ui-replay.mjs`的开发环境。用例和证据按用户约定不随Git分发；新克隆取得共享场景及正式风险表，此历史脚本仍需另行接续。接续者应先核对文件，缺失时经当前授权私下接续这三份本机用例，或按下列验收条件重建匿名验证；不能把缺文件或仅API退出0当作页面已通过。已有本机测试类型配置可单独接续，应用构建不依赖它。不得把测试复制进共享源码目录绕过交付边界。
 
 仅自动API验证可运行`node scripts/test-isolated.mjs --unit rk-repair`。需要页面回放时，在macOS/POSIX终端运行：
 
@@ -226,7 +222,7 @@ Vite会清理指定输出目录，因此必须选择本次专属目录。不要�
 
 `npm run dev` 与 `npm run server` 自动使用独立开发根，后端端口默认18889；Vite的5273代理使用同一个WORKBENCH_DEV_PORT，并核对后端development身份及数据库路径。开发根在源码之外，使用WORKBENCH_DEV_HOME可调整；不会读取项目旧配置或日常数据库。运行`node scripts/dev-server.mjs --show-paths`可只读确认位置。
 
-需要构建后预览时使用`npm run dev:monthly -- --build`，复用独立开发根下monthly环境。一次性测试仍使用test-isolated的临时根，不能把持久开发环境当作可自动删除的测试目录。测试用例及夹具只留本机；应用类型检查与本机typecheck:tests分开。详见[运行与资料边界](DATA_BOUNDARIES.md)。
+需要构建后预览时使用`npm run dev:monthly -- --build`，复用独立开发根下monthly环境。一次性测试仍使用test-isolated的临时根，不能把持久开发环境当作可自动删除的测试目录。私有测试与生成文件只留本机；应用类型检查与本机typecheck:tests分开。详见[运行与资料边界](DATA_BOUNDARIES.md)。
 
 ## 6. 数据和迁移
 
@@ -242,7 +238,7 @@ Vite会清理指定输出目录，因此必须选择本次专属目录。不要�
 
 禁止把界面隐藏视为后端规则已取消；例如取消报送需同时核对待办、readiness、接口、历史展示和下载。反之保留历史字段不等于仍需引导用户办理。
 
-每次任务保存实际文件、记录本轮增量并交付文件清单。用户2026-11-06已要求每轮完成验收后提交并推送对应GitHub仓库；提交前实时核对基线和范围，只暂存明确文件，运行正常钩子，发现并发更新或保护阻断则停止。不强推、不上传本地测试/资料、不自动发布。发布准备见[运维手册](OPERATIONS.md)，其他未提交工作继续保留。
+每次任务保存实际文件、记录本轮增量并交付文件清单。用户2026-11-06已要求每轮完成验收后提交并推送对应GitHub仓库；提交前实时核对基线和范围，只暂存明确文件，运行正常钩子，发现并发更新或保护阻断则停止。不强推、不上传私有测试/资料、不自动发布。发布准备见[运维手册](OPERATIONS.md)，其他未提交工作继续保留。
 
 ## 8. 文档与技术债
 
