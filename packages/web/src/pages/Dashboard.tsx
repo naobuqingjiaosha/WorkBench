@@ -73,7 +73,7 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
           {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<div className="summary-grid"><div>在办<strong>{active.length}</strong></div><div title="在办工作中有明确待核对、待确认或待复核事项的工作数；属于在办子集">待核对<strong>{inbox.error||inbox.syncError?'—':inbox.loading?'…':reviewCount}</strong></div><div>已结束<strong>{items.filter(w=>w.status==='done').length}</strong></div></div>}
         </Card>
         <WorkCalendar items={items} go={go}/>
-        <Card className="home-files" title={<HomeTitle icon="files">最近成果</HomeTitle>}>
+        <Card className={`home-files${!files.loading&&!files.error&&!files.data?.items.length?' home-files-empty':''}`} title={<HomeTitle icon="files">最近成果</HomeTitle>}>
           {files.error?<LoadError error={files.error} retry={files.reload}/>:files.loading?<Loading/>:!files.data?.items.length?<Empty text="尚无生成成果，进入工作编辑草稿后生成。"/>:files.data.items.map(a=><div className="home-file-row" key={a.id}><span className={`home-file-icon ${/\.xlsx?$/i.test(a.file_name)?'excel':''}`}>{/\.xlsx?$/i.test(a.file_name)?'X':/\.docx?$/i.test(a.file_name)?'W':'文'}</span><div className="home-row-text"><strong title={a.title||a.file_name}>{a.title||a.file_name}</strong><p>{fmtTime(a.created_at)}</p></div><Tag kind={a.is_final?'ok':'default'}>{a.is_final==null?'未标注':a.is_final?'已定稿':'草稿'}</Tag><FilePreviewButton artifact={a}/></div>)}
           <p className="home-file-note">ⓘ 文件生成与业务完成分别记录。</p>
         </Card>

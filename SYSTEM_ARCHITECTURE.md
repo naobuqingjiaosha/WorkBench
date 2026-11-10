@@ -1,6 +1,6 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.28。更新：2026-11-09。性质：当前源码的结构与运行设计。
+文档ID：KB-ARCHITECTURE。版本：1.29。更新：2026-11-10。性质：当前源码的结构与运行设计。
 
 本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
@@ -28,6 +28,10 @@ flowchart TB
 技术栈为React、Vite、TypeScript、Node.js 24+、Fastify及Node内置SQLite。文档处理使用ExcelJS、PizZip、PDF.js、Tesseract.js；旧版Excel转换依赖Windows上的Microsoft Excel。具体依赖版本以package-lock.json为准。
 
 前端样式在既有styles/design/home/compact之后加载desktop.css，统一浅色桌面配色、Windows优先字体、14px正文和36px常规控件；保留原页面业务组件和响应式滚动结构，不整体缩放画布。导航材质先定义实底降级，再通过@supports为sidebar、topbar和home-header-actions提供局部backdrop-filter；浮起侧栏以边缘高光、静态蓝紫背景和内外阴影增强层次。二级导航仅使用透明渐变、不再叠加过滤层；操作栏、表格和内容卡片实底。普通页头用:where包裹排除条件，避免高特异性压过后置偏好规则。弹窗根不加过滤，只有头尾局部模糊，正文白底，遮罩不做全屏模糊；视口高度不大于480px时改为整张弹窗滚动，避免不收缩的头尾挤压正文并裁掉操作。首页搜索/提醒/主按钮仅在允许动画且支持悬停时有140ms、1px交互位移；无持续动画、图像资源或永久will-change。减少透明、减少动画、增强对比和慢刷新媒体偏好切回实底并去模糊/投影，forced-colors使用系统色并保留焦点。全部由样式层完成，不增加浏览器脚本或依赖。Knowledge日常入口显示TemplatePanel与CoveragePanel；原制度文档、文件检索、问答和查依据组件由PolicyMaintenancePanel复用，置于Settings“模型与资料”的折叠维护区。维护区在模型与资料页顶部默认折叠；引用弹窗及全局搜索的制度命中通过#/settings?section=references直接展开该区，App沿用NavigationGuard后传递参数，不重挂载整个设置页或承诺具体条款定位。首次展开后保持挂载，折叠不清空当前输入；后端知识行、索引、显式启用判断及引用来源逻辑未因此改变。工作详情的核对、关联记录、配置更新使用原生details收纳，子组件保持挂载以保留请求与离开保护。
+
+首页最近成果以home-files-empty标记已加载且无错误的空态，正文自然高度且无内部滚动，桌面网格对应行允许按内容增高；有成果时保留原卡片overflow:auto。工作详情根work-detail以自然高度参与page-workbench的纵向滚动，期次/阶段正文取消独立高度压缩与滚动；辅助区和secondary-panel不再设置45vh/25vh上限或折叠时36px上限。不卸载折叠内容，表格横向滚动、弹窗及专用工时办理页原有滚动边界保留。
+
+Workbench行政创建将编号、额外模板和说明放入可选折叠区，仍提交发布版本并沿用既有创建接口及配置快照。工作详情把业务办理放在材料核对、关联记录及配置应用之前；Periods对timesheet执行器内嵌现有MonthlyTimesheet，传入工作/期次/月份和快照模板，通用文书默认收起。无周期的旧工时工作同样显示办理组件，周期读取失败不回退到错误范围。嵌入模式取消输入、结果和版本区的固定高度；独立工时页面保持原布局。MonthlyTimesheet按实际输入状态显示下一步，来源入口默认展开；绑定模板通过既有library/inspect接口由用户显式选择，查看页面不自动导入模板。研发、部门表及考勤仍使用现有解析器；独立项目清单不支持自动导入，项目名可手填。流程配置中的周期步骤仍为指导文字，未增加步骤执行引擎、数据库迁移或工时算法。
 
 ## 2. 模块与职责
 

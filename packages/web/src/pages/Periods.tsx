@@ -3,6 +3,7 @@ import {InspectionRecords} from '../components/InspectionRecords';
 import {AnnualLedger} from '../components/AnnualLedger';
 import {PeriodAttachments,type ExternalMaterial} from '../components/PeriodAttachments';
 import {WorkDocuments} from '../components/WorkDocuments';
+import MonthlyTimesheet from './MonthlyTimesheet';
 import { ImportResult } from '../components/ImportResult';
 import {PeriodExecution} from '../components/PeriodExecution';
 import { useEffect, useRef, useState } from 'react';
@@ -142,15 +143,17 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
     const readiness=p.readiness;
     const nextSection=!readiness.recordDocumentsReady?'checks':!readiness.recordsReady?'documents':'attachments';
     const goToSection=()=>{const section=document.getElementById(`period-${id}-${nextSection}`);if(section instanceof HTMLDetailsElement)section.open=true;section?.scrollIntoView({behavior:'smooth',block:'start'});section?.querySelector<HTMLElement>('button:not(:disabled),input:not(:disabled)')?.focus({preventScroll:true});};
+    const documentPanel = <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={changeContent} onSaveContent={saveContent} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={contentBusy} onChanged={refresh}/>;
     return <div className="col period-workspace">
  {detail.error&&<p role="alert">状态刷新失败：{detail.error.message} <Button onClick={detail.reload}>重试</Button></p>}
- <p className={`period-summary${monthly?' monthly-summary':''}`}><strong>{p.report_period}</strong> · {monthly?`${readiness.recordCount} 次已确认检查 · ${readiness.recordsReady?'文件已生成':'待起草／编辑中'}`:'准备内容，生成文件后可下载或继续修改'}</p>
+ <p className={`period-summary${monthly?' monthly-summary':''}`}><strong>{p.report_period}</strong> · {monthly?`${readiness.recordCount} 次已确认检查 · ${readiness.recordsReady?'文件已生成':'待起草／编辑中'}`:timesheet?'本期部门工时：上传资料，核对人员与项目后计算':'准备内容，生成文件后可下载或继续修改'}</p>
 
  {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary>已有检查记录与其他模板</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
+ {timesheet&&<MonthlyTimesheet embedded workbenchId={workbenchId} periodId={id} initialMonth={p.report_period} boundTemplates={templates}/>}
  <div id={`period-${id}-documents`}>
- <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={changeContent} onSaveContent={saveContent} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={contentBusy} onChanged={refresh}/>
+ {timesheet?<details><summary>其他模板与通用文书</summary>{documentPanel}</details>:documentPanel}
  </div>
- {timesheet&&<p><a className="btn btn-primary" href={`#/workbench?task=timesheets&id=${workbenchId}&periodId=${id}&month=${p.report_period}`}>办理本期部门工时</a></p>}
+
  {p.reported_on&&<details><summary>历史报送记录（只读）</summary><p>{p.reported_on}；历史记录保留，不影响当前材料制作。</p></details>}
  <details id={`period-${id}-attachments`} className="secondary-panel"><summary>参考资料与附件{readiness.external.some(m=>m.required&&!m.ready)?' · 有必要附件待确认':''}</summary>
  {monthly&&<Field label="本月补充说明（可选）"><Textarea value={content} onChange={changeContent} disabled={contentBusy}/><Button disabled={contentBusy||content===savedContent} onClick={()=>void saveContent().then(()=>toast('补充说明已保存','ok')).catch(e=>toast((e as Error).message,'err'))}>保存补充说明</Button></Field>}

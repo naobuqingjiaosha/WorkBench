@@ -26,7 +26,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "仓库执行约定、数据保护与维护责任",
-      "sha256": "d9fd4f813b7a6177b8feccc9827bb9d8caec5667d34d652a7b040a2b8e6884ce",
+      "sha256": "1d8764b2351ca50bbe4436089bbda156efd27d85260dfab9e414c1d5854c7fd2",
       "linksTo": [
         "CONTEXT.md",
         "GPT_CONTEXT.md",
@@ -101,7 +101,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一业务术语词典，不承担运行状态",
-      "sha256": "c3c4dfeefd9f6184bcb8b835060cdcc6011a1b8eba9318033cd7fe757572ae4e",
+      "sha256": "4b84347679fae324454da0af5ba671daa8a4c8caeb9549f3e7afc1f8efda157a",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "PRODUCT_REQUIREMENTS.md"
@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "d010b2ae73a75a970c6b3747adb48f992f16675d0d912d409dfa654dd5a7be1c",
+      "sha256": "07989afcc9c70735c6ce61c46aeddada5da6acb968c7058242e5493a52ee4884",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -221,7 +221,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "dff3cff77c811c0673cb40d3d4b61a16e6b8ade2f2f1430304c5218853175729",
+      "sha256": "849646152a1fb98090301f9e157f26af4a30fd2bd6e9e0996c97a0355535923e",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -233,7 +233,6 @@
         "docs/guides/DATA_BOUNDARIES.md",
         "docs/guides/DEVELOPMENT.md",
         "docs/guides/DEVICE_HANDOFF.md",
-        "docs/guides/INSTALLATION.md",
         "docs/management/CHANGELOG.md",
         "docs/management/DOCUMENT_CONTROL.md",
         "docs/management/PROJECT_PLAN.md",
@@ -297,12 +296,6 @@
           "exists": true
         },
         {
-          "target": "docs/guides/INSTALLATION.md",
-          "path": "docs/guides/INSTALLATION.md",
-          "availability": "repository",
-          "exists": true
-        },
-        {
           "target": "docs/management/QUALITY_AND_ACCEPTANCE.md",
           "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
           "availability": "repository",
@@ -353,7 +346,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前需求、业务规则、场景及代码验证追溯",
-      "sha256": "43012b6268a4dadfda09e420652cc7a1ea8bf76c6a8b35808c183b8a17bd7500",
+      "sha256": "93666682a115f7d17fd5c045f6945641dd7a24cad52fc20afe4780331a9c40cc",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -523,7 +516,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "项目介绍、用途、能力概览和文档入口；不维护操作或进度",
-      "sha256": "a74b6dbc9c23af36d5d8a647498513e9a3380c2d41baf0e1e44875f6ffb4e221",
+      "sha256": "e22e2800d0efc03d64aca0e4814596274c1d4dbc0e35f70beef86a5b06d8e9e0",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -617,7 +610,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "43a2bbb0d778c12e93c6af49d39f934ac28a5e4a41e7bf8116d2502164782f0f",
+      "sha256": "54fcc11ccf9d82fc38ff31bf665cffffe0724a8ced8494e13fa5c47988306e5b",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -923,7 +916,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "源码、测试、本机配置与业务资料的运行和上传边界",
-      "sha256": "0bc44dcaa1f5d449dc536fa9511d39ab55b89922da2f53714bc0d3ace7a39701",
+      "sha256": "c73003b71b050a6d83a345a44cfebb77f85213cc83f01dc7d7bb0873bdc83428",
       "linksTo": [],
       "localLinks": []
     },
@@ -934,7 +927,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "开发环境、隔离验证、构建和交付",
-      "sha256": "3b725027d14d1993d07d3436fa8944e6bbb4c041dec9f61fbd1b65a9e1f5b165",
+      "sha256": "c60f050c8ff53ed536e073aea6735f9055ce57263bcb7430cc762cac31dbb87d",
       "linksTo": [
         "PRODUCT_REQUIREMENTS.md",
         "SYSTEM_ARCHITECTURE.md",
@@ -1015,7 +1008,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次任务收尾、换机移交范围、新机验证与现有打包限制",
-      "sha256": "c42c6f79b31e86bd7210f12e79c9a58f15d6615d04473147964e97184c61c54f",
+      "sha256": "58dc0c49de7bb327204f65639fba7963a3611998a81b5ac0f2c21154d4daa9f9",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DATA_BOUNDARIES.md",
@@ -1089,7 +1082,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "首次安装、本机配置、构建和日常启动步骤",
-      "sha256": "b2bd87a414a41a8564377c0518631d59b6a2e1fd9c99445ce30950a7888a9573",
+      "sha256": "5c12bc0e74e51dce198be14b991b8e9e99343bf75656b55bcfe27ac79591b180",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DATA_BOUNDARIES.md",
@@ -1162,7 +1155,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界",
-      "sha256": "59961f3083afed4e058e750eeb66ef233f4e9305d999fe168b31fc3917ae8477",
+      "sha256": "a1a72bc25550f42515043b72f8bd2fa07add4d4138f0f2dbd713f7ec88e16039",
       "linksTo": [],
       "localLinks": [
         {
@@ -1180,7 +1173,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "运行、备份、恢复、发布与排障",
-      "sha256": "fb92dbad1650993c9c30eadd12020275ce112b689f19d79a81c05c77b07a44f1",
+      "sha256": "838c4c3c11029b012614057c160910b04efa62bbd9298731bd01b8e0c2cf69e2",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DATA_BOUNDARIES.md"
@@ -1213,7 +1206,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界",
-      "sha256": "a24bb2cbb4f541cddce2fce3c5d35fb7641b5406c84b5b00013321b6c270fbb8",
+      "sha256": "8ae96c5fda4dc6a49b4ad37e1e04f32a6112d2807616f936682e2c6de46879a7",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/INSTALLATION.md"
@@ -1324,7 +1317,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前日常版操作、异常处理及反馈",
-      "sha256": "bab1bfd5433423aed27253afef636b83b762e36374270d301d7d67636242e746",
+      "sha256": "5f9d326c14d5144e4cf46a4c309a5e2e97f6edbc504b273a53c8cd36ca276abb",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1377,7 +1370,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "既有任务历史记录；不代表当前状态，不再追加新任务",
-      "sha256": "bfc2c6802d14689b15721fd1f7dc1acc9002d2025f83bf1deb9bd8c55279c367",
+      "sha256": "84ea92c072802f3fe37b269720a603854d9e620fe3771431724d44cb81e6e883",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -1566,7 +1559,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "知识权威规则、索引契约和维护方法",
-      "sha256": "c42e8eb5b75fa037554127fb03720585cfd6775d76be55c5ea955d5342817489",
+      "sha256": "460ee65dbb0f3d9318d1f91c09a8e94f729db8f6cadb866c367e970e7473f9ce",
       "linksTo": [
         "docs/guides/DATA_BOUNDARIES.md",
         "docs/management/CHANGELOG.md",
@@ -1638,7 +1631,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "0421651a9bded918aafb87ede3f2566df80040a5881a87405b6b8245ce9a7c5c",
+      "sha256": "19f453a384c106fb88d4e1741a1282118ec7e7e0779ad47b82d6db3cb4baa009",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVICE_HANDOFF.md",
@@ -1743,7 +1736,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "4c9f4dbbe910fa7aed8eb863d082d0eeb5bb8daf19a206ca6297c6c65d962a79",
+      "sha256": "4ab8f4e157ffbb1e9362778907e11ff6c25019c7085395c01a97e2488243c12c",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1802,7 +1795,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "风险、问题、业务未定项与已有决策",
-      "sha256": "fe63d02e6599689bf541b71a9ca82e0a5e5f2b885fe9676ffe8e3c42636396f6",
+      "sha256": "cdf405ccd4d11822f7495a26fe65f5efc837e9df56fe252e6a675d0e8e7be897",
       "linksTo": [
         "docs/management/PROJECT_PLAN.md"
       ],
@@ -1828,7 +1821,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "3ef3274d01e4736124d28016969a7992bcc26804c1e77fcb928384f62c1a030e",
+      "sha256": "48722ee0510e2be8ae001990906cebeccbc297aaa1e9e033bc52df7e8c76a864",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

@@ -32,6 +32,7 @@ import { DocVersionsModal } from './DocVersions';
 import { FilePreviewButton } from '../components/FilePreview';
 import type { RouteKey } from '../App';
 import TimesheetsPage from './Timesheets';
+import MonthlyTimesheet from './MonthlyTimesheet';
 
 export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Record<string, string>) => void; params: Record<string, string> }) {
   if (params.task === 'timesheets') return (
@@ -322,15 +323,15 @@ function CreateWorkbenchModal({
             <Input value={name} onChange={setName} placeholder="例如：清廉工程月度监督检查" />
           </Field>
 
-          <p>{selected?.period_defaults?'按所选发布版本建立周期、材料与提醒规则。':'此发布配置没有默认周期；如需周期工作，请先在流程规范配置并发布。'}</p>
-
+          <p>{selected?.mode==='process'?'沿用已发布流程，创建后直接进入阶段办理。':selected?.period_defaults?'沿用已发布的周期、材料与模板要求，创建后直接进入本期办理。':'沿用已发布配置创建；若需周期办理，请先在流程规范中设置并发布周期规则。'}</p>
+          <details><summary>本次补充资料与额外模板（可选）</summary>
           <Field label="编号" hint="留空自动生成">
             <Input value={code} onChange={setCode} placeholder="自动" />
           </Field>
 
           <Field
             label="这份工作用哪些模板"
-            hint="选好后「出文书」页只列这几份，不会和同类型下别的模板混在一起。可多选。"
+            hint="可额外选择本次适用模板；流程中已绑定的材料模板沿用发布配置。可多选。"
           >
             <TemplatePicker
               templates={tplList.data?.items ?? []}
@@ -343,6 +344,8 @@ function CreateWorkbenchModal({
           <Field label="说明">
             <Textarea value={summary} onChange={setSummary} rows={2} placeholder="这项工作的内容、依据、注意事项…" />
           </Field>
+
+          </details>
 
           <div className="notice notice-info">
             {selected?.mode==='process'?'将创建阶段和材料清单，按实际办理进度推进。':selected?.period_defaults?'将按类型默认周期创建独立期次；各期资料与成果分别保存。':recurrence === 'once'
@@ -503,20 +506,14 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
     });
 
   return (
-    <div className="col" style={{ gap: 14 }}>
+    <div className="col work-detail" style={{ gap: 14 }}>
       <Card className={`work-detail-heading${periodEnabled?' periodic-heading':''}`} title={<span><a onClick={()=>go('workbench')}>我的工作台</a> / {wb.name}</span>} extra={<><Tag>{d.workType?.name}</Tag><Tag kind={statusKind(wb.status)}>{STATUS_TEXT[wb.status]??wb.status}</Tag></>}>
-        <p>{periodEnabled?'选择期次，填写本期内容并生成文书':isDocMode?'填写业务内容，选择模板生成文书':`当前阶段：${d.positions.find(p=>p.status==='doing')?.name??d.positions.find(p=>p.status!=='done')?.name??'阶段已完成'}`}</p>
+        <p>{d.workType?.executor==='timesheet'?'上传本月资料，核对人员与项目后办理部门工时':periodEnabled?'选择期次，填写本期内容并生成文书':isDocMode?'填写业务内容，选择模板生成文书':`当前阶段：${d.positions.find(p=>p.status==='doing')?.name??d.positions.find(p=>p.status!=='done')?.name??'阶段已完成'}`}</p>
         <div className="row small muted"><span>{wb.code}</span><span>已有文件 {stats.artifactCount} 份</span></div>
       </Card>
-      <details className="work-support card"><summary>材料与进度核对</summary><div className="card-body">
-        <p className="small muted">从当前磁盘文件重新核对影像数量、清单状态及完成时间，并更新工作进度；不改变阶段、期次的办理状态或历史定稿。仅刷新页面不会执行核对。未保存的表单输入不参与核对。</p>
-        <Button disabled={busy||rechecking} onClick={()=>void recheck()}>{rechecking?'正在核对…':'重新核对材料与进度'}</Button>
-        {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
-        {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
-      </div></details>
-      <details className="work-support card"><summary>关联工作记录</summary><WorkRecordLinks key={id} workbenchId={id}/></details>
-      <details className="work-support card"><summary>流程配置更新</summary><WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/></details>
-      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading && <details open={isDocMode} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
+      {periods.error&&<p role="alert">办理范围读取失败：{periods.error.message} <Button onClick={periods.reload}>重试</Button></p>}
+      {!periodEnabled&&!periods.loading&&!periods.error&&d.workType?.executor==='timesheet'&&<MonthlyTimesheet embedded workbenchId={id} boundTemplates={workTemplates.data?.items??[]}/>}
+      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
         行政管理是「文书驱动」：这份工作的内容就是填那几张表，
         所以不设页签、不加「出文书」这一层 —— 要交什么、填了几项，直接铺在页面上。
@@ -548,6 +545,14 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
         </>
       )}
 
+      <details className="work-support card"><summary>材料与进度核对</summary><div className="card-body">
+        <p className="small muted">从当前磁盘文件重新核对影像数量、清单状态及完成时间，并更新工作进度；不改变阶段、期次的办理状态或历史定稿。仅刷新页面不会执行核对。未保存的表单输入不参与核对。</p>
+        <Button disabled={busy||rechecking} onClick={()=>void recheck()}>{rechecking?'正在核对…':'重新核对材料与进度'}</Button>
+        {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
+        {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
+      </div></details>
+      <details className="work-support card"><summary>关联工作记录</summary><WorkRecordLinks key={id} workbenchId={id}/></details>
+      <details className="work-support card"><summary>流程配置更新</summary><WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/></details>
       <details className="secondary-panel"><summary>工作设置与归档</summary>
         <div className="col mt12">
           <div className="row">

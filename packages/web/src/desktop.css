@@ -94,11 +94,30 @@ button, input, select, textarea { font-family: inherit; }
 .work-support { flex-shrink: 0; }
 .work-support > summary { padding: 8px 12px; font-size: 13px; }
 .work-support > .card { border: 0; box-shadow: none; }
-.work-support[open] { max-height: 45vh; overflow: auto; }
 @media (min-width: 1000px) {
   .page-workbench > .col > .card:has(.stage-layout) { min-height: 280px; }
   .page-workbench > .col > .period-panel { min-height: 300px; }
 }
+/* Detail sections grow into the page; only the page owns vertical scrolling.
+   Keep table horizontal overflow and modal scrolling on their own elements. */
+.page-workbench > .work-detail { flex: 0 0 auto; min-height: auto; }
+.page-workbench > .work-detail > .timesheet-inline { flex: 0 0 auto; min-height: auto; overflow: visible; }
+.page-workbench > .work-detail > .period-panel,
+.page-workbench > .work-detail > .card:has(.stage-layout) { flex: 0 0 auto; min-height: 0; }
+.page-workbench > .work-detail > .period-panel > .card-body,
+.page-workbench > .work-detail > .card:has(.stage-layout) > .card-body { flex: 0 0 auto; min-height: auto; overflow: visible; }
+/* The embedded monthly task follows the same page flow, including long results. */
+.work-detail .timesheet-inline > .timesheet-input-card,
+.work-detail .timesheet-inline > .timesheet-results,
+.work-detail .timesheet-inline > .timesheet-history { flex: 0 0 auto; max-height: none; }
+.work-detail .timesheet-inline > .timesheet-input-card > .card-body,
+.work-detail .timesheet-inline > .timesheet-results > .card-body,
+.work-detail .timesheet-inline > .timesheet-history > .card-body,
+.work-detail .timesheet-inline .timesheet-input-scroll,
+.work-detail .timesheet-inline .timesheet-results-scroll { flex: 0 0 auto; overflow: visible; }
+.work-detail .timesheet-inline[data-tab=daily] .daily-split > div { max-height: none !important; overflow: auto; }
+.work-detail .timesheet-inline[data-tab=daily] .daily-split > .section-nav { max-height: none; overflow: visible; }
+.timesheet-next { margin: 8px 0 12px; padding: 10px 12px; background: var(--primary-soft); border-radius: 6px; }
 button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--primary); outline-offset: 3px;
 }
@@ -134,10 +153,14 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .home-file-row > .btn { min-height: 32px; font-size: 13px; }
 .home-file-icon { background: var(--primary); }
 .home-file-icon.excel { background: #17613e; }
+.home-page .home-files-empty { height: auto; min-height: 176px; }
+.home-page .home-files-empty > .card-body { flex: 0 0 auto; min-height: auto; overflow: visible; }
+.home-files-empty .empty > p { margin: 0; }
 .home-record-link { font-size: 14px; border-radius: 8px; min-height: 44px; }
 @media (min-width: 1000px) and (min-height: 600px) {
   .home-page .dashboard-grid { grid-template-columns: minmax(0,7fr) minmax(0,5fr); }
   .home-page .dashboard-stack:last-child { grid-template-rows: 112px minmax(212px,1fr) 176px 44px; }
+  .home-page .dashboard-stack:last-child:has(> .home-files-empty) { grid-template-rows: 112px minmax(212px,1fr) minmax(176px,max-content) 44px; }
   /* Allow the page to scroll at small heights instead of clipping enlarged text. */
   .page-dashboard { overflow-y: auto; }
   .home-page .dashboard-grid { min-height: 592px; }
