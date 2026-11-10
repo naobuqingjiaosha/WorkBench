@@ -244,7 +244,7 @@ export function registerWorkRoutes(app: FastifyInstance): void {
         if(!Number.isFinite(n))throw new ApiError('BAD_FIELD',`${key} 必须是数字`);
         return n;
       };
-      updateWorkbench(id, {
+      const patch = {
         name: optStr(b, 'name'),
         status: optStr(b, 'status'),
         priority: optStr(b, 'priority'),
@@ -261,7 +261,19 @@ export function registerWorkRoutes(app: FastifyInstance): void {
         business_content: text('businessContent')??undefined,
         tags: strArray(b, 'tags') ? JSON.stringify(strArray(b, 'tags')) : undefined,
         profile: b.profile && typeof b.profile === 'object' ? JSON.stringify(b.profile) : undefined,
-      });
+      };
+      if ('expectedBusinessContent' in b) {
+        if (typeof b.expectedBusinessContent !== 'string' || typeof patch.business_content !== 'string')
+          throw new ApiError('BAD_FIELD','核对业务正文需要提供原文和本次修改');
+        tx(()=>{
+          const work = getWorkbench(id);
+          if (!work) throw new ApiError('NOT_FOUND','工作台不存在',404);
+          const current = work.business_content ?? '';
+          if (current !== b.expectedBusinessContent && current !== patch.business_content)
+            throw new ApiError('WORK_CONTENT_CHANGED','其他入口已保存正文，请核对后再保存',409,{current});
+          updateWorkbench(id,patch);
+        });
+      } else updateWorkbench(id,patch);
       return ok(reply, getWorkbenchDetail(id));
     } catch (e) {
       return fail(reply, e);

@@ -467,9 +467,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
   useEffect(()=>setSelectedPeriod(initialPeriodId),[id,initialPeriodId]);
   /** 文书驱动（行政管理）默认落在「出文书」页；流程驱动默认落在「流程与清单」 */
   const [tab, setTab] = useState<TabKey | null>(null);
-  const [businessContent,setBusinessContent]=useState('');
   const workTemplates=useApi<{items:(Template&{required?:boolean})[]}>(`/api/workbenches/${id}/templates`);
-  useEffect(()=>{if(detail.data)setBusinessContent((detail.data.workbench as Workbench&{business_content:string}).business_content??'');},[detail.data?.workbench.id]);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   /** 正在出的那份文书 —— 出文书是这个工作里的一个动作，不是独立页面 */
@@ -529,7 +527,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
       {d.workType?.domain==='project' && <DossierStatus id={id} revision={d}/>}
       {periods.error&&<p role="alert">办理范围读取失败：{periods.error.message} <Button onClick={periods.reload}>重试</Button></p>}
       {!periodEnabled&&!periods.loading&&!periods.error&&d.workType?.executor==='timesheet'&&<MonthlyTimesheet embedded workbenchId={id} boundTemplates={workTemplates.data?.items??[]}/>}
-      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&!reminderOnly&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={businessContent} onContentChange={setBusinessContent} onSaveContent={async()=>{await api.put(`/api/workbenches/${id}`,{businessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
+      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&!reminderOnly&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={wb.business_content??''} onSaveContent={async(businessContent,expectedBusinessContent)=>{await api.put(`/api/workbenches/${id}`,{businessContent,expectedBusinessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
         行政管理是「文书驱动」：这份工作的内容就是填那几张表，
         所以不设页签、不加「出文书」这一层 —— 要交什么、填了几项，直接铺在页面上。

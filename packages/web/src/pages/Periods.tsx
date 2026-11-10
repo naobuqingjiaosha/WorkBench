@@ -6,6 +6,7 @@ import {WorkDocuments} from '../components/WorkDocuments';
 import MonthlyTimesheet from './MonthlyTimesheet';
 import { ImportResult } from '../components/ImportResult';
 import {PeriodExecution} from '../components/PeriodExecution';
+import {PeriodRuleEditor,type PeriodRule} from '../components/PeriodRuleEditor';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi } from '../api';
 import { Button, Card, Field, Input, Select, Textarea, useAction, useToast } from '../ui';
@@ -40,15 +41,6 @@ interface Detail extends Period {
     readiness:{validFinalIds:number[];recordDocumentsReady:boolean;inspectionRevisions:{id:number;revision:number;project:string;date:string}[];monthly:boolean;missing:string[];canComplete:boolean;external:ExternalMaterial[];finalCount:number;recordCount:number;recordsReady:boolean;reported:boolean};
     reported_on:string|null;
 }
-interface Rule {
-    frequency: string;
-    first_period: string;
-    due_month_offset: number;
-    due_day: number;
-    remind_days: number;
-    requirements: string;
-    steps:string;
-}
 export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeriodId, onRuleChanged, timesheet = false,onPeriodSelected }: {
     workbenchId: number;
     workTypeId: number;
@@ -60,37 +52,18 @@ export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeri
 }) {
     const list = useApi<{
         items: Period[];
-        rule: Rule | null;
+        rule: PeriodRule | null;
     }>(`/api/workbenches/${workbenchId}/periods`), { busy, run } = useAction();
     const navigation=useNavigationGuard();
-    const [selected, setSelected] = useState(initialPeriodId??''), [configure, setConfigure] = useState(false), [frequency, setFrequency] = useState('monthly'), [first, setFirst] = useState(new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit' }).format(new Date())), [offset, setOffset] = useState('1'), [day, setDay] = useState('5'), [remind, setRemind] = useState('3'), [requirements, setRequirements] = useState('');
-    const [defaultSteps,setDefaultSteps]=useState('');
-    useEffect(() => { const r = list.data?.rule; if (r) {
-        setFrequency(r.frequency);
-        setFirst(r.first_period);
-        setOffset(String(r.due_month_offset));
-        setDay(String(r.due_day));
-        setRemind(String(r.remind_days));
-        setRequirements(JSON.parse(r.requirements).join('\n'));
-        setDefaultSteps(JSON.parse(r.steps).join('\n'));
-    } }, [list.data?.rule]);
+    const [selected, setSelected] = useState(initialPeriodId??''), [configure, setConfigure] = useState(false);
     useEffect(() => { void run(async () => { await api.post(`/api/workbenches/${workbenchId}/periods/sync`); list.reload(); }); }, [workbenchId]);
     useEffect(() => { if (initialPeriodId)
         setSelected(initialPeriodId); }, [initialPeriodId]);
     useEffect(() => { if (!selected && list.data?.items.length){const id=String(list.data.items.find(p => p.status === 'open')?.id ?? list.data.items[0]!.id);setSelected(id);onPeriodSelected?.(id);} }, [list.data, selected]);
     const sync = () => run(async () => { await api.post(`/api/workbenches/${workbenchId}/periods/sync`); list.reload(); });
-    return <Card className="period-panel" title="办理期次" extra={<Button onClick={() => setConfigure(!configure)}>高级排期设置</Button>}>
- {list.error && <p role="alert">{list.error.message}</p>}
- {configure && <div className="col">
- <p>配置只影响新期次；已有期次保留配置快照。日号 31 表示短月份取月末。</p>
- <div className="grid grid-3"><Field label="频率"><Select value={frequency} onChange={setFrequency} options={[{ value: 'monthly', label: '月报' }, { value: 'quarterly', label: '季报' }, { value: 'yearly', label: '年报' }]}/></Field>
- <Field label="首个报告期（2026-09 / 2026-Q3 / 2026）"><Input value={first} onChange={setFirst}/></Field>
- <Field label="截止月份：从报告期首月偏移几个月"><Input type="number" value={offset} onChange={setOffset}/></Field>
- <Field label="截止日号"><Input type="number" value={day} onChange={setDay}/></Field><Field label="提前提醒天数"><Input type="number" value={remind} onChange={setRemind}/></Field></div>
- <Field label="必备材料（一行一项）"><Textarea value={requirements} onChange={setRequirements}/></Field>
-
- <Button disabled={busy} onClick={() => void run(async () => { await api.put(`/api/workbenches/${workbenchId}/periods/rule`, { frequency, first_period: first, due_month_offset: Number(offset), due_day: Number(day), remind_days: Number(remind), requirements: requirements.split('\n').filter(Boolean), steps: defaultSteps.split('\n').filter(Boolean) }); await api.post(`/api/workbenches/${workbenchId}/periods/sync`); setConfigure(false); list.reload(); onRuleChanged?.(); })}>保存规则</Button>
- </div>}
+    return <Card className="period-panel" title="办理期次" extra={<Button disabled={!list.data} onClick={()=>configure?navigation.request(()=>setConfigure(false)):setConfigure(true)}>高级排期设置</Button>}>
+ {list.error && <p role="alert">{list.error.message} <Button onClick={list.reload}>重试</Button></p>}
+ {configure&&list.data&&<PeriodRuleEditor key={'rule-'+workbenchId} workbenchId={workbenchId} rule={list.data.rule} onClose={()=>setConfigure(false)} onSaved={()=>{list.reload();onRuleChanged?.();}}/>}
  <div className="row"><Select value={selected} onChange={v=>navigation.request(()=>{setSelected(v);onPeriodSelected?.(v);})} options={[{ value: '', label: '选择报告期' }, ...(list.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.report_period} · 截止 ${p.due_date} · ${p.status === 'done' ? '已完成' : '待办理'}` }))]}/><Button disabled={busy} onClick={() => void sync()}>补齐期次</Button></div>
  {!list.loading&&!list.data?.rule && <p>尚未启用独立期次。可按实际业务在高级设置启用排期。</p>}
  {selected && <PeriodDetail timesheet={timesheet} key={selected} id={Number(selected)} workbenchId={workbenchId} workTypeId={workTypeId} workTypeCode={workTypeCode} onChange={()=>{list.reload();onRuleChanged?.();}}/>}

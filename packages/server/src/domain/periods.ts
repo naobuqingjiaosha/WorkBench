@@ -144,6 +144,8 @@ export function savePeriodRule(id: number, b: Record<string, unknown>): PeriodRu
     if (!Number.isInteger(offset) || offset < 0 || offset > max || !Number.isInteger(day) || day < 1 || day > 31 || !Number.isInteger(remind) || remind < 0 || remind > 365)
         throw new ApiError('BAD_RULE', '截止月份、日号或提醒天数超出范围');
     const old = get<PeriodRule>('SELECT * FROM work_period_rule WHERE workbench_id=?', [id]);
+    if (b.expectedVersion !== undefined && b.expectedVersion !== (old?.version??null))
+        throw new ApiError('PERIOD_RULE_CHANGED','其他入口已修改排期规则，请核对后再保存。',409,{current:old??null});
     if (old && old.frequency !== frequency && get('SELECT id FROM work_period WHERE workbench_id=?', [id]))
         throw new ApiError('HAS_PERIODS', '已有期次的工作不能改变频率，请新建另一项工作');
     const requirements = Array.isArray(b.requirements) ? b.requirements.map(String).map(x => x.trim()).filter(Boolean) : [];
@@ -159,6 +161,7 @@ export function savePeriodRule(id: number, b: Record<string, unknown>): PeriodRu
     if(materialRules===undefined && old?.material_rules && JSON.stringify(requirements)!==old.requirements)throw new ApiError('CONFIG_MATERIALS','此工作有明确材料用途，请保留材料标题；对在办要求的新版应用将在独立入口办理',409);
     if(old)run('UPDATE work_period_rule SET source_config_version_id=NULL WHERE workbench_id=?',[id]);
     run('UPDATE work_period_rule SET steps=?,material_rules=? WHERE workbench_id=?',[JSON.stringify(steps),materialRules===undefined?old?.material_rules??null:JSON.stringify(materialRules),id]);
+    if(b.sync===true)syncPeriods(id);
     return get<PeriodRule>('SELECT * FROM work_period_rule WHERE workbench_id=?', [id])!;
  });
 }
