@@ -22,6 +22,10 @@
 
 离线专项先7组通过（O3simY），链接边界补强后最终8组通过（/workspace/workbench-cloud/offline-evidence-jJ0SLO）：已安装离线、注册表503且零安装请求、缺模块拒绝、链接目标不变、锁变化拒绝旧依赖、实际首次在线安装、原项目相对缓存离线重装、网络失败保留活动PID及成功记录。配置与缓存均为匿名临时资源，未读取真实凭证或业务。依赖修复后原source-launch 17组回归通过（/workspace/workbench-cloud/launch-evidence-23ke4T），包含真实Chromium首页、失败与迁移/退出边界；之后仅增加链接拒绝两处检查，由最终8组复验，不累计为新全系统测试。server/web类型、脚本语法、文档与仓库检查通过，Windows原生/旧完整套件/真实资料仍未验。五根再次复核：CONTEXT术语不变，其余四份及安装、运维、资料边界、现有GOV/质量矩阵整合离线语义，索引重生成。本机用例、报告和缓存不提交；原5文件及9文档现场不变。按用户当前授权精确提交推送本修复，不部署设备。
 
+**配置残留与缓存预检修复（4830353基点）：** 父任务独立审查提出npmrc复制中断残留、相对cafile及已建缓存只查fastify的问题。匿名复现证据npm-baseline-evidence-NgkB9o：强制终止实际prepareBuild后复制令牌仍在stage；缓存缺pizzip入口仍被prepareBuild接受、实际模块导入失败。只确认合成场景，不宣称真实用户凭据泄露。source-build改用新增source-npm子进程在原cwd通过npm 11加载全部配置层，再将操作根指向副本；不落地/传参配置值，沿用npm认证过滤，原相对cache/cafile及用户认证有效。verifyReadyBuild在缓存复用和start-source显式恢复前核对安装记录、依赖图、服务端导入与esbuild，失败不先停旧服务、不自动改动缓存。共享脚本白名单及.gitignore仅增加该通用适配器。使用安装的npm 11内部接口，版本主号检查并失败关闭；当前仅实测11.9.0，不承诺其他主版本兼容。没有更改业务、依赖锁、迁移或真实数据。
+
+配置专项最终4组通过（npm-config-evidence-SGogzY）：真实回环HTTPS/合成CA与令牌、项目相对cafile/cache、用户认证与项目registry优先级、环境证书覆盖、缓存离线、网络请求中SIGKILL后stage/cache无凭据副本及参数无令牌。首轮负向使用不存在CA，npm自身flatten沿用较低层CA使断言不成立；改用有效但不受信任的CA验证覆盖，4tAhnh失败证据保留，不修改npm规则。实际prepareBuild复制中SIGKILL追加1组通过（npm-interrupt-evidence-zAbRKt）；首轮扫描遇本次被中断复制文件的临时无读权限，仅给测试自建副本恢复读权限后复验，B6p9RS记录保留。缓存7组通过，最终候选再次7组通过（cache-guard-evidence-FHkeBj，首轮IHQJIu保留）：非fastify入口丢失、版本不符、传递依赖图缺项、esbuild执行文件缺失、last-good拒绝及正常更新；失败核对PID、DB/业务文件字节及成功记录。原离线8组通过（offline-evidence-B5d1xm），原启动17组通过（launch-evidence-Iu5F53），包括真实npm安装/构建、浏览器首页及更新/迁移/退出边界，不累加为全系统覆盖。证据均在/workspace/workbench-cloud，仅留本地。类型、脚本、文档generate/check、仓库worktree及差异检查通过，提交前另核对暂存范围；五根全文按影响复核，CONTEXT无术语变化不改，其余四份及安装/运维/资料边界、现有GOV/质量矩阵整合当前语义。Windows、真实旧机/CA/数据、旧完整测试、其他npm主版本及跨进程恢复未验。新独立代理未启动，父任务审查线索与作者复验分别记录。
+
 **交付与清理：** 本批测试/合成源码/数据库/依赖缓存/服务和浏览器按专属范围清理，匿名证据和本地测试源码保留且不上传；原5文件差异摘要仍为27df8bc0527ffce7120cc0fcf625886d15988627675d92bb71f1a52631bbd553，9文档现场保留。交付只包含上述代码与正式文档；按当前授权运行原钩子、精确提交并普通推送main，完整SHA/远端及CI结果以Git记录和任务交付为准。没有部署日常设备、删除历史或宣称完整业务验收。source-inventory committedBase为生成时基点，不追逐自身提交哈希追加提交。
 
 ## 2026-11-10｜GOV-13｜办理优先入口与空态、整页滚动

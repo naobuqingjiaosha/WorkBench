@@ -49,6 +49,7 @@
 !/scripts/start-release.mjs
 !/scripts/start-source.mjs
 !/scripts/source-build.mjs
+!/scripts/source-npm.mjs
 !/scripts/source-upgrade.mjs
 !/scripts/test-isolated.mjs
 !/scripts/test-preflight.mjs

@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "b0c4a192a2c7a81c45607447bc883d32169d1851",
+  "committedBase": "4830353f899267bb1437cfa8c35bd4cf35acf639",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -937,7 +937,7 @@
     },
     {
       "path": "scripts/repository-policy.mjs",
-      "sha256": "1aee9e62f105e5ae74544b03e0e30eb8f65f64aa30800b25c858f99fc2f4cf7f"
+      "sha256": "30f74a1b815326f2eb47d695747b57bebe2fa6e09ccbe2c158700b28ae8979c3"
     },
     {
       "path": "scripts/snapshot.mjs",
@@ -945,7 +945,11 @@
     },
     {
       "path": "scripts/source-build.mjs",
-      "sha256": "5b01ed88949a62fc91f4602e93c9dc924a72cd0875d939071c21a170de02a6c8"
+      "sha256": "1b02444a092ea020f7d7b1b57c70f54b957912492d8227a61de64848742b5c7a"
+    },
+    {
+      "path": "scripts/source-npm.mjs",
+      "sha256": "04a313e9878119e068042f71ab368fc29de2cf627f3a21ce43aa0b841791774e"
     },
     {
       "path": "scripts/source-upgrade.mjs",
@@ -957,7 +961,7 @@
     },
     {
       "path": "scripts/start-source.mjs",
-      "sha256": "008520bc462f37381da9b42c579dcdbc66ffecee22da2246236c7244e1373b11"
+      "sha256": "1607dd187b754c2ea285f3c16883c684d3de9022a1bc1494e3f357688d460d91"
     },
     {
       "path": "scripts/start.mjs",

@@ -1,8 +1,8 @@
 /** Immutable, reproducible runtime copy. No private files or Git state are copied. */
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
-import {existsSync,readdirSync,readFileSync,mkdirSync,writeFileSync,copyFileSync,cpSync,renameSync,rmSync,lstatSync,unlinkSync,symlinkSync} from 'node:fs';
-import {join,relative,dirname,isAbsolute} from 'node:path';
+import {existsSync,readdirSync,readFileSync,mkdirSync,writeFileSync,copyFileSync,cpSync,renameSync,rmSync,lstatSync,unlinkSync,symlinkSync,realpathSync} from 'node:fs';
+import {join,relative,dirname,isAbsolute,delimiter} from 'node:path';
 import {isShareableFile} from './repository-policy.mjs';
 import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
 export const hash = value => createHash('sha256').update(value).digest('hex');
@@ -32,14 +32,18 @@ export async function command(command,args,options={}) {
  if(code!==0)throw Error(`${command} 执行失败（${code}）。原可用版本和数据未被此构建替换。`);
  return output.trim();
 }
-export async function npmCommand(args,options) {
+function npmCli() {
  // npm.cmd cannot be spawned directly on Windows; invoking npm's JS CLI avoids shell quoting.
  const candidates=[process.env.npm_execpath,join(dirname(process.execPath),'node_modules','npm','bin','npm-cli.js')].filter(Boolean);
  // execPath is a filename; resolve its sibling via path normalization.
- const cli=candidates.find(p=>existsSync(p));
- if(cli)return command(process.execPath,[cli,...args],options);
- if(process.platform==='win32')throw Error('未找到 npm。请安装包含 npm 的 Node.js 24，再重新启动。');
- return command('npm',args,options);
+ if(process.platform!=='win32')for(const dir of (process.env.PATH||'').split(delimiter).filter(Boolean))candidates.push(join(dir,'npm'));
+ const cli=candidates.find(p=>isAbsolute(p)&&existsSync(p));
+ if(!cli)throw Error('未找到 npm。请安装包含 npm 11 的 Node.js 24，再重新启动。');
+ return realpathSync(cli);
+}
+function npmInBuild(checkout,target,args,options={}) {
+ const npmrc=join(checkout,'.npmrc');if(existsSync(npmrc))assertNoPathLinks(npmrc);
+ return command(process.execPath,[join(import.meta.dirname,'source-npm.mjs'),npmCli(),target,...args],{...options,cwd:checkout});
 }
 /** An npm installation record is evidence of versions, not a cryptographic file receipt. */
 export function validateInstalledVersions(root) {
@@ -73,22 +77,17 @@ function linkWorkspaces(root,finalRoot=root) {
   symlinkSync(process.platform==='win32'?join(finalRoot,'packages',name):relative(dirname(link),join(root,'packages',name)),link,process.platform==='win32'?'junction':'dir');
  }
 }
-async function validateDependencies(root,cache) {
+async function validateDependencies(root,checkout) {
+ assertNoPathLinks(join(root,'node_modules'));
  validateInstalledVersions(root);
- await npmCommand(['ls','--all','--offline','--json','--cache',cache],{cwd:root,capture:true});
+ await npmInBuild(checkout,root,['ls','--all','--offline','--json'],{capture:true});
  const dependencies=Object.keys(JSON.parse(readFileSync(join(root,'packages/server/package.json'),'utf8')).dependencies);
  const modules=dependencies.map(n=>n==='pdfjs-dist'?'pdfjs-dist/legacy/build/pdf.mjs':n);
  const probe=`for(const name of ${JSON.stringify(modules)})await import(name);const esbuild=await import('esbuild');esbuild.transformSync('const ok: boolean=true',{loader:'ts'});`;
  await command(process.execPath,['--input-type=module','-e',probe],{cwd:root,capture:true});
 }
 async function prepareDependencies(root,stage,previous,identity) {
- // npm resolves project-relative cache against the checkout, not the transient build directory.
- const configuredCache=await npmCommand(['config','get','cache'],{cwd:root,capture:true});
- if(!configuredCache||!isAbsolute(configuredCache))throw Error('无法确认npm缓存绝对路径，未停止原服务');
- const npmrc=join(root,'.npmrc'),temporaryConfig=join(stage,'.npmrc');
- // Honor registry/proxy settings without retaining a potentially private npmrc in the runtime copy.
- if(existsSync(npmrc)){assertNoPathLinks(npmrc);copyFileSync(npmrc,temporaryConfig);}
- try {
+ // npm reads the original configuration in memory; even an interrupted build has no npmrc copy.
   const candidates=[];
   if(previous&&readBuild(previous)?.dependencyKey===identity.dependencyKey)candidates.push(previous);
   if(existsSync(join(root,'node_modules')))candidates.push(root);
@@ -98,23 +97,22 @@ async function prepareDependencies(root,stage,previous,identity) {
     validateInstalledVersions(candidate);
     // Compare with THIS build's lock after copying; no assumption that checkout modules match a changed lock.
     cpSync(join(candidate,'node_modules'),join(stage,'node_modules'),{recursive:true,verbatimSymlinks:true});
-    linkWorkspaces(stage);await validateDependencies(stage,configuredCache);
+    linkWorkspaces(stage);await validateDependencies(stage,root);
     console.log('已核对并复制本机依赖，无需联网重新安装。');return;
    }catch{
     rmSync(join(stage,'node_modules'),{recursive:true,force:true});
     console.log('本机依赖副本不完整或与当前锁文件不符，继续按锁文件准备。');
    }
   }
-  const args=['ci','--no-audit','--no-fund','--cache',configuredCache];
+  const args=['ci','--no-audit','--no-fund'];
   console.log('正在尝试本机npm缓存的离线安装…');
-  try{await npmCommand([...args,'--offline'],{cwd:stage,capture:true});}
+  try{await npmInBuild(root,stage,[...args,'--offline'],{capture:true});}
   catch{
    console.log('缓存不足，尝试按当前锁文件获取缺少的依赖…');
-   try{await npmCommand([...args,'--prefer-offline'],{cwd:stage});}
+   try{await npmInBuild(root,stage,[...args,'--prefer-offline']);}
    catch{throw Error('当前锁文件的依赖未准备完整。请检查npm缓存、网络/注册表和磁盘空间，修复后重新启动；未停止原服务，不会静默运行旧源码。');}
   }
-  linkWorkspaces(stage);await validateDependencies(stage,configuredCache);
- }finally{if(existsSync(temporaryConfig))unlinkSync(temporaryConfig);}
+  linkWorkspaces(stage);await validateDependencies(stage,root);
 }
 export function readBuild(root) {
  try {assertNoPathLinks(join(root,'SOURCE_BUILD.json'));const m=JSON.parse(readFileSync(join(root,'SOURCE_BUILD.json'),'utf8'));return m.format===1&&/^[a-f0-9]{64}$/.test(m.id)?m:null;}catch{return null;}
@@ -128,6 +126,12 @@ export function verifyBuild(root,expected) {
  const digest=treeHash(join(root,'web'));if(digest!==m.frontendSha256)throw Error('运行副本界面不完整或已变化');
  return m;
 }
+export async function verifyReadyBuild(root,expected,checkout) {
+ const metadata=verifyBuild(root,expected);
+ try {await validateDependencies(root,checkout);}
+ catch {throw Error('本地运行副本依赖不完整或不可用，未停止原服务：'+root+'。请按安装指南核对并重新准备；保留数据和成功记录，不会静默运行旧源码。');}
+ return metadata;
+}
 export function treeHash(root) {
  const h=createHash('sha256');
  const walk=dir=>{for(const e of readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const p=join(dir,e.name);assertNoPathLinks(p);if(e.isDirectory())walk(p);else {h.update(relative(root,p).replaceAll('\\','/'));h.update(readFileSync(p));}}};walk(root);return h.digest('hex');
@@ -135,7 +139,7 @@ export function treeHash(root) {
 export async function prepareBuild(root,cache,previous) {
  assertNoPathLinks(cache);mkdirSync(cache,{recursive:true});
  const identity=sourceIdentity(root),target=join(cache,identity.id);
- if(existsSync(target)){verifyBuild(target,identity.id);return {root:target,...identity};}
+ if(existsSync(target)){await verifyReadyBuild(target,identity.id,root);return {root:target,...identity};}
  const stage=join(cache,identity.id+'.building-'+process.pid);mkdirSync(stage);
  try {
   for(const file of identity.files){const out=join(stage,file);mkdirSync(join(out,'..'),{recursive:true});copyFileSync(join(root,file),out);}

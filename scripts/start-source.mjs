@@ -6,7 +6,7 @@ import {createInterface} from 'node:readline/promises';
 import {loadRuntimeLayout} from '../packages/server/src/core/runtime-layout.ts';
 import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
 import {assertTestIsolation} from '../packages/server/src/core/test-isolation.ts';
-import {prepareBuild,verifyBuild} from './source-build.mjs';
+import {prepareBuild,verifyReadyBuild} from './source-build.mjs';
 import {pendingMigrations,backupAndRehearse} from './source-upgrade.mjs';
 
 assertTestIsolation();
@@ -48,7 +48,7 @@ try{
  const savedRoot=saved?.id&&/^[a-f0-9]{64}$/.test(saved.id)&&saved.sourceRoot===ROOT?join(cache,saved.id):null;
  let build;
  try{
-  if(args.includes('--last-good')){if(!savedRoot)throw Error('本目录没有可核验的上次可用副本');const m=verifyBuild(savedRoot,saved.id);build={root:savedRoot,...m};console.log('明确选择上次可用版本：'+m.id.slice(0,12));}
+  if(args.includes('--last-good')){if(!savedRoot)throw Error('本目录没有可核验的上次可用副本');const m=await verifyReadyBuild(savedRoot,saved.id,ROOT);build={root:savedRoot,...m};console.log('明确选择上次可用版本：'+m.id.slice(0,12));}
   else build=await prepareBuild(ROOT,cache,savedRoot);
  }catch(e){console.error('准备失败；未停止原服务，也未更新数据库。');console.error('修好问题后重新双击。需要恢复时，可明确运行 node scripts/start.mjs --last-good --open；历史发布包仍可用 --release 入口核对启动。');throw e;}
  const expectedPlan=pendingMigrations(layout.dbFile,build.root);
