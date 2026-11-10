@@ -1,6 +1,6 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.29。更新：2026-11-10。性质：当前源码的结构与运行设计。
+文档ID：KB-ARCHITECTURE。版本：1.30。更新：2026-11-10。性质：当前源码的结构与运行设计。
 
 本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
@@ -153,7 +153,9 @@ Vite开发端口5273，代理跟随WORKBENCH_DEV_PORT，并在转发前核对后
 
 ## 8. 启动、发布与恢复
 
-start.mjs默认进入start-source：从当前检出的共享应用源码、锁文件及Node ABI/平台/架构计算摘要，复制到.local/source-builds的专属准备目录，安装或复用相同锁文件/Node ABI/平台/架构的依赖副本，构建配套web，校验源文件未变化后定名。固定运行副本带SOURCE_BUILD.json；再次使用核对源码及前端摘要。缓存、构建和依赖不覆盖在线实例或项目node_modules；没有自动清理旧副本。旧current-release.json保留但不再控制默认入口，start-release只作为显式兼容恢复。
+start.mjs默认进入start-source：从当前检出的共享应用源码、锁文件及Node ABI/平台/架构计算摘要，复制到.local/source-builds的专属准备目录，优先核对并复制上次同锁/同运行环境副本或本检出目录的已安装依赖，构建配套web，校验源文件未变化后定名。固定运行副本带SOURCE_BUILD.json；再次使用核对源码及前端摘要。缓存、构建和依赖不覆盖在线实例或项目node_modules；没有自动清理旧副本。旧current-release.json保留但不再控制默认入口，start-release只作为显式兼容恢复。
+
+依赖复用先比较package.json、完整锁记录和npm隐藏安装记录中的版本/来源/完整性字段，复制后重建workspace链接，核对实际版本、npm依赖图，并加载服务端外部依赖及执行本机esbuild探针；缺项或不匹配不复用。这里核对的是安装记录和可运行性，不是所有已安装文件的密码学完整性证明。无可用副本时，先在原检出根解析npm实际缓存绝对路径，以原项目.npmrc临时作用于准备目录，先离线npm ci，缓存不足再获取缺项；配置在准备结束移除，不写入完成副本。不删除原依赖、缓存或配置，不为网络失败运行旧源码。
 
 WORKBENCH_LAYOUT_ROOT仅由启动边界传入原检出根，保留旧配置与相对数据路径；INSTALL_ROOT仍指向运行副本，供loadedBuild标识实际加载源码；原检出根和副本均保留平台保护，不允许业务目录绑定。daily/development/test的数据约束保持，测试副本仍全部位于专属隔离根，不读取日常资源。source-update.lock串行化同一环境的准备与更新；server.lock保护实际数据库。未知、活跃或无法核对的锁不自动删除。
 

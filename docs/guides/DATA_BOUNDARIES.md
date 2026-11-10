@@ -95,4 +95,4 @@ git push
 
 运行架构验证用 `npm run test:runtime-layout`，包含临时后端启动与Vite错误环境阻断；该用例同样仅保留本机。
 
-源码运行缓存位于检出根.local/source-builds（test在隔离根内）；只复制共享源码和锁文件、准备独立依赖与web，不复制配置或业务资料。WORKBENCH_LAYOUT_ROOT由启动器指定原检出根以保持旧配置语义，健康身份来自实际副本；不能把该变量当作任意绕过路径守卫的配置。缓存及source-current、SOURCE_BUILD均是本机运行记录，不上传Git。
+源码运行缓存位于检出根.local/source-builds（test在隔离根内）；只复制共享源码和锁文件、准备独立依赖与web，不复制配置或业务资料。WORKBENCH_LAYOUT_ROOT由启动器指定原检出根以保持旧配置语义，健康身份来自实际副本；不能把该变量当作任意绕过路径守卫的配置。项目.npmrc仅临时参与依赖准备，不留在完成副本；npm缓存使用原检出根解析的绝对位置，不读取业务或模型配置。缓存及source-current、SOURCE_BUILD均是本机运行记录，不上传Git。
