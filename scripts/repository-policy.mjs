@@ -13,6 +13,7 @@ export function isShareableFile(input) {
   const p = input.replaceAll('\\', '/');
   if (p.startsWith('/') || p.split('/').some(s => s === '..' || s === '.' || !s)) return false;
   if (p === 'packages/server/src/core/convert-legacy-excel.ps1') return true;
+  if (/^packages\/server\/test\/shared\/[a-z0-9-]+\.ts$/.test(p)) return true;
   if (rootFiles.has(p)) return true;
   if (/^\.githooks\/(?:pre-commit|pre-push)$/.test(p)) return true;
   if (/^scripts\/[^/]+$/.test(p)) return sharedScripts.has(p.slice('scripts/'.length));

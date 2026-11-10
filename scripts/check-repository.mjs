@@ -44,8 +44,20 @@ try {
       const [, local, , remote] = line.trim().split(/\s+/);
       if (!/^[a-f0-9]{40,64}$/.test(local || '') || !/^[a-f0-9]{40,64}$/.test(remote || '')) throw Error('Invalid pre-push input');
       if (/^0+$/.test(local)) continue;
-      const range = /^0+$/.test(remote) ? local : remote + '..' + local;
-      for (const ref of git(['rev-list', range]).trim().split('\n').filter(Boolean)) checkRef(ref);
+      // A new branch on an existing remote can share already-delivered history.
+      // Only tips advertised by this push destination and present locally may be excluded.
+      let revisions = [remote + '..' + local];
+      if (/^0+$/.test(remote)) {
+        revisions = [local];
+        if (args[1]) {
+          const tips = git(['ls-remote', '--refs', '--', args[1]]).split('\n').map(line => line.split('\t')[0]).filter(tip => /^[a-f0-9]{40,64}$/.test(tip));
+          for (const tip of new Set(tips)) {
+            try { git(['cat-file', '-e', tip + '^{commit}']); revisions.push('^' + tip); }
+            catch { /* Unavailable remote object cannot exclude local history. */ }
+          }
+        }
+      }
+      for (const ref of git(['rev-list', ...revisions]).trim().split('\n').filter(Boolean)) checkRef(ref);
     }
   } else if (args[0] === '--ref' && /^[a-zA-Z0-9_./-]+$/.test(args[1] || '') && !args[1].startsWith('-')) {
     checkRef(args[1]);

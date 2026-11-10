@@ -28,10 +28,15 @@ export function interpretRecord(text:string,today=recordToday()) {
   if(word in days){from=shift(today,days[word]!);to=from;precision='day';}
   else if(/周/.test(word)){const weekday=new Date(today+'T00:00:00Z').getUTCDay()||7;from=shift(today,1-weekday-(word==='上周'?7:0));to=shift(from,6);precision='range';}
   else {let y=Number(today.slice(0,4)),m=Number(today.slice(5,7));if(/上/.test(word)&&--m===0){y--;m=12}({from,to}=monthRange(y,m));precision='month';}
- }else if(!explicit.length&&!relative.length){const m=text.match(/(?<!\d)(\d{1,2})月(\d{1,2})日/);if(m&&!/前年|明年/.test(text)){try{from=date(`${Number(today.slice(0,4))-(/去年|上年/.test(text)?1:0)}-${m[1]!.padStart(2,'0')}-${m[2]!.padStart(2,'0')}`);to=from;precision='day';}catch{/* retain raw text */}}}
+ }else if(!explicit.length&&!relative.length){const m=text.match(/(?<!\d)(\d{1,2})月(\d{1,2})日/);if(m&&/今年|去年|上年/.test(text)&&!/前年|明年/.test(text)){try{from=date(`${Number(today.slice(0,4))-(/去年|上年/.test(text)?1:0)}-${m[1]!.padStart(2,'0')}-${m[2]!.padStart(2,'0')}`);to=from;precision='day';}catch{/* retain raw text */}}}
  const plan=/计划|准备|打算|拟于|明天|后天|下周|下月|将要/.test(text),done=/已经|已(?!经?计划|经?准备)|完成了|发给.*了|发送.*了|提交.*了|整理.*了|参加.*了|开.*会了|办好了/.test(text);
  const negative=/未|没有|没能|尚未|假设|如果|比如|例如|他说|她说|转述|是否|[?？]/.test(text);
- let nature:RecordNature=plan&&done?'unknown':plan?'plan':!negative&&done?'done':/正在|进行中|处理中|推进中/.test(text)?'progress':'unknown';
+ let nature:RecordNature='unknown';
+ if(!negative && !(plan && done)) {
+  if(plan) nature='plan';
+  else if(done) nature='done';
+  else if(/正在|进行中|处理中|推进中/.test(text)) nature='progress';
+ }
  if(nature==='done'&&from&&from>today)nature='unknown';
  return {occurred_from:from,occurred_to:to,date_precision:precision,nature};
 }

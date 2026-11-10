@@ -22,6 +22,7 @@ mkdirSync(join(ROOT,'.tmp'),{recursive:true});const tmp=mkdtempSync(join(ROOT,'.
 const filter=src=>{
  const p=relative(ROOT,src).split(sep).join('/');
  if(lstatSync(src).isSymbolicLink())return false;
+ if(p==='packages/server/test'||p==='packages/server/test/shared')return true;
  if(statSync(src).isDirectory())return !p.split('/').some(n=>['node_modules','.git','.tmp','.npm-cache','test','tests','fixtures','archive','collab','prototypes','dist'].includes(n));
  if(!isShareableFile(p))return false;
  if(contentIssues(readFileSync(src)).length)throw Error('程序包内容检查失败：'+p);

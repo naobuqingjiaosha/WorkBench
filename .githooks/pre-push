@@ -1,2 +1,2 @@
 #!/bin/sh
-exec node scripts/check-repository.mjs --pre-push
+exec node scripts/check-repository.mjs --pre-push "$2"
