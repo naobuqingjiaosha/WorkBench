@@ -1,18 +1,26 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.40。更新：2026-11-11。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.41。更新：2026-11-11。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
 
-## 2026-11-11｜GOV-06｜Windows启动排障与单一用户入口
+## 2026-11-11｜GOV-06｜Windows启动排障、单一入口与大文件传输修复
 
-**依据与修改：** 用户要求直接修复原目录正常启动、保留业务数据并收敛入口。开工main/fdee5a8，工作区干净，跟踪origin差异0/0；远端实时读取因代理连接失败未核实。删除仅包含启动代码的预览候选工作台.cmd、scripts/preview.mjs及package.json别名，同步pack和仓库允许清单，未删除候选数据/缓存/业务文件。source-build大文件异步转译探测替换不足1 MB的同步探测，输出真实依赖错误；复制依赖遇EPERM/EACCES停止，避免掩盖为缺包并继续安装。未改变TMP、ACL、完整性标签、安全软件或管理员权限。start/start:auto保留同链单实例；last-good/release仅恢复；dev:monthly和内部测试保留隔离。
+**依据与Windows先前工作：** 用户要求直接修复原目录正常启动、保留业务数据并收敛入口。Windows阶段开工main/fdee5a8、工作区干净；删除预览候选工作台.cmd、scripts/preview.mjs及package.json别名，同步pack和仓库允许清单，未删除候选数据/缓存/业务文件；source-build增加超过1 MB异步转译探针。普通Vite构建84模块、类型检查、startup与isolation曾通过。工具执行npm start在准备副本mkdir遭EPERM，repository隔离Git写入被拒，健康接口遭套接字拒绝，均未到停服务/迁移。这些工具失败发生在Low Mandatory Level沙箱，临时根不同于普通用户截图，不能推断桌面同样失败。原约1.6 MB esbuild临时输入非只读、ACL完全控制；占用及执行完整性根因未定。该阶段结果保留，不作为云端修复验收。
 
-**实际验证与阻碍：** 普通前端构建84模块通过，前后端类型检查通过；共享startup专项的单入口、同链/确认保护、大于1 MB转译通过。isolation通过；repository专项在隔离临时checkout/.git/config写入遭Permission denied失败，未绕过重试。npm start -- --start-only --background实际执行，在.local/source-builds/162866335223dc8851519a6090959e55d2ea9a7a6ead46b4be8daa88b4c76781.building-30288/node_modules/@fast-csv/parse创建目录遭EPERM，停在准备阶段，未停止服务/迁移/更新日常库。8787健康读取遭套接字权限拒绝，CIM进程占用查询不可访问，未执行页面验证。原esbuild临时文件仍存在、1618044字节、Archive属性、用户ACL完全控制；本轮构建使用执行器重定向临时根通过，不能证明原TEMP安全上下文正常，也未证明占用来源。No Git metadata提示并非构建失败原因。未再次启动受阻日常操作，不宣称恢复完成。
+**云端同步与授权边界：** 用户明确要求先同步再云端修改并表示已手动推送。仓库经GitHub元数据核对为naobuqingjiaosha/WorkBench（ID 1434044454）；原work分支HEAD b8a5a0097d44e3df8a676cca7a27639bd59f1710且无工作区改动。fetch及收尾ls-remote均核实main为a07f14c955efff5418b179cf0ccdb0f9fb9431ec，以该SHA建立fix/windows-esbuild-temp，未reset或覆盖已有修改。仓库与工作区无相关.agents/skills。初期仅保存修复及提交准备；收尾时父任务实际核验用户对每轮完成后提交推送的确认，并明确授权本轮普通快进推送main，替代初期保留限制。不force push、不覆盖其他工作、不部署或访问真实库。
 
-**五根与交付：** GPT_CONTEXT更新唯一入口与故障边界；CONTEXT无术语变化；PRODUCT_REQUIREMENTS无业务需求变化；SYSTEM_ARCHITECTURE说明启动链与大文件检查；DEVELOPMENT_PROGRESS整合Windows现状。安装/月度指南、原GOV-06和生成索引同步。无仓库技能目录。仅本地保存，不暂存、提交、推送，不自动确认数据库迁移。剩余为运行身份/文件占用核实及正常用户入口、健康与页面验收；任何安全设置变更需另行具体确认。建议提交说明：fix(startup): consolidate entry and diagnose Windows build permissions。
+**源码证据与策略：** 锁定Vite 7.3.6的esbuild-transpile调用transform；esbuild 0.28.2的Node main.js在输入长度超过1024×1024后写临时文件，原生handleTransformRequest读后os.Remove，失败直接返回错误；只有inputFS时才将输出和映射写文件。核对本机安装源码及上游[v0.28.2 service.go](https://github.com/evanw/esbuild/blob/v0.28.2/cmd/esbuild/service.go)、[common.ts](https://github.com/evanw/esbuild/blob/v0.28.2/lib/shared/common.ts)。新增构建专用同步加载适配，校验完整main.js SHA-256（61ec0ba144ff93f4bf0e96ad6fab6f430ede0aa13e27ace8063ed63ba416b3cd）和唯一改写位置，只关闭临时文件传输优化，复用已有标准输入输出协议；不修改node_modules、编译选项或权限。未知源码/提前加载/不同esbuild解析明确停止。这是规避故障通道，不是Windows操作系统根因结论；内存传输及依赖升级需重新核验的维护成本明确保留。
+
+**文件与前后变化：** 新增scripts/esbuild-transport.mjs；修改packages/web/package.json使生产构建预加载同一适配。scripts/source-build.mjs在真实构建和大输入预检启用适配，复制/运行探针失败停止；scripts/source-npm.mjs与command通过IPC只传固定错误码，stderr保留原脱敏诊断；离线安装仅ENOTCACHED补取一次，清理失败另报而不遮蔽原错误。package.json将四个启动专项纳入npm test；修改shared/startup.ts，新增shared/startup-transport.ts、startup-npm.ts、startup-build.ts，合成故障/数据在测试时生成清理。新增脚本进入.gitignore和repository-policy共享白名单；无依赖或锁文件版本变化。GPT_CONTEXT、SYSTEM_ARCHITECTURE、DEVELOPMENT_PROGRESS与安装/开发/运维指南、PROJECT_PLAN、QUALITY_AND_ACCEPTANCE整合实现、恢复及验收边界；本条合并同一任务进展，不追加重复日志。docs/README.md、docs/knowledge-index.json、docs/reference/source-inventory.json由生成器维护，实际变化以diff为准。
+
+**实际验证：** 云端Node 24.22.1/npm 11.9.0。初始预装依赖缺少当前锁要求的playwright-core安装记录，首次启动套件未通过；按锁npm ci成功安装307包后复验。新测试初稿两次被隔离守卫拒绝（临时父目录/代码与数据根重叠），修正测试布局，未放宽守卫。最终npm run typecheck的前后端均通过；npm test全部13组通过。启动专项包含5种小/超1 MiB/中文大输出/TSX/CSS输入与代码、警告及源码映射逐字节对照；修前合成remove Access is denied导致失败，修后零临时传输文件、编译结果一致，语法错误仍失败、安装文件字节不变。npm专项的EPERM/EACCES/ENOSPC单次停止、ENOTCACHED仅补取一次、清理失败保留原错误通过。完整隔离真实Vite构建/后端启动（合成中文含空格代码路径，预加载路径使用file URL）、同版本复用、构建语法失败与原生转译拒绝下旧PID/DB及WAL/业务文件/备份/成功指针/前端不变、摘要漂移拒绝及退出清理通过。npm run build -- --outDir <本轮临时目录>通过（84模块）；未适配Vite与适配构建的完整前端treeHash均为5469c223ae77c980752fe410a710f59fd0af113940d8fa6ebb7249d39ce32e09。最终四个启动专项复验通过；仓库边界检查299文件通过，文档生成/检查通过（24文档、265源码、286路由、42迁移），git diff --check通过。
+
+**五份根文档复核与未验项：** GPT_CONTEXT修正云端接续状态；SYSTEM_ARCHITECTURE整合构建传输与错误分类；DEVELOPMENT_PROGRESS纠正普通桌面/工具沙箱边界和实际代码状态；CONTEXT无术语变化，PRODUCT_REQUIREMENTS既有失败保全与单实例要求适用，全文复核后正文不改。未运行Windows普通用户双击、原生临时文件删除/锁、真实数据/备份迁移、浏览器、Office、真实模型或私有旧全套；仓库无.github/workflows，该提交PR工作流查询为空，未取得Windows CI通过证据。云端Linux及合成协议故障不能代验Windows原故障。旧数据路径data/runtime/workbench.db、单实例和唯一用户入口保持；无ACL/完整性/安全软件修改、提权或被拒Windows操作重试。
+
+**交付与最小接续：** 父任务已独立审阅11个核心源码/测试文件，未发现确定性阻断；作者收尾复核全部22文件、文档与生成索引，范围仅源码、合成用例及开发文档，无真实资料或配置凭证。交付前再次核对远端main仍为a07f14c955efff5418b179cf0ccdb0f9fb9431ec；本批按已核验授权从fix/windows-esbuild-temp形成提交并普通推送HEAD:main，提交标题为fix(startup): avoid esbuild temp-file transport and preserve build failures。实际提交SHA、推送结果及精确提交CI状态以收尾Git/远端核验报告为准，不将本文当作推送证明。未部署、发布运行包或更新日常数据库。目标Windows正常用户上下文仍需先在合成隔离环境回放启动专项，日常库启动/迁移另行授权，不能宣称Windows已恢复。后续沿既有GOV-06处理。
 
 ## 2026-11-11｜GOV-11｜工作分支源码同步至 main
 

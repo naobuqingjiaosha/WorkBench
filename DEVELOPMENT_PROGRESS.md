@@ -1,19 +1,19 @@
 # 开发进度与当前基线
 
-文档ID：KB-PROGRESS。版本：1.53。更新：2026-11-11。
+文档ID：KB-PROGRESS。版本：1.54。更新：2026-11-11。
 
 ## 1. 源码、构建与日常运行
 
 | 对象 | 已核实的身份和范围 |
 |---|---|
 | 源码起点 | Mac 原检出开工时的本地与远端 main 均为 `913b002a613d4b06b0a67172b009885af6fb30d1`。已有首页、列表、工时输入/月报/人员范围和配套文档的未提交修改。本次在 `codex/workbench-delivery` 上接续。 |
-| 主线源码 | 2026-11-11，`main` 从 `913b002` 快进到工作分支的 `0337539`，另以文档提交记录同步。独立检出按锁安装、类型检查、生产构建、共享业务和浏览器回归通过。上一轮程序 ZIP 的提交仍为 `0cafb92`。 |
+| 主线源码 | 2026-11-11 云端核对仓库 naobuqingjiaosha/WorkBench（ID 1434044454），远端 main 为 `a07f14c955efff5418b179cf0ccdb0f9fb9431ec`，含用户推送的入口收敛与大文件预检。云端原 work/b8a5a00 无修改，以 origin/main 建立 fix/windows-esbuild-temp；本轮修复已完成云端验证及父任务对11个核心文件的独立审阅，按已核验的每轮交付授权提交并普通快进推送main；实际提交与远端身份以Git核对，日常设备未部署。早前交付候选身份保留如下。 |
 | 交付候选 | 以软件候选 `92f6099` 和其交付记录 `16947ca` 为修前基线。工作分支 `codex/workbench-delivery` 已提交上传模板总计（`08229d6`）及正文、模板、排期保护（`b3573a7`）。程序 ZIP 由 Git 提交直接归档。完整提交、ZIP SHA-256、实际加载的前后端及锁文件摘要列于与 ZIP 同目录的“交付核验.json”。修前和修后证据见[工作日志](docs/management/WORK_LOG.md)。 |
 | Mac 日常实例 | 2026-11-10 只读核对 8787 的 `/api/health`，状态 ok、profile 为 daily，已加载的 sourceBuildId 与 source-current.json 均为 `d2b1d8ffa9f82762ce3104cd1a654cabeef786c7c46db8bc7ffe6bf05e588878`。这是先前应用首页/列表后的源码构建。11 月 11 日同步源码时 8787 无监听，磁盘指针和构建清单仍为上述身份。 |
-| Windows 日常启动 | 2026-11-11本机main/fdee5a8工作区原干净。当前移除候选用户入口并加强启动前大文件转译检查；普通Vite构建84模块、前后端类型检查、隔离startup专项通过。npm start在构建依赖目录mkdir时EPERM，未到数据库迁移/重启；原数据库路径保持data/runtime/workbench.db。工具访问8787健康被套接字权限拒绝，未确认活动实例或页面。原esbuild约1.6 MB临时文件仍在、非只读，用户ACL完全控制；不能据此排除完整性限制或瞬时占用，根因未定。未提权/修改ACL或安全软件。仅本地保存，未提交推送；日常恢复未完成。 |
+| Windows 日常启动 | 普通用户截图中 Vite/esbuild 删除约1.6 MB临时输入被拒绝，文件非只读、用户ACL完全控制，但占用/完整性根因未定。此前工具的mkdir EPERM、健康套接字和隔离Git拒绝发生在Low Mandatory Level沙箱，与普通桌面TEMP不同，不能推广为桌面故障。云端已实现锁定esbuild的标准输入输出传输适配及错误分类；Linux类型检查、84模块构建、13组共享回归（含完整隔离启动/失败保护）通过，前端产物与原通道摘要一致。用户Windows普通入口、原生锁/权限和实际页面未验；无可读Windows CI通过证据。数据路径仍为data/runtime/workbench.db，无真实库访问、迁移或部署，不能宣称日常已恢复。 |
 | 数据与文件 | 已有 SQLite 迁移集合、文件目录和成果版本保留。候选复验使用独立数据库、临时路径、合成输入。已在合成旧库副本上进行升级与配套文件恢复；真实数据恢复需单独核验外部资料及权限。 |
 
-候选解压后按[安装指南](docs/guides/INSTALLATION.md)进入独立预览。日常用 `npm start` 或“启动工作台.cmd”，开发服务默认使用独立根及 18889，自动化从 `scripts/test-isolated.mjs` 初始化独占测试根。源码、运行副本、前端包、日常数据库各有身份；重开一个旧浏览器标签不能核准一个新版本。
+源码包接续按[安装指南](docs/guides/INSTALLATION.md)；候选使用隔离测试验证，不恢复候选用户入口。日常用 `npm start` 或“启动工作台.cmd”，开发服务默认使用独立根及 18889，自动化从 `scripts/test-isolated.mjs` 初始化独占测试根。源码、运行副本、前端包、日常数据库各有身份；重开一个旧浏览器标签不能核准一个新版本。
 
 ## 2. 场景进度与证据
 
@@ -38,4 +38,4 @@
 
 ## 4. 交付边界
 
-Windows 的预览启动、已占用文件的写回、Microsoft Office 桌面打开/重算/打印，以及代表性真实资料的逐日对账、真实模板与项目档案核对，均保留为目标机验收项。真实模型业务质量和旧设备日常版本也未在本轮复验。可重复的技术证据、候选包检查及最少试用步骤分别见[质量矩阵](docs/management/QUALITY_AND_ACCEPTANCE.md)、[工作日志](docs/management/WORK_LOG.md)和[安装指南](docs/guides/INSTALLATION.md)。下一步只维护在[项目计划](docs/management/PROJECT_PLAN.md)。
+Windows 普通用户的唯一日常入口启动、已占用文件的写回、Microsoft Office 桌面打开/重算/打印，以及代表性真实资料的逐日对账、真实模板与项目档案核对，均保留为目标机验收项。真实模型业务质量和旧设备日常版本也未在本轮复验。可重复的技术证据、候选包检查及最少试用步骤分别见[质量矩阵](docs/management/QUALITY_AND_ACCEPTANCE.md)、[工作日志](docs/management/WORK_LOG.md)和[安装指南](docs/guides/INSTALLATION.md)。下一步只维护在[项目计划](docs/management/PROJECT_PLAN.md)。

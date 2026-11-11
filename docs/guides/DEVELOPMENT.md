@@ -1,6 +1,6 @@
 # 开发与验证指南
 
-文档ID：GUIDE-DEVELOPMENT。版本：1.21。更新：2026-11-10。适用：本仓库开发工作区；不会自动授权日常发布。
+文档ID：GUIDE-DEVELOPMENT。版本：1.22。更新：2026-11-11。适用：本仓库开发工作区；不会自动授权日常发布。
 
 共享范围包括应用、构建规则、通用工具、文档、配置样例与 `packages/server/test/shared` 内的合成回归。实际资料、配置、历史私有用例及验收产物保留本机。详见[资料边界](DATA_BOUNDARIES.md)。
 
@@ -33,6 +33,8 @@ npm ci会重建node_modules；已有环境不是每次任务都要运行，更�
 新克隆用 `npm ci` 安装锁定依赖，再运行 `npm test`。工时针对性复验用 `npm run test:monthly`，包含常规模板和原总计在插行、补列后的对照。编辑器实页可单独用 `node scripts/test-isolated.mjs --shared work-documents-browser templates-schedule-browser` 回放。这些用例生成自己的来源文件、日期、预期与 SQLite 数据，结束回收。浏览器驱动已按锁文件固定。首次运行 `npx playwright-core install chromium` 安装匹配的浏览器，之后用 `npm run test:browser` 回放；可通过 PLAYWRIGHT_MODULE、PLAYWRIGHT_BROWSERS_PATH 指向已安装工具，CANDIDATE_WEB_DIST 可指定要复验的已构建界面。
 
 `npm run test:legacy:all` 保留原机完整套件；`--unit <名称>` 单独运行已安装的私有专项。缺旧用例明确报错。共享通过和历史全套分别记录。
+
+启动定向回归用 `node scripts/test-isolated.mjs --shared startup startup-transport startup-npm startup-build`，也已纳入npm test。包含唯一用户入口、大输入/大输出/映射的原编译结果对照、合成临时删除故障、语法错误、npm错误码与清理失败保因、完整构建启动/同实例复用，以及更新准备失败时原PID、库、文件、备份和成功记录不变。startup-build复制合成源码到临时代码目录，数据仍在runner专属根，结束停止服务并清理；执行前需按锁安装完整依赖。故障注入只存在测试进程，没有生产故障开关，不更改系统权限，不能代替Windows普通用户双击验收。
 
 隔离启动器在子进程执行前设置数据库、文件、运行、备份、OCR、前端等绝对路径，并预加载test-preflight。不要直接运行业务测试文件，也不要先静态import应用再设置隔离变量。
 

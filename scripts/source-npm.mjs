@@ -26,8 +26,10 @@ try {
  process.chdir(target);npm.config.setEnvs();
  if(npm.prefix!==resolve(target))throw Error('unexpected install root');
  await npm.exec(loaded.command,loaded.args);
-} catch {
+} catch (error) {
  // npm renders its own redacted diagnostics; never serialize config/error objects here.
- console.error('npm依赖准备/检查失败。需要Node.js 24配套的npm 11；请核对依赖、npm配置及网络。');
+ const code=/^[A-Z][A-Z0-9_]{1,40}$/.test(error?.code)?error.code:'NPM_PREPARE_FAILED';
+ process.send?.({type:'npm-failure',code});
+ console.error('npm依赖准备/检查失败（'+code+'）。需要Node.js 24配套的npm 11；请核对依赖、npm配置及网络。');
  process.exitCode=1;
 } finally {npm?.unload();}

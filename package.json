@@ -29,7 +29,7 @@
     "typecheck": "npm run typecheck:server && npm run typecheck:web",
     "typecheck:server": "tsc -p tsconfig.json --noEmit",
     "typecheck:web": "tsc -p packages/web/tsconfig.json --noEmit",
-    "test": "node scripts/test-isolated.mjs --shared isolation repository recovery work-records periods projects timesheet ledger timesheet-formulas",
+    "test": "node scripts/test-isolated.mjs --shared isolation repository startup startup-transport startup-npm startup-build recovery work-records periods projects timesheet ledger timesheet-formulas",
     "test:evidence-writing": "node scripts/test-isolated.mjs --unit evidence-writing && node scripts/test-isolated.mjs --unit evidence-writing-boundaries && node scripts/test-isolated.mjs --unit evidence-directed && node scripts/test-isolated.mjs --unit evidence-semantic-entry && node scripts/test-isolated.mjs --unit evidence-citation-contract",
     "test:stability": "node scripts/test-isolated.mjs --unit system-stability && node scripts/test-isolated.mjs --unit workbench-count && node scripts/test-isolated.mjs --unit trash-fact-review",
     "test:business-ai": "node scripts/test-isolated.mjs --unit phase5-business-assistant",

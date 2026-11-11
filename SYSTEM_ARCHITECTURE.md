@@ -1,6 +1,6 @@
 # 系统架构
 
-文档ID：KB-ARCHITECTURE。版本：1.37。更新：2026-11-10。性质：当前源码的结构与运行设计。
+文档ID：KB-ARCHITECTURE。版本：1.38。更新：2026-11-11。性质：当前源码的结构与运行设计。
 
 本文回答系统由哪些部分组成、怎样协作和保存数据。实际运行版本、测试结果和交付进度由[开发进度](DEVELOPMENT_PROGRESS.md)维护；项目介绍见[README](README.md)，业务含义见[术语](CONTEXT.md)。
 
@@ -37,7 +37,7 @@ Workbench行政创建将编号、额外模板和说明放入可选折叠区，�
 
 项目月报沿用timesheet_source上传副本与digest校验，inspect增加project-report种类；解析器跳过空页，寻找唯一项目名称/项目建设单位/本月完成情况表头，不依赖Sheet1、固定行列。重复表头/公式字段/缺失名称/异月标题拒绝，保留同名源行和100%项目；只从表头之前月报标题读显式年月，不读取下月计划推断月份。模板catalog按明确项目名称及客户名称/合同编号表头提取参考值，歧义给提示，原departmentLayout项目名仍可复用。ProjectReportReview与project-report-input管理候选、逐项确认、显式合并及可选简称；pendingProjectReport计入原草稿/离开保护，恢复清除验证和确认，重新读取源文件，待采用禁算。采用合并清单并保留人员参与、手工输入及旧来源；installTimesheetTemplate保护已有清单和参与关系，模板people只写入前端peopleCandidates，不写requiredPeople或assignments；历史偏好只进入referencePeople参考展示。既有名单文本框是明确确认范围入口，无名单禁算，独立切月把旧名单降为候选。projectReport与最多10份替换来源projectReportHistory进入原run输入JSON；计算时重新读取来源、核对digest/月/源行/显式确认，保存来源字段与映射快照及sourceFiles，定稿前重验副本。采用记录供溯源，之后人工清单/参与调整仍以当前输入为准，不由历史月报选择强制推算人员工时。createTimesheetRun及创建API要求显式非空名单，不再回退模板姓名；模板inspect返回完整来源候选，preferences默认不设excluded。既有preferences数据只读保留，不迁移个人范围。每次计算仅重建已知自动“名单外”排除标记，使之后明确纳入人员不受旧派生标记阻挡；其他人工排除依据保留，原历史不改。无新表、迁移或分配算法。
 
-启动入口统一为启动工作台.cmd及其同链npm start；start:auto兼容单实例，last-good/release仅显式恢复。候选预览脚本及npm别名移除，既有数据不清理；dev:monthly与隔离运行器保留内部验证职责。source-build依赖探测覆盖超过1 MB的异步esbuild临时文件通道；本机依赖复制遇到EPERM/EACCES直接停止并保留错误，不自动改安全设置。
+启动入口统一为启动工作台.cmd及其同链npm start；start:auto兼容单实例，last-good/release仅显式恢复。候选预览脚本及npm别名移除，既有数据不清理；dev:monthly与隔离运行器保留内部验证职责。构建传输及失败保护见第8节，不自动改安全设置。
 
 ## 2. 模块与职责
 
@@ -166,7 +166,11 @@ Vite开发端口5273，代理跟随WORKBENCH_DEV_PORT，并在转发前核对后
 
 start.mjs默认进入start-source：从当前检出的共享应用源码、锁文件及Node ABI/平台/架构计算摘要，复制到.local/source-builds的专属准备目录，优先核对并复制上次同锁/同运行环境副本或本检出目录的已安装依赖，构建配套web，校验源文件未变化后定名。固定运行副本带SOURCE_BUILD.json；再次使用核对源码及前端摘要，并完成相同依赖预检后才接触在线实例。缓存、构建和依赖不覆盖在线实例或项目node_modules；没有自动清理旧副本。旧current-release.json保留但不再控制默认入口，start-release只作为显式兼容恢复。
 
-依赖复用先比较package.json、完整锁记录和npm隐藏安装记录中的版本/来源/完整性字段，复制后重建workspace链接，核对实际版本、npm依赖图，并加载服务端外部依赖及执行本机esbuild探针；缺项或不匹配不复用。已存在sourceBuildId缓存及--last-good同样执行这些检查，失败明确拒绝并保留旧服务、成功记录及数据，不自动改动可疑缓存。这不是所有已安装文件的密码学完整性证明。source-npm在独立子进程通过npm 11自己的配置加载器读取原检出根配置，保留项目、用户及环境优先级；cache、cafile等路径在原cwd解析，随后只将安装/依赖图目标切换到准备副本。无可用树时先离线npm ci，再获取缺项。不复制.npmrc，不把配置值序列化、写入命令参数或自行导出认证环境变量；沿用npm的过滤。适配器明确限npm 11，不兼容版本失败关闭，不改原安装或为网络失败运行旧源码。
+依赖复用先比较package.json、完整锁记录和npm隐藏安装记录中的版本/来源/完整性字段，复制后重建workspace链接，核对实际版本、npm依赖图，并加载服务端外部依赖及执行超过1 MiB的esbuild探针；记录缺项或不匹配不复用。一旦开始复制和运行探针，失败直接停止，不解释为缺包再安装。已存在sourceBuildId缓存及--last-good同样执行这些检查，失败明确拒绝并保留旧服务、成功记录及数据，不自动改动可疑缓存。这不是所有已安装文件的密码学完整性证明。
+
+锁定的esbuild 0.28.2将超过1024×1024输入长度的transform改走临时文件，原生服务读后删除输入；删除失败会在转译前返回错误。scripts/esbuild-transport.mjs通过Node 24同步模块加载钩子仅在构建/预检子进程内关闭这一个传输优化，沿用原标准输入输出协议与全部转译选项；输入、代码及源码映射不再经此临时通道。适配器核对完整main.js的固定SHA-256及唯一替换位置，并确认Vite与探针解析到同一esbuild；未知源码或提前加载明确拒绝。npm run build和source-build构建均预加载适配，预检从当前启动工具加载适配以兼容旧成功副本。安装文件、原生二进制及权限不变，不跳过构建/压缩/目标兼容，也不吞转译错误。这是规避故障路径的兼容修复，不证明Windows删除拒绝的操作系统根因；代价是大输入走内存协议，升级esbuild须重新审查和回归。
+
+source-npm在独立子进程通过npm 11自己的配置加载器读取原检出根配置，保留项目、用户及环境优先级；cache、cafile等路径在原cwd解析，随后只将安装/依赖图目标切换到准备副本。无可用树时先离线npm ci；只有结构化ENOTCACHED才获取缺项一次，EPERM/EACCES、空间、未知失败均停止。IPC仅传固定错误码，stderr保留npm原有脱敏诊断；不复制.npmrc，不序列化配置或把认证值放入参数。子进程失败保留原因链，准备目录清理失败另报路径，不覆盖原构建错误。适配器明确限npm 11，不兼容版本失败关闭，不改原安装或为网络失败运行旧源码。
 
 WORKBENCH_LAYOUT_ROOT仅由启动边界传入原检出根，保留旧配置与相对数据路径；INSTALL_ROOT仍指向运行副本，供loadedBuild标识实际加载源码；原检出根和副本均保留平台保护，不允许业务目录绑定。daily/development/test的数据约束保持，测试副本仍全部位于专属隔离根，不读取日常资源。source-update.lock串行化同一环境的准备与更新；server.lock保护实际数据库。未知、活跃或无法核对的锁不自动删除。
 
