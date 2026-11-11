@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "e06946896137b7f85cfd8eb43a7f497edb0d8fb26517a7c0592af2522feecf14",
+      "sha256": "305c9909293e63fc72684516dcd90c67b956df6b228e5cb1704197b64635909a",
       "linksTo": [
         "docs/guides/INSTALLATION.md",
         "docs/management/PROJECT_PLAN.md",
@@ -193,7 +193,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "c9b5291ec589297595da2418d6d92be1d3a54b32fd09d780771463e87233ed9a",
+      "sha256": "07d13b804e260c9453841db3d3618bba6474df7d500b9a5e69bd84cf782fe0f8",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -1699,7 +1699,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "2e1b9494f111b5a3af268a174cb7e2408e61b52c2334fadd26b737af755809f2",
+      "sha256": "bd8a3f36ebd53efe623e12fe9cc5303bee887c3044bec8c3c78473bee3f368cf",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",
