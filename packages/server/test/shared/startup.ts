@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import {transform} from 'esbuild';
+const pkg=JSON.parse(readFileSync('package.json','utf8'));
+assert.equal(pkg.scripts.start,'node scripts/start.mjs');
+assert.equal(pkg.scripts['start:auto'],'node scripts/start.mjs --auto');
+assert.equal(pkg.scripts['preview:candidate'],undefined);
+assert.equal(existsSync('预览候选工作台.cmd'),false);
+const launcher=readFileSync('启动工作台.cmd','utf8');
+assert.ok(launcher.includes('scripts\\start.mjs'));
+assert.ok(!launcher.includes('--confirm-update'));
+const result=await transform('/*'+'x'.repeat(1024*1024)+'*/const ok: boolean=true',{loader:'ts'});
+assert.match(result.code,/const ok = true/);
+console.log('启动专项：唯一双击入口、npm同链、保留确认、大文件esbuild传输通过（非日常启动验收）');

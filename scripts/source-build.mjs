@@ -83,8 +83,9 @@ async function validateDependencies(root,checkout) {
  await npmInBuild(checkout,root,['ls','--all','--offline','--json'],{capture:true});
  const dependencies=Object.keys(JSON.parse(readFileSync(join(root,'packages/server/package.json'),'utf8')).dependencies);
  const modules=dependencies.map(n=>n==='pdfjs-dist'?'pdfjs-dist/legacy/build/pdf.mjs':n);
- const probe=`for(const name of ${JSON.stringify(modules)})await import(name);const esbuild=await import('esbuild');esbuild.transformSync('const ok: boolean=true',{loader:'ts'});`;
- await command(process.execPath,['--input-type=module','-e',probe],{cwd:root,capture:true});
+ const probe=`for(const name of ${JSON.stringify(modules)})await import(name);const esbuild=await import('esbuild');await esbuild.transform('/*'+ 'x'.repeat(1024*1024) +'*/const ok: boolean=true',{loader:'ts'});`;
+ try { await command(process.execPath,['--input-type=module','-e',probe],{cwd:root}); }
+ catch (cause) { throw new Error('依赖/大文件转译检查失败；请核对上方临时文件路径、占用及权限。未停止服务或更新数据库，不自动修改安全设置。',{cause}); }
 }
 async function prepareDependencies(root,stage,previous,identity) {
  // npm reads the original configuration in memory; even an interrupted build has no npmrc copy.
@@ -99,7 +100,9 @@ async function prepareDependencies(root,stage,previous,identity) {
     cpSync(join(candidate,'node_modules'),join(stage,'node_modules'),{recursive:true,verbatimSymlinks:true});
     linkWorkspaces(stage);await validateDependencies(stage,root);
     console.log('已核对并复制本机依赖，无需联网重新安装。');return;
-   }catch{
+   }catch(error){
+    if(['EACCES','EPERM'].includes(error.code))throw new Error('依赖副本访问被拒绝：'+error.message+'；停止准备，不改权限或反复安装。',{cause:error});
+    console.log('本机依赖检查未通过：'+error.message);
     rmSync(join(stage,'node_modules'),{recursive:true,force:true});
     console.log('本机依赖副本不完整或与当前锁文件不符，继续按锁文件准备。');
    }

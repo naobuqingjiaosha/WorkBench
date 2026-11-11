@@ -1,11 +1,11 @@
 /** Shareable source boundary. Private files remain on disk; this is not a history scrubber. */
 export const rootFiles = new Set([
   '.gitignore', '.gitattributes', '.npmrc', 'package.json', 'package-lock.json', 'tsconfig.json',
-  'workbench.config.example.json', '启动工作台.cmd', '预览候选工作台.cmd', 'README.md', 'AGENTS.md',
+  'workbench.config.example.json', '启动工作台.cmd', 'README.md', 'AGENTS.md',
   'GPT_CONTEXT.md', 'CONTEXT.md', 'PRODUCT_REQUIREMENTS.md', 'SYSTEM_ARCHITECTURE.md', 'DEVELOPMENT_PROGRESS.md',
 ]);
 export const sharedScripts = new Set([
-  'start.mjs', 'start-release.mjs', 'start-source.mjs', 'source-build.mjs', 'source-npm.mjs', 'source-upgrade.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'preview.mjs', 'isolation-env.mjs',
+  'start.mjs', 'start-release.mjs', 'start-source.mjs', 'source-build.mjs', 'source-npm.mjs', 'source-upgrade.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'isolation-env.mjs',
   'test-isolated.mjs', 'test-preflight.mjs', 'dev-monthly.mjs', 'dev-server.mjs',
   'docs-maintenance.mjs', 'repository-policy.mjs', 'check-repository.mjs', 'install-git-hooks.mjs',
 ]);

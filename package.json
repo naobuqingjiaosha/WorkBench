@@ -56,7 +56,6 @@
     "test:runtime-layout": "node scripts/test-isolated.mjs --shared isolation",
     "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
     "test:legacy": "npm run test:legacy:isolation && npm run test:unit && npm run test:regression && npm run test:workflow && npm run test:policy && npm run test:local-model && npm run test:business && npm run test:business-ai && npm run test:stability && npm run test:evidence-writing && node scripts/test-isolated.mjs --unit work-records && npm run test:inspection-drafts",
-    "preview:candidate": "node scripts/preview.mjs",
     "test:legacy:isolation": "node scripts/test-isolation-contract.mjs",
     "test:legacy:all": "npm run test:legacy && node scripts/test-isolated.mjs e2e kb-e2e agent-e2e vision-e2e ocr-e2e",
     "test:legacy:repository": "node packages/server/test/repository-boundary.mjs",

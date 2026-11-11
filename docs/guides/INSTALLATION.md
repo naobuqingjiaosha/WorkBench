@@ -8,9 +8,9 @@
 
 新安装的配置和数据默认位于 `%LOCALAPPDATA%\WorkBench\daily`，不会随 Git 传递。已有安装继续使用原配置、数据库、模板和业务文件路径，不自动搬迁。需要自定义时使用绝对路径的 WORKBENCH_HOME；样例 workbench.config.example.json 只说明格式，不要覆盖已有配置。相对路径规则见[资料边界](DATA_BOUNDARIES.md)。模型、OCR 和 Office 仍按实际功能另行配置。
 
-## 在 Windows 试用交付候选
+## 唯一日常入口
 
-将候选包解压到单独目录，在已安装 Node.js 24 和 npm 11 的电脑双击 `预览候选工作台.cmd`，也可执行 `npm run preview:candidate`。预览按同一锁文件准备运行副本，默认打开 18889，数据保存在该目录对应的 development/candidate 根。首次缺少依赖时需能访问 npm 依赖源。使用合成或已授权副本验证，关闭前先保存；同一目录再次预览可继续原样例。日常库切换须另行安排。
+面向用户只保留 `启动工作台.cmd`；`npm start` 是同一启动链的终端方式，`start:auto` 为兼容别名，端口冲突不另开实例。候选预览双击脚本和 `preview:candidate` 已移除，既有 candidate 数据不删除、不迁移。`--last-good` 与 `--release` 仅供明确故障恢复，不是日常多版本选择器。
 
 ## 拉取后双击使用最新代码
 
@@ -41,15 +41,10 @@ npm缓存沿用在原仓库解析的配置（本项目默认.npm-cache，也支�
 
 缓存位于仓库 `.local/source-builds`，每份含配套源码、依赖、界面及 SOURCE_BUILD.json；成功记录为当前运行根的 source-current.json。只运行一个工作台，但保留可核验缓存与备份供恢复，不自动清理用户历史。缓存、私人配置、业务数据、私有测试和运行日志留在本机。共享合成回归随源码提供。详细排障见[运维手册](OPERATIONS.md)。
 
-## 可选的独立开发预览
+## 内部开发与测试
 
-只需隔离查看而暂不升级日常数据时，在源码目录执行：
+`dev:monthly`、`dev`、`server` 仅用于开发验证，沿用独立 development 数据根和18889，不作为用户日常入口。隔离测试保留，详见[开发指南](DEVELOPMENT.md)。不要删除旧预览目录中的资料来收敛入口。
 
-```powershell
-npm ci
-npm run dev:monthly -- --build
-```
-
-默认使用独立 development 数据根和18889端口；不要加 --seed-handoff，不把空白预览当原资料丢失。再次更新预览先 Ctrl+C 停止自己的预览，再 pull；依赖锁变化后 npm ci，随后重新执行构建预览命令。此开发入口不使用 source-current.json 或历史发布指针。详见[开发指南](DEVELOPMENT.md)。
+大于1 MB的esbuild转译会使用临时文件。启动准备检查覆盖该通道；出现Access denied/EPERM时保留原文件和日志，核对所报路径、占用和运行身份。不得以Git hook的“无Git元数据”提示解释构建失败，不自动改ACL、完整性标签、安全软件或提权；普通用户构建通过不代表启动器环境已通过。
 
 启动是写操作，会按上述规则初始化或升级当前环境，不可作为只读探测。Windows 双击、原生文件锁、真实旧安装和 Office 的实际结果须在目标设备核实；云端 Linux 隔离验证不能代替这些验收。

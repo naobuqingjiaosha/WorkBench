@@ -29,7 +29,7 @@ const filter=src=>{
  return true;
 };
 try {
- for(const n of ['packages','scripts','docs','.githooks','README.md','AGENTS.md','GPT_CONTEXT.md','CONTEXT.md','PRODUCT_REQUIREMENTS.md','SYSTEM_ARCHITECTURE.md','DEVELOPMENT_PROGRESS.md','启动工作台.cmd','预览候选工作台.cmd','package.json','package-lock.json','tsconfig.json','.gitignore','.gitattributes','.npmrc','workbench.config.example.json']){const src=join(ROOT,n);if(existsSync(src))cpSync(src,join(dest,n),{recursive:true,filter});}
+ for(const n of ['packages','scripts','docs','.githooks','README.md','AGENTS.md','GPT_CONTEXT.md','CONTEXT.md','PRODUCT_REQUIREMENTS.md','SYSTEM_ARCHITECTURE.md','DEVELOPMENT_PROGRESS.md','启动工作台.cmd','package.json','package-lock.json','tsconfig.json','.gitignore','.gitattributes','.npmrc','workbench.config.example.json']){const src=join(ROOT,n);if(existsSync(src))cpSync(src,join(dest,n),{recursive:true,filter});}
  // Never spread local configuration into a distributable package.
  const example=JSON.parse(readFileSync(join(ROOT,'workbench.config.example.json'),'utf8'));
  if(withData)writeFileSync(join(dest,'workbench.config.json'),JSON.stringify({...example,dataRoot:'data/files',backup:{...example.backup,dir:'data/backups'}},null,2));

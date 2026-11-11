@@ -6,6 +6,14 @@
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
 
+## 2026-11-11｜GOV-06｜Windows启动排障与单一用户入口
+
+**依据与修改：** 用户要求直接修复原目录正常启动、保留业务数据并收敛入口。开工main/fdee5a8，工作区干净，跟踪origin差异0/0；远端实时读取因代理连接失败未核实。删除仅包含启动代码的预览候选工作台.cmd、scripts/preview.mjs及package.json别名，同步pack和仓库允许清单，未删除候选数据/缓存/业务文件。source-build大文件异步转译探测替换不足1 MB的同步探测，输出真实依赖错误；复制依赖遇EPERM/EACCES停止，避免掩盖为缺包并继续安装。未改变TMP、ACL、完整性标签、安全软件或管理员权限。start/start:auto保留同链单实例；last-good/release仅恢复；dev:monthly和内部测试保留隔离。
+
+**实际验证与阻碍：** 普通前端构建84模块通过，前后端类型检查通过；共享startup专项的单入口、同链/确认保护、大于1 MB转译通过。isolation通过；repository专项在隔离临时checkout/.git/config写入遭Permission denied失败，未绕过重试。npm start -- --start-only --background实际执行，在.local/source-builds/162866335223dc8851519a6090959e55d2ea9a7a6ead46b4be8daa88b4c76781.building-30288/node_modules/@fast-csv/parse创建目录遭EPERM，停在准备阶段，未停止服务/迁移/更新日常库。8787健康读取遭套接字权限拒绝，CIM进程占用查询不可访问，未执行页面验证。原esbuild临时文件仍存在、1618044字节、Archive属性、用户ACL完全控制；本轮构建使用执行器重定向临时根通过，不能证明原TEMP安全上下文正常，也未证明占用来源。No Git metadata提示并非构建失败原因。未再次启动受阻日常操作，不宣称恢复完成。
+
+**五根与交付：** GPT_CONTEXT更新唯一入口与故障边界；CONTEXT无术语变化；PRODUCT_REQUIREMENTS无业务需求变化；SYSTEM_ARCHITECTURE说明启动链与大文件检查；DEVELOPMENT_PROGRESS整合Windows现状。安装/月度指南、原GOV-06和生成索引同步。无仓库技能目录。仅本地保存，不暂存、提交、推送，不自动确认数据库迁移。剩余为运行身份/文件占用核实及正常用户入口、健康与页面验收；任何安全设置变更需另行具体确认。建议提交说明：fix(startup): consolidate entry and diagnose Windows build permissions。
+
 ## 2026-11-11｜GOV-11｜工作分支源码同步至 main
 
 Mac 本机 fetch 并直接查询远端，main 为 `913b002`，工作分支为 `0337539`，差异为 0/12。合并前将两个分支及完整 Git 历史打成本机 bundle，核验后从中克隆并执行 fsck。备份与日志位于本机 outputs/main-sync-20261111-osvUe1。对 12 个提交的可共享路径和内容执行仓库边界检查。以独立检出按锁安装，运行应用类型检查、生产构建、共享业务及浏览器回归。插行和补列两例均为 14，不安全公式被阻止；浏览器贯通工时、编辑保护、季度、例会、台账与项目。模型场景使用回环模拟。
