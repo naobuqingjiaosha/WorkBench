@@ -1756,7 +1756,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "9e193ce384fce5698a0b7b61ce699d9b9e9884091e09118309c5c432dcc62683",
+      "sha256": "77f6113aceec94dca2ceabe2735b2e62b3933534e197c32a78dc0fb788c3605e",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

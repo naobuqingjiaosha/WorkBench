@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "e9c03aaa66562e67b3d7a80cd4e4c17cd7d0f9de",
+  "committedBase": "fbd58ac23d8ec47e6bff242f2838b0e139a42005",
   "engines": {
     "node": ">=24.0.0"
   },
