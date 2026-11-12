@@ -6,7 +6,7 @@ import {createInterface} from 'node:readline/promises';
 import {loadRuntimeLayout} from '../packages/server/src/core/runtime-layout.ts';
 import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
 import {assertTestIsolation} from '../packages/server/src/core/test-isolation.ts';
-import {prepareBuild,verifyReadyBuild} from './source-build.mjs';
+import {prepareBuild,sourceIdentity,verifyReadyBuild} from './source-build.mjs';
 import {pendingMigrations,backupAndRehearse} from './source-upgrade.mjs';
 
 assertTestIsolation();
@@ -39,17 +39,23 @@ async function openPage(){if(!args.includes('--open'))return;const p=process.pla
 async function freePort(){return new Promise(r=>{const s=createServer();s.once('error',()=>r(false));s.listen(port,host,()=>s.close(()=>r(true)));});}
 let child,fd,releaseLock;
 try{
- console.log('工作台：启动当前拉取的源码；数据位置保持不变。');
- console.log('数据库：'+layout.dbFile);
- if(layout.legacy)console.log('沿用旧安装的数据与配置，不自动迁移目录。');
- if(existsSync(join(layout.runtimeRoot,'current-release.json')))console.log('历史发布指针已保留；默认入口不再被它固定到旧版本。');
+ console.log('正在打开工作台…');
  let saved=null;try{saved=JSON.parse(readFileSync(pointer,'utf8'));}catch(e){if(e.code!=='ENOENT')throw Error('上次启动记录无法读取，请核对 '+pointer);}
  // A record never gets to select an arbitrary path for execution.
  const savedRoot=saved?.id&&/^[a-f0-9]{64}$/.test(saved.id)&&saved.sourceRoot===ROOT?join(cache,saved.id):null;
+ const identity=args.includes('--last-good') ? null : sourceIdentity(ROOT);
+ if(savedRoot && identity?.id===saved.id){
+  const running=await health();
+  if(belongs(running) && running.loadedBuild?.sourceBuildId===identity.id){
+   await openPage();
+   console.log('工作台已运行：'+url);
+   returnFromStart();
+  }
+ }
  let build;
  try{
   if(args.includes('--last-good')){if(!savedRoot)throw Error('本目录没有可核验的上次可用副本');const m=await verifyReadyBuild(savedRoot,saved.id,ROOT);build={root:savedRoot,...m};console.log('明确选择上次可用版本：'+m.id.slice(0,12));}
-  else build=await prepareBuild(ROOT,cache,savedRoot);
+  else build=await prepareBuild(ROOT,cache,savedRoot,identity);
  }catch(e){console.error('准备失败；未停止原服务，也未更新数据库。');console.error('修好问题后重新双击。需要恢复时，可明确运行 node scripts/start.mjs --last-good --open；历史发布包仍可用 --release 入口核对启动。');throw e;}
  const expectedPlan=pendingMigrations(layout.dbFile,build.root);
  if(!expectedPlan.fresh&&expectedPlan.pending.length)await confirm('数据库需要升级，待执行迁移：\n'+expectedPlan.pending.join('\n')+'\n将先备份数据库并在副本演练；失败不自动恢复或覆盖业务数据。');

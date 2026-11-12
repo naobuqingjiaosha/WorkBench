@@ -1,11 +1,10 @@
 @echo off
-rem Build and start the current checkout; preserve local data and configuration.
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
 where node.exe >nul 2>nul
 if errorlevel 1 (
-  echo Node.js 24 or later is required. Please install it and try again.
+  echo 请安装 Node.js 24 或更高版本，再双击启动工作台。
   pause
   exit /b 1
 )

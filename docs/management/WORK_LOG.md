@@ -1,10 +1,18 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.41。更新：2026-11-11。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.42。更新：2026-11-12。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-12｜GOV-06｜简化重复双击启动
+
+双击已运行的工作台原先仍在核对所有依赖、执行大文件测试转译和查询迁移。修改 scripts/start-source.mjs、scripts/source-build.mjs，使当前源码、成功记录和在线实例身份一致时直接打开页面。依赖复制跳过由准备步骤重建的两个 workspace 链接，避免 Windows 将目录链接复制成普通目录。启动工作台.cmd 的缺少 Node 提示改为中文，启动器精简正常输出。
+
+packages/server/test/shared/startup-build.ts 在第二次启动时注入转译失败，证实复用过程无需编译。原工作目录的 npm 安装记录缺 playwright-core，故在临时源码副本用 npm ci --offline 重建依赖；隔离 startup 和 startup-build 通过，覆盖实际 Vite 构建、同进程复用和更新失败保护。日常健康接口、成功指针和构建清单仅作只读核对。未操作真实浏览器页面或日常数据库。
+
+已复核五份根文档。GPT_CONTEXT、DEVELOPMENT_PROGRESS 同步设备核对结果，SYSTEM_ARCHITECTURE 与安装指南更新启动顺序；CONTEXT 和 PRODUCT_REQUIREMENTS 的术语与验收要求未变。索引按治理流程生成及检查。本批从 main/8d432f7 保存到 codex/simplify-daily-launch 工作分支，提交及普通推送以 Git 为准。日常实例仍运行原版本，普通用户新版双击验收待核对。
 
 ## 2026-11-11｜GOV-06｜Windows启动排障、单一入口与大文件传输修复
 

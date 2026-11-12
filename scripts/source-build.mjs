@@ -108,7 +108,11 @@ async function prepareDependencies(root,stage,previous,identity) {
    }
    // Once copying/probing starts, any failure is fatal. In particular a native
    // tool/permission failure is not evidence that reinstalling will help.
-   cpSync(join(candidate,'node_modules'),join(stage,'node_modules'),{recursive:true,verbatimSymlinks:true});
+   const modules=join(candidate,'node_modules');
+   const workspaces=new Set(['server','web'].map(name=>join(modules,'@workbench',name)));
+   cpSync(modules,join(stage,'node_modules'),{
+    recursive:true,verbatimSymlinks:true,filter:path=>!workspaces.has(path),
+   });
    linkWorkspaces(stage);await validateDependencies(stage,root);
    console.log('已核对并复制本机依赖，无需联网重新安装。');return;
   }
@@ -145,9 +149,9 @@ export function treeHash(root) {
  const h=createHash('sha256');
  const walk=dir=>{for(const e of readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const p=join(dir,e.name);assertNoPathLinks(p);if(e.isDirectory())walk(p);else {h.update(relative(root,p).replaceAll('\\','/'));h.update(readFileSync(p));}}};walk(root);return h.digest('hex');
 }
-export async function prepareBuild(root,cache,previous) {
+export async function prepareBuild(root,cache,previous,identity=sourceIdentity(root)) {
  assertNoPathLinks(cache);mkdirSync(cache,{recursive:true});
- const identity=sourceIdentity(root),target=join(cache,identity.id);
+ const target=join(cache,identity.id);
  if(existsSync(target)){await verifyReadyBuild(target,identity.id,root);return {root:target,...identity};}
  const stage=join(cache,identity.id+'.building-'+process.pid);mkdirSync(stage);
  try {

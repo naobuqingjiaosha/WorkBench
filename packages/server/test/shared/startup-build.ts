@@ -56,7 +56,7 @@ try{
   assert.ok(!readdirSync(join(home,'source-builds')).some(n=>n.includes('.building-')));
  };
  // A second start reuses the same process, never chooses a second port/instance.
- const same=launch();assert.equal(await stopped(same),0,same.output());await unchanged();
+ const same=launch({STARTUP_TRANSPORT_FAULT:'all'});assert.equal(await stopped(same),0,same.output());await unchanged();
  const config=join(checkout,'packages/web/vite.config.ts'),valid=readFileSync(config);
  writeFileSync(config,Buffer.concat([valid,Buffer.from('\nexport const broken = ;\n')]));
  const broken=launch();assert.equal(await stopped(broken),1);assert.match(broken.output(),/Unexpected|Expected/);assert.match(broken.output(),/未停止原服务/);assert.ok(!broken.output().includes('缓存不足'));await unchanged();
