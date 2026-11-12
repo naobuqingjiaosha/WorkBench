@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {cpSync,existsSync} from 'node:fs';

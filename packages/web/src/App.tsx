@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import { ToastHost } from './ui';
 import WorkRecordsPage from './pages/WorkRecords';
@@ -41,6 +41,11 @@ function readRoute(): RouteState {
   return { key: ROUTE_KEYS.includes(key as RouteKey) ? key as RouteKey : 'dashboard', params };
 }
 
+function browserEntryIndex(): number | undefined {
+  // Chromium exposes the true position even after a same-URL navigation or reload.
+  return (window as Window & {navigation?:{currentEntry?:{index:number}}}).navigation?.currentEntry?.index;
+}
+
 const NAV: { group: string; items: { key: RouteKey; label: string; icon: string; desc: string }[] }[] = [
   {
     group: '总览',
@@ -76,22 +81,88 @@ export default function App() {
 
 function AppShell() {
   const [route, setRoute] = useState<RouteState>(readRoute);
+  const currentEntry=useRef<number>(0);
+  const traversal=useRef<{target:number; restoring:boolean}|null>(null);
+  const allowedHash=useRef<string|null>(null);
   const [mobileOpen,setMobileOpen]=useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const sidebar = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    sidebar.current?.querySelector<HTMLButtonElement>('.drawer-close')?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); setMobileOpen(false); }
+      if (event.key !== 'Tab') return;
+      const buttons = Array.from(sidebar.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? []);
+      const first = buttons[0], last = buttons.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    const wide = window.matchMedia('(min-width: 1000px)');
+    const resize = () => { if (wide.matches) setMobileOpen(false); };
+    document.addEventListener('keydown', onKey);
+    wide.addEventListener('change', resize);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      wide.removeEventListener('change', resize);
+      menuButton.current?.focus({preventScroll:true});
+    };
+  }, [mobileOpen]);
   const guard=useNavigationGuard();
 
   const [aiReady, setAiReady] = useState<boolean | null | 'error'>(null);
 
+  const openHash = (hash:string) => {
+    setMobileOpen(false);
+    if(window.location.hash===hash)return;
+    guard.request(()=>{
+      allowedHash.current=hash;
+      window.location.hash=hash;
+    });
+  };
   const go = (key: RouteKey, params: Record<string, string> = {}) => {
     const query = new URLSearchParams(params).toString();
-    window.location.hash = `#/${key}${query ? `?${query}` : ''}`;
+    openHash(`#/${key}${query ? `?${query}` : ''}`);
   };
 
   useEffect(() => {
-    const onHash = () => {
-      const target=window.location.hash, next=readRoute();
-      const previous=`#/${route.key}${Object.keys(route.params).length?'?'+new URLSearchParams(route.params):''}`;
-      window.history.replaceState(null,'',previous);
-      guard.request(()=>{window.history.replaceState(null,'',target);setRoute(next);setMobileOpen(false);document.querySelector('.content')?.scrollTo({top:0});});
+    const position=browserEntryIndex()??window.history.state?.workbenchNavIndex;
+    currentEntry.current=Number.isSafeInteger(position)?position:0;
+    window.history.replaceState({...window.history.state,workbenchNavIndex:currentEntry.current},'');
+  }, []);
+
+  useEffect(() => {
+    const onHash = (event:HashChangeEvent) => {
+      if(event.newURL && event.newURL!==window.location.href)return;
+      const prior=currentEntry.current;
+      const state=window.history.state;
+      const position=browserEntryIndex()??(Number.isSafeInteger(state?.workbenchNavIndex)?state.workbenchNavIndex:prior+1);
+      if(position!==state?.workbenchNavIndex)window.history.replaceState({...state,workbenchNavIndex:position},'');
+      const move=traversal.current;
+      if(position===prior){
+        // The original history entry and URL are back in place before the prompt opens.
+        if(move?.restoring){
+          traversal.current=null;
+          guard.request(()=>{
+            traversal.current={target:move.target,restoring:false};
+            window.history.go(move.target-prior);
+          });
+        }
+        return;
+      }
+      const approved=allowedHash.current===window.location.hash || (move && !move.restoring && move.target===position);
+      allowedHash.current=null;
+      if(!approved && guard.hasEdits()){
+        traversal.current={target:position,restoring:true};
+        window.history.go(prior-position);
+        return;
+      }
+      traversal.current=null;
+      const next=readRoute();
+      currentEntry.current=position;
+      setRoute(next);
+      setMobileOpen(false);
+      if(route.key!=='settings'||next.key!=='settings')document.querySelector('.content')?.scrollTo({top:0});
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -109,9 +180,17 @@ function AppShell() {
   return (
     <ToastHost>
       <ConsentHost />
-      <div className={`app${route.key==='dashboard'?' app-home':''}`}>
-        <aside className={`sidebar${mobileOpen?' mobile-open':''}`}>
+      <div className={`app${route.key==='dashboard'?' app-home':''}`} onClick={event=>{
+        if(event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+        const anchor=(event.target as Element).closest<HTMLAnchorElement>('a[href^="#/"]');
+        if(!anchor||anchor.target||anchor.hasAttribute('download'))return;
+        event.preventDefault();
+        openHash(anchor.hash);
+      }}>
+        {mobileOpen && <div className="drawer-backdrop" aria-hidden="true" onClick={()=>setMobileOpen(false)}/>}
+        <aside id="primary-navigation" ref={sidebar} className={`sidebar${mobileOpen?' mobile-open':''}`} role={mobileOpen?'dialog':undefined} aria-modal={mobileOpen||undefined} aria-label="主导航">
           <div className="brand">
+            {mobileOpen && <button type="button" className="drawer-close icon-btn" aria-label="关闭导航" onClick={()=>setMobileOpen(false)}>×</button>}
             <h1>工作台</h1>
             <p>个人工作空间</p>
           </div>
@@ -133,13 +212,13 @@ function AppShell() {
             ))}
           </nav>
           <div className="sidebar-foot">
-            {aiReady === null ? '正在检查模型…' : aiReady === 'error' ? '模型状态读取失败' : aiReady ? '模型已就绪' : <button type="button" className="sidebar-status" onClick={() => go('settings')}>配置模型 →</button>}
+            {aiReady === null ? '正在检查模型…' : aiReady === 'error' ? '模型状态读取失败' : aiReady ? '模型已就绪' : <button type="button" className="sidebar-status" onClick={() => go('settings',{section:'models'})}>配置模型 →</button>}
           </div>
         </aside>
 
-        <main className="main">
+        <main className="main" inert={mobileOpen}>
           <header className={`topbar${route.key==='dashboard'?' dashboard-topbar':''}${route.key==='workbench'&&(route.params.id||route.params.task)?' detail-topbar':''}`}>
-            <button className="btn mobile-menu" onClick={()=>setMobileOpen(v=>!v)} aria-label="切换导航">☰</button>
+            <button ref={menuButton} className="btn mobile-menu" onClick={()=>setMobileOpen(true)} aria-controls="primary-navigation" aria-expanded={mobileOpen} aria-label="切换导航">☰</button>
             <div>
               <h2>{current?.label ?? '工作记录'}</h2>
               <div className="sub">{current?.desc}</div>
@@ -151,7 +230,7 @@ function AppShell() {
             {route.key === 'workbench' && <WorkbenchPage go={go} params={route.params} />}
             {route.key === 'process' && <ProcessPage />}
             {route.key === 'files' && <FilesPage params={route.params} go={go} />}
-            {route.key === 'knowledge' && <KnowledgePage key={route.params.module} params={route.params} />}
+            {route.key === 'knowledge' && <KnowledgePage key={route.params.module} params={route.params} go={go} />}
             {route.key === 'agent' && <AgentPage />}
             {route.key === 'trash' && <TrashPage />}
             {route.key === 'settings' && <SettingsPage params={route.params} />}

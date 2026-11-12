@@ -14,7 +14,7 @@ import { cancelPending, enqueueMissing, ocrSummary, processQueue, queueState, ar
 import { ensureLang, isOcrCandidate, listLangStatus, ocrLangs, tessdataInfo } from '../core/ocr.ts';
 import { getTemplate, getWorkbenchLive, getWorkbench, listBoundRootGrants, reloadBoundRoots, updateChecklistItem, workbenchOutputDirAbs } from '../domain/service.ts';
 import { diffVersions, listVersionChain, markFinal, rollbackToRevision } from '../domain/versions.ts';
-import { emptyTrash, isTrashKind, listTrash, liveFilter, purgeFromTrash, restoreFromTrash, TRASH_KINDS, trashCount } from '../core/trash.ts';
+import { emptyTrash, isTrashKind, listTrash, liveFilter, purgeFromTrash, restoreFromTrash, TRASH_KINDS, trashKindCounts } from '../core/trash.ts';
 import { ApiError, body, fail, intParam, ok, optNum, optStr, q, qBool, qInt, strArray } from './reply.ts';
 import { cleanupTemp, readParts } from './upload.ts';
 import { requirePeriod,event } from '../domain/periods.ts';
@@ -764,7 +764,8 @@ export function registerTrashRoutes(app: FastifyInstance): void {
         throw new ApiError('BAD_PARAM', `kind 只能是 ${TRASH_KINDS.join(' / ')}：${kind}`);
       }
       const items = listTrash({ kind, limit: qInt(req, 'limit') });
-      return ok(reply, { items, total: items.length, count: trashCount(), kinds: TRASH_KINDS });
+      const counts = trashKindCounts();
+      return ok(reply, { items, total: items.length, count: Object.values(counts).reduce((sum,n)=>sum+n,0), counts, kinds: TRASH_KINDS });
     } catch (e) {
       return fail(reply, e);
     }

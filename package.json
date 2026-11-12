@@ -60,7 +60,7 @@
     "test:legacy:all": "npm run test:legacy && node scripts/test-isolated.mjs e2e kb-e2e agent-e2e vision-e2e ocr-e2e",
     "test:legacy:repository": "node packages/server/test/repository-boundary.mjs",
     "test:legacy:runtime-layout": "node packages/server/test/runtime-layout.mjs",
-    "test:browser": "node scripts/test-isolated.mjs --shared response-scope-browser projects-browser periods-browser timesheet-browser ledger-browser work-records-browser ai-draft work-documents-browser templates-schedule-browser"
+    "test:browser": "node scripts/test-isolated.mjs --shared response-scope-browser projects-browser periods-browser timesheet-browser ledger-browser work-records-browser ai-draft work-documents-browser templates-schedule-browser editor-navigation-browser search-library-browser"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

@@ -50,6 +50,7 @@ interface TrashList {
   items: TrashEntry[];
   total: number;
   count: number;
+  counts: Record<TrashKind, number>;
   kinds: string[];
 }
 
@@ -83,7 +84,7 @@ export default function TrashPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   /** 等待二次确认的条目（null = 没有弹窗） */
   const [purging, setPurging] = useState<TrashEntry | null>(null);
-  const [purgeWithFile, setPurgeWithFile] = useState(true);
+  const [purgeWithFile, setPurgeWithFile] = useState(false);
   const [emptyOpen, setEmptyOpen] = useState(false);
   const [emptyOlder, setEmptyOlder] = useState('7');
   const emptyLock = useRef(false);
@@ -109,7 +110,7 @@ export default function TrashPage() {
   }, [kind]);
 
   /** 按类型统计条数（顶部筛选旁的小字） */
-  const countOf = (k: string) => items.filter((i) => i.kind === k).length;
+  const countOf = (k: TrashKind) => list.data?.counts?.[k] ?? 0;
 
   const restore = async (e: TrashEntry) => {
     if (emptyLock.current) return;
@@ -215,7 +216,7 @@ export default function TrashPage() {
             <Button size="sm" disabled={emptyBusy} onClick={() => list.reload()}>
               刷新
             </Button>
-            <Button size="sm" kind="danger" disabled={emptyBusy || !!busyId || (items.length === 0 && !emptyError)} onClick={() => setEmptyOpen(true)}>
+            <Button size="sm" kind="danger" disabled={emptyBusy || !!busyId || (!list.data?.count && !emptyError)} onClick={() => setEmptyOpen(true)}>
               清空回收站
             </Button>
           </>
@@ -237,8 +238,7 @@ export default function TrashPage() {
             />
           </div>
           <div className="small muted" style={{ alignSelf: 'center', flex: '2 1 auto' }}>
-            共 <strong>{list.data?.total ?? 0}</strong> 项
-            {items.length > 0 && <>　·　{KIND_ORDER.filter((k) => countOf(k) > 0).map((k) => `${KIND_TEXT[k]} ${countOf(k)}`).join('　')}</>}
+            回收站共 <strong>{list.data?.count ?? 0}</strong> 项，当前显示 {items.length} 项。清空操作适用于全部类型。
           </div>
         </div>
       </Card>
@@ -290,7 +290,7 @@ export default function TrashPage() {
                         kind="danger"
                         disabled={emptyBusy || busyId === key}
                         onClick={() => {
-                          setPurgeWithFile(true);
+                          setPurgeWithFile(false);
                           setPurging(e);
                         }}
                         title="彻底删除这条记录（不可恢复）"
@@ -347,8 +347,7 @@ export default function TrashPage() {
                 <span>
                   <strong>连磁盘文件一起删</strong>
                   <div className="small muted">
-                    只删**平台登记过**、且落在允许目录里的文件；绑定型工作台**不会**删你绑定的资料目录本身，
-                    也不会碰你自己放进去的其它文件。工作台自己建的 `_` 前缀空目录会被回收。
+                    仅删除已登记且位于允许目录内的文件。绑定目录、用户另存的文件会保留，工作台建立的空目录可能被回收。
                   </div>
                 </span>
               </label>

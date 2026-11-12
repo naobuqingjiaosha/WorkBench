@@ -4,7 +4,8 @@ import {useEffect, useRef, useState} from 'react';
 import {api, useApi, type Workbench, type Artifact} from '../api';
 import {Button, Card, Empty, Input, Loading, Modal, Tag, fmtTime, useDebounced, useToast} from '../ui';
 import type {RouteKey} from '../App';
-import {FilePreviewButton} from '../components/FilePreview';
+import {FilePreview, FilePreviewButton} from '../components/FilePreview';
+import {TemplatePreview} from '../components/TemplatePreview';
 import {LoadError, NavIcon} from '../components/DesignSystem';
 
 type HomeAction = {key:string; workId?:number; name:string; detail:string; status:string; tone:'err'|'warn'|'info'; icon:string; action:string; href?:string; todoId?:number; due?:string};
@@ -38,6 +39,7 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
   const all=useWorkbenchCollection(), inbox=useWorkflowInbox();
   const files=useApi<{items:Artifact[]}>('/api/artifacts?kind=generated&limit=2');
   const [notifications,setNotifications]=useState(false);
+  const [searchPreview,setSearchPreview]=useState<SearchTarget|null>(null);
   const [search,setSearch]=useState(false),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[actionError,setActionError]=useState(''),[sort,setSort]=useState('urgent');
   const items=all.data?.items??[], active=items.filter(w=>!['done','archived'].includes(w.status)), actions=inboxActions(inbox.data,active);
   if(sort==='name')actions.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
@@ -57,9 +59,16 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
   return <div className="home-page home-focused">
     <header className="home-header">
       <div><h2>工作台</h2><p>{month} · 从需要你处理的事项开始</p></div>
-      <div className="home-header-actions"><button className="home-search" onClick={()=>setSearch(true)}><HomeIcon name="search"/><span>搜索工作、成果、模板</span></button><button className="btn home-bell" aria-label="查看通知与提醒" aria-haspopup="dialog" onClick={()=>setNotifications(true)}><HomeIcon name="bell"/><span>通知</span>{!inbox.loading&&!inbox.error&&actions.length>0&&<span className="home-notice-count" aria-label={`${actions.length}项待处理`}>{actions.length}</span>}{(inbox.error||inbox.syncError)&&<span aria-label="提醒信息不完整">!</span>}</button><Button kind="primary" onClick={()=>go('workbench',{create:'1'})}>＋ 新建工作</Button></div>
+      <div className="home-header-actions">
+        <button className="home-search" onClick={()=>setSearch(true)}><HomeIcon name="search"/><span>搜索工作、成果、模板</span></button>
+        <button className="btn home-bell" aria-label="查看通知与提醒" aria-haspopup="dialog" onClick={()=>setNotifications(true)}><HomeIcon name="bell"/><span>通知</span>{!inbox.loading&&!inbox.error&&actions.length>0&&<span className="home-notice-count" aria-label={`${actions.length}项待处理`}>{actions.length}</span>}{(inbox.error||inbox.syncError)&&<span aria-label="提醒信息不完整">!</span>}</button>
+        <Button onClick={()=>go('records')}>随手记</Button>
+        <Button kind="primary" onClick={()=>go('workbench',{create:'1'})}>＋ 新建工作</Button>
+      </div>
     </header>
-    {search&&<Modal open title="搜索工作、成果、模板" wide onClose={()=>setSearch(false)}><GlobalSearch go={go}/></Modal>}
+    {search&&<Modal open title="搜索工作、成果、模板" wide onClose={()=>setSearch(false)}><GlobalSearch go={go} onPreview={setSearchPreview}/></Modal>}
+    {searchPreview?.kind==='artifact' && <FilePreview id={searchPreview.id} onClose={()=>setSearchPreview(null)}/>}
+    {searchPreview?.kind==='template' && <TemplatePreview template={{id:searchPreview.id,name:searchPreview.title}} onClose={()=>setSearchPreview(null)}/>}
     {notifications&&<Modal open title="通知与提醒" onClose={()=>setNotifications(false)} footer={<Button onClick={()=>showInbox()}>查看全部待处理</Button>}>
       <div className="home-notifications">
         <p className="muted">查看待处理事项与已登记的截止安排。</p>
@@ -102,7 +111,6 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
           <p className="home-file-note">ⓘ 文件生成与业务完成分别记录。</p>
         </Card>
         </details>
-        <button className="home-record-link" onClick={()=>go('records')}><HomeIcon name="records"/><strong>随手记</strong><span>记录工作 →</span></button>
       </aside>
     </div>
   </div>;
@@ -237,7 +245,9 @@ function GsText({ text }: { text: string }) {
   );
 }
 
-function GlobalSearch({ go }: { go: (k: RouteKey, p?: Record<string, string>) => void }) {
+type SearchTarget = Pick<GsHit,'kind'|'id'|'title'|'route'>;
+
+function GlobalSearch({ go,onPreview }: { go: (k: RouteKey, p?: Record<string, string>) => void; onPreview:(hit:SearchTarget)=>void }) {
   const toast = useToast();
   const [text, setText] = useState('');
   const [kinds, setKinds] = useState<string[]>(GS_KINDS.map((k) => k.kind));
@@ -312,10 +322,16 @@ function GlobalSearch({ go }: { go: (k: RouteKey, p?: Record<string, string>) =>
   const showHits = Boolean(result) && hitAll > 0;
   const showEmpty = Boolean(result) && !loading && hitAll === 0 && !nothingChecked;
 
-  const openHit = (route: string) => {
-    const parsed = gsParseRoute(route);
+  const openHit = (event:React.MouseEvent<HTMLAnchorElement>, hit:SearchTarget) => {
+    if(event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if(hit.kind==='artifact' || hit.kind==='template'){
+      onPreview(hit);
+      return;
+    }
+    const parsed = gsParseRoute(hit.route);
     if (!parsed) {
-      toast(`这一条没给出可跳转的页面（${route}）`, 'info');
+      toast(`这一条没给出可跳转的页面（${hit.route}）`, 'info');
       return;
     }
     setOpen(false);
@@ -370,18 +386,19 @@ function GlobalSearch({ go }: { go: (k: RouteKey, p?: Record<string, string>) =>
               }}
             >
               {sug.map((s) => (
-                <div
+                <a
                   key={`${s.kind}#${s.id}`}
-                  className="clickable"
+                  className="global-search-hit"
+                  href={'#'+s.route}
                   style={{ padding: '7px 12px', borderBottom: '1px solid var(--line)' }}
-                  onClick={() => openHit(s.route)}
+                  onClick={(event) => openHit(event,s)}
                 >
                   <span className="tag" style={{ marginRight: 6 }}>
                     {s.label}
                   </span>
                   <strong style={{ fontSize: 13.5 }}>{s.title}</strong>
                   {s.subtitle && <span className="muted small">　{s.subtitle}</span>}
-                </div>
+                </a>
               ))}
             </div>
           )}
@@ -438,26 +455,23 @@ function GlobalSearch({ go }: { go: (k: RouteKey, p?: Record<string, string>) =>
                 </div>
                 <div className="col" style={{ gap: 4, marginTop: 4 }}>
                   {g.hits.map((h) => (
-                    <div
+                    <a
                       key={`${h.kind}#${h.id}`}
-                      className="clickable"
-                      title={`点击打开：${h.route}`}
+                      className="global-search-hit"
+                      href={'#'+h.route}
                       style={{ padding: '6px 10px', border: '1px solid var(--line)', borderRadius: 8 }}
-                      onClick={() => openHit(h.route)}
+                      onClick={(event) => openHit(event,h)}
                     >
                       <div className="row" style={{ gap: 8, alignItems: 'baseline' }}>
                         <strong style={{ fontSize: 13.5 }}>
                           <GsText text={h.title} />
                         </strong>
                         <span className="muted small ellipsis">{h.subtitle}</span>
-                        <span className="muted small" style={{ marginLeft: 'auto' }}>
-                          {h.route}
-                        </span>
                       </div>
                       <div className="small muted" style={{ marginTop: 2 }}>
                         <GsText text={h.snippet} />
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>

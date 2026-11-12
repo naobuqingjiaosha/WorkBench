@@ -6,7 +6,7 @@ import {ReferenceFolder} from '../components/ReferenceFolder';
 import { TYPE_GROUPS } from '../work-type-navigation';
 import {WorkDocuments} from '../components/WorkDocuments';
 import { DossierStatus, WorkExecution } from '../components/WorkExecution';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   api,
   folderApi,
@@ -35,6 +35,13 @@ import TimesheetsPage from './Timesheets';
 import MonthlyTimesheet from './MonthlyTimesheet';
 
 export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Record<string, string>) => void; params: Record<string, string> }) {
+  const lastList=useRef<ListPosition | null>(null);
+  useLayoutEffect(()=>{
+    if(!params.id)return;
+    const entry=window.history.state;
+    if(entry?.workbenchReturn)lastList.current=entry.workbenchReturn;
+    else if(lastList.current)window.history.replaceState({...entry,workbenchReturn:lastList.current},'');
+  },[params.id,params.periodId,params.task]);
   if (params.task === 'timesheets') return (
     <div className="col" style={{ gap: 14 }}>
       <div className="row">
@@ -45,7 +52,7 @@ export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Re
     </div>
   );
   const id = params.id ? Number(params.id) : undefined;
-  return id ? <WorkbenchDetailView key={id} id={id} go={go} initialPeriodId={params.periodId}/> : <WorkbenchList go={go} autoCreate={params.create === '1'} />;
+  return id ? <WorkbenchDetailView key={id} id={id} go={go} initialPeriodId={params.periodId}/> : <WorkbenchList go={go} lastList={lastList} autoCreate={params.create === '1'} />;
 }
 
 /* ============================== 列表 ============================== */
@@ -59,23 +66,56 @@ function nextStage(positions: PositionInstance[]) {
   return positions.find(p => p.status === 'doing') ?? positions.find(p => !['done','skipped'].includes(p.status));
 }
 
-function WorkbenchList({ go, autoCreate }: { go: (k: RouteKey, p?: Record<string, string>) => void; autoCreate?: boolean }) {
+type ListPosition = {keyword:string; group:string; filterType:string; view:string; page:number; tableTop:number; contentTop:number};
+
+function WorkbenchList({ go, autoCreate, lastList }: { go: (k: RouteKey, p?: Record<string, string>) => void; autoCreate?: boolean; lastList: {current: ListPosition | null} }) {
   const toast=useToast(),types=useApi<{items:WorkType[]}>('/api/work-types?includeArchived=1');
-  const [keyword,setKeyword]=useState(''),[group,setGroup]=useState(''),[filterType,setFilterType]=useState(''),[view,setView]=useState('active'),[page,setPage]=useState(0),[creating,setCreating]=useState(Boolean(autoCreate));
+  const [saved]=useState<ListPosition | null>(()=>window.history.state?.workbenchList ?? lastList.current);
+  const [keyword,setKeyword]=useState(saved?.keyword??''),[group,setGroup]=useState(saved?.group??''),[filterType,setFilterType]=useState(saved?.filterType??''),[view,setView]=useState(saved?.view??'active'),[page,setPage]=useState(saved?.page??0),[creating,setCreating]=useState(Boolean(autoCreate));
+  const table=useRef<HTMLDivElement>(null),restoreScroll=useRef(Boolean(saved));
+  const rememberList=()=>{
+    const position={keyword,group,filterType,view,page,tableTop:table.current?.scrollTop??0,contentTop:table.current?.closest('.content')?.scrollTop??0};
+    lastList.current=position;
+    window.history.replaceState({...window.history.state,workbenchList:position},'');
+  };
   const [createdId,setCreatedId]=useState<number|null>(null);
   useEffect(()=>{if(createdId!==null)go('workbench',{id:String(createdId)});},[createdId]);
   const list=useWorkbenchCollection(view==='archived');
-  useEffect(()=>{setPage(0);},[keyword,group,filterType,view]);
+
   const all=list.data?.items??[],byStatus=all.filter(w=>view==='archived'||(view==='done'?w.status==='done':!['done','archived'].includes(w.status)));
   const filtered=byStatus.filter(w=>(!group||types.data?.items.find(t=>t.id===w.work_type_id)?.navigation_group===group)&&(!filterType||w.work_type_id===Number(filterType))&&(!keyword||[w.name,w.code,w.counterpart].some(s=>s?.toLowerCase().includes(keyword.toLowerCase()))));
-  const rows=filtered.slice(page*20,(page+1)*20);
-  return <div className="section-content workbench-list"><div className="page-toolbar"><div className="view-tabs">{[['active','在办'],['done','已结束'],['archived','收起与归档']].map(([v,label])=><button className={view===v?'selected':''} key={v} onClick={()=>setView(v)}>{label}</button>)}</div><Button kind="primary" onClick={()=>setCreating(true)}>＋ 新建工作</Button></div>
-    <div className="row"><div className="view-tabs">{[{value:'',label:'全部'},...TYPE_GROUPS].map(g=><button key={g.value} className={group===g.value?'selected':''} onClick={()=>{setGroup(g.value);setFilterType('');}}>{g.label}</button>)}</div><div className="spacer"/><Input value={keyword} onChange={setKeyword} placeholder="搜索工作名称、编号、单位"/><Select value={filterType} onChange={setFilterType} placeholder="全部工作类型" options={(types.data?.items??[]).filter(t=>!group||t.navigation_group===group).map(t=>({value:String(t.id),label:t.name}))}/></div>
+  const pageIndex=Math.min(page,Math.max(0,Math.ceil(filtered.length/20)-1));
+  const rows=filtered.slice(pageIndex*20,(pageIndex+1)*20);
+  useLayoutEffect(()=>{
+    if(!restoreScroll.current || !saved || list.loading || types.loading || !table.current)return;
+    restoreScroll.current=false;
+    table.current.scrollTop=saved.tableTop;
+    table.current.closest('.content')?.scrollTo({top:saved.contentTop});
+  },[saved,list.loading,types.loading]);
+  return <div className="section-content workbench-list"><div className="page-toolbar"><div className="view-tabs">{[['active','在办'],['done','已结束'],['archived','收起与归档']].map(([v,label])=><button className={view===v?'selected':''} key={v} onClick={()=>{setView(v);setPage(0);}}>{label}</button>)}</div><Button kind="primary" onClick={()=>setCreating(true)}>＋ 新建工作</Button></div>
+    <div className="row"><div className="view-tabs">{[{value:'',label:'全部'},...TYPE_GROUPS].map(g=><button key={g.value} className={group===g.value?'selected':''} onClick={()=>{setGroup(g.value);setFilterType('');setPage(0);}}>{g.label}</button>)}</div><div className="spacer"/><Input value={keyword} onChange={v=>{setKeyword(v);setPage(0);}} placeholder="搜索工作名称、编号、单位"/><Select value={filterType} onChange={v=>{setFilterType(v);setPage(0);}} placeholder="全部工作类型" options={(types.data?.items??[]).filter(t=>!group||t.navigation_group===group).map(t=>({value:String(t.id),label:t.name}))}/></div>
     <Card className="workbench-list-card" title={'工作列表 · '+filtered.length+' 项'}>
-      <div className="workbench-list-content">
-      {list.error?<div className="notice notice-err" role="alert">{list.error.message}<Button onClick={list.reload}>重试</Button></div>:list.loading?<Loading/>:!rows.length?<Empty text={keyword||group||filterType?'没有符合筛选条件的工作。':'当前视图还没有工作。'} action={<Button onClick={()=>{if(keyword||group||filterType){setKeyword('');setGroup('');setFilterType('');}else setCreating(true);}}>{keyword||group||filterType?'清除筛选':'新建工作'}</Button>}/>:<table className="table"><thead><tr><th>工作</th><th>分类 / 办理范围</th><th>下一步</th><th>状态</th><th>操作</th></tr></thead><tbody>{rows.map(w=><tr key={w.id}><td><a href={'#/workbench?id='+w.id}><strong>{w.name}</strong></a><div className="small muted">{w.code} · 更新 {fmtTime(w.updated_at)}</div></td><td>{TYPE_GROUPS.find(g=>g.value===types.data?.items.find(t=>t.id===w.work_type_id)?.navigation_group)?.label??'待确认分类'}<div className="small muted">{w.work_type_name} · {w.work_type_mode==='process'?'阶段 '+(w.position_done??0)+' / '+(w.position_total??0):w.period_frequency?'独立期次':'单次办理'}</div></td><td className="small">{w.period_due?'待办期次截止 '+w.period_due:'打开工作查看'}</td><td><Tag kind={statusKind(w.status)}>{workStatus(w)}</Tag></td><td><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>{view==='active'?'继续办理':'查看工作'}</Button></td></tr>)}</tbody></table>}
+      <div ref={table} className="workbench-list-content">
+      {list.error?<div className="notice notice-err" role="alert">{list.error.message}<Button onClick={list.reload}>重试</Button></div>:list.loading?<Loading/>:!rows.length?<Empty text={keyword||group||filterType?'没有符合筛选条件的工作。':'当前视图还没有工作。'} action={<Button onClick={()=>{if(keyword||group||filterType){setKeyword('');setGroup('');setFilterType('');setPage(0);}else setCreating(true);}}>{keyword||group||filterType?'清除筛选':'新建工作'}</Button>}/>:<table className="table"><thead><tr><th>工作</th><th>分类 / 办理范围</th><th>下一步</th><th>状态</th><th>操作</th></tr></thead><tbody>{rows.map(w=>{
+        const params:Record<string,string>={id:String(w.id)};
+        if(w.next_period_id!=null)params.periodId=String(w.next_period_id);
+        const href='#/workbench?'+new URLSearchParams(params);
+        const typeGroup=types.data?.items.find(t=>t.id===w.work_type_id)?.navigation_group;
+        const groupLabel=TYPE_GROUPS.find(g=>g.value===typeGroup)?.label??'待确认分类';
+        const reference=w.code+' · 更新 '+fmtTime(w.updated_at);
+        const mode=w.work_type_mode==='process'?'阶段 '+(w.position_done??0)+' / '+(w.position_total??0):w.period_frequency?'独立期次':w.schedule?.recurring?'周期提醒':'单次办理';
+        const next=w.period_due?'待办期次截止 '+w.period_due:w.schedule?.recurring&&w.schedule.nextDue?'下次提醒 '+w.schedule.nextDue:'打开工作查看';
+        return <tr key={w.id}>
+          <td><a href={href} onClick={rememberList}><strong>{w.name}</strong></a>
+            <div className="work-list-reference small muted">{reference}</div>
+            <details className="work-list-mobile-info"><summary>分类与编号</summary><div>{groupLabel} · {w.work_type_name} · {mode}</div><div>{reference}</div></details>
+          </td>
+          <td>{groupLabel}<div className="small muted">{w.work_type_name} · {mode}</div></td>
+          <td className="small">{next}</td><td><Tag kind={statusKind(w.status)}>{workStatus(w)}</Tag></td>
+          <td><Button size="sm" onClick={()=>{rememberList();go('workbench',params);}}>{view==='active'?'继续办理':'查看工作'}</Button></td>
+        </tr>;})}</tbody></table>}
       </div>
-      <div className="row workbench-list-pagination"><span className="muted small">第 {page+1} 页 · 每页 20 项</span><div className="spacer"/><Button size="sm" disabled={!page} onClick={()=>setPage(p=>p-1)}>上一页</Button><Button size="sm" disabled={(page+1)*20>=filtered.length} onClick={()=>setPage(p=>p+1)}>下一页</Button></div>
+      <div className="row workbench-list-pagination"><span className="muted small">第 {pageIndex+1} 页 · 每页 20 项</span><div className="spacer"/><Button size="sm" disabled={!pageIndex} onClick={()=>setPage(pageIndex-1)}>上一页</Button><Button size="sm" disabled={(pageIndex+1)*20>=filtered.length} onClick={()=>setPage(pageIndex+1)}>下一页</Button></div>
     </Card>
     <CreateWorkbenchModal open={creating} types={types.data?.items??[]} refreshTypes={types.reload} onClose={()=>setCreating(false)} onCreated={wb=>{setCreating(false);toast('工作已创建','ok');setCreatedId(wb.id);}}/>
   </div>;
@@ -285,9 +325,9 @@ function CreateWorkbenchModal({
             </Button>
           )}
           <Button onClick={close}>取消</Button>
-          <Button kind="primary" onClick={submit} disabled={busy || !canSubmit}>
+          {kind !== null && <Button kind="primary" onClick={submit} disabled={busy || !canSubmit}>
             {busy ? '创建中…' : '创建'}
-          </Button>
+          </Button>}
         </>
       }
     >
@@ -298,7 +338,7 @@ function CreateWorkbenchModal({
       {kind === null && (
         <div className="col" style={{ gap: 12 }}>
           <p className="muted small" style={{ margin: 0 }}>
-            周期和专项工作在此新建。普通单次事项请使用“工作记录”，旧工作及文件继续保留。
+            需要按期提醒、分期办理或按阶段留存材料时，在此建立工作。只需记下发生的事，可使用“工作记录”。
           </p>
           <button
             className="pick-card"
@@ -308,7 +348,7 @@ function CreateWorkbenchModal({
           >
             <div className="pick-title">行政管理工作</div>
             <div className="pick-desc">
-              办理安全例会、清廉工程、部门工时及临时事务。
+              办理安全例会、清廉工程、部门工时等需要持续跟进的事项。
               {!adminType && <span style={{ color: 'var(--err)' }}>（还没有行政管理工作类型）</span>}
             </div>
           </button>
@@ -368,10 +408,10 @@ function CreateWorkbenchModal({
 
           <div className="notice notice-info">
             {selected?.mode==='process'?'将创建阶段和材料清单，按实际办理进度推进。':selected?.period_defaults?'将按类型默认周期创建独立期次；各期资料与成果分别保存。':recurrence === 'once'
-              ? '单次工作不会有周期提醒。做完后在详情页点「完成归档」即可结束。'
+              ? '单次工作可在详情页的“工作设置与归档”中选择“完成工作”。'
               : `创建后，每到${
                   recurrence === 'monthly' ? '每月' : recurrence === 'quarterly' ? '每季度首月' : `每年 ${recurMonth} 月`
-                } ${recurDay} 号到期，提前 ${remindDays} 天进入首页提醒。完成本期后自动显示下一期。`}
+                } ${recurDay} 号到期，提前 ${remindDays} 天进入首页提醒。处理本次提醒后显示下次提醒日期。`}
           </div>
         </>
       )}
@@ -463,8 +503,6 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
   };
   const periods = useApi<{ rule: unknown | null; items: {status:string}[] }>(`/api/workbenches/${id}/periods`);
   const periodEnabled = !!periods.data?.rule;
-  const [selectedPeriod,setSelectedPeriod]=useState(initialPeriodId);
-  useEffect(()=>setSelectedPeriod(initialPeriodId),[id,initialPeriodId]);
   /** 文书驱动（行政管理）默认落在「出文书」页；流程驱动默认落在「流程与清单」 */
   const [tab, setTab] = useState<TabKey | null>(null);
   const workTemplates=useApi<{items:(Template&{required?:boolean})[]}>(`/api/workbenches/${id}/templates`);
@@ -496,7 +534,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
 
   /** 周期工作完成的是「这一期」，单次/项目工作完成的是整件事 —— 按钮文案要分开 */
   const recurring = Boolean(sched?.recurring);
-  const doneLabel = recurring ? '完成本期' : '完成工作';
+  const doneLabel = recurring ? '确认本次提醒已处理' : '完成工作';
   const reminderOnly=recurring&&!periodEnabled;
 
   const doComplete = () =>
@@ -504,7 +542,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
       const r = await api.post<{ status: string; nextDue: string | null }>(`/api/workbenches/${wb.id}/complete`);
       detail.reload();
       toast(
-        r.nextDue ? `本期已完成，下一期 ${r.nextDue}` : '已完成，这份工作结束了',
+        r.nextDue ? `本次提醒已处理，下次提醒 ${r.nextDue}` : '已完成，这份工作结束了',
         'ok',
       );
     });
@@ -519,15 +557,15 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
 
   return (
     <div className="col work-detail" style={{ gap: 14 }}>
-      <Card className={`work-detail-heading${periodEnabled?' periodic-heading':''}`} title={<span><a onClick={()=>go('workbench')}>我的工作台</a> / {wb.name}</span>} extra={<><Tag>{d.workType?.name}</Tag><Tag kind={statusKind(wb.status)}>{workStatus(wb)}</Tag></>}>
-        <p>{d.workType?.executor==='timesheet'?'上传本月资料，核对人员与项目后办理部门工时':periodEnabled?'选择期次，填写本期内容并生成文书':reminderOnly?`${sched!.label} · 本期到期 ${sched!.nextDue} · ${scheduleText(sched!)}`:isDocMode?'填写业务内容，选择模板生成文书':wb.historical?'按阶段补录已有材料，核对后可归档。':wb.status==='done'?'业务已结束，可核对材料和档案。':nextStage(d.positions)?'当前阶段：'+nextStage(d.positions)!.name:'阶段已办理完毕，可核对材料并结束工作。'}</p>
+      <Card className={`work-detail-heading${periodEnabled?' periodic-heading':''}`} title={<span><a href="#/workbench">我的工作台</a> / {wb.name}</span>} extra={<><Tag>{d.workType?.name}</Tag><Tag kind={statusKind(wb.status)}>{workStatus(wb)}</Tag></>}>
+        <p>{d.workType?.executor==='timesheet'?'上传本月资料，核对人员与项目后办理部门工时':periodEnabled?'选择期次，填写本期内容并生成文书':reminderOnly?`${sched!.label} · 提醒日期 ${sched!.nextDue} · ${scheduleText(sched!)}`:isDocMode?'填写业务内容，选择模板生成文书':wb.historical?'按阶段补录已有材料，核对后可归档。':wb.status==='done'?'业务已结束，可核对材料和档案。':nextStage(d.positions)?'当前阶段：'+nextStage(d.positions)!.name:'阶段已办理完毕，可核对材料并结束工作。'}</p>
         {reminderOnly&&<Button kind="primary" disabled={busy||wb.status!=='active'||sched?.doneThroughCurrentPeriod} onClick={doComplete}>{doneLabel}</Button>}
         <div className="row small muted"><span>{wb.code}</span><span>已有文件 {stats.artifactCount} 份</span></div>
       </Card>
       {d.workType?.domain==='project' && <DossierStatus id={id} revision={d}/>}
       {periods.error&&<p role="alert">办理范围读取失败：{periods.error.message} <Button onClick={periods.reload}>重试</Button></p>}
       {!periodEnabled&&!periods.loading&&!periods.error&&d.workType?.executor==='timesheet'&&<MonthlyTimesheet embedded workbenchId={id} boundTemplates={workTemplates.data?.items??[]}/>}
-      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={selectedPeriod} onPeriodSelected={setSelectedPeriod} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&!reminderOnly&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={wb.business_content??''} onSaveContent={async(businessContent,expectedBusinessContent)=>{await api.put(`/api/workbenches/${id}`,{businessContent,expectedBusinessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
+      {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={initialPeriodId} onPeriodSelected={periodId=>go('workbench',{id:String(id),periodId})} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&!reminderOnly&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={wb.business_content??''} onSaveContent={async(businessContent,expectedBusinessContent)=>{await api.put(`/api/workbenches/${id}`,{businessContent,expectedBusinessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
       {/*
         行政管理是「文书驱动」：这份工作的内容就是填那几张表，
         所以不设页签、不加「出文书」这一层 —— 要交什么、填了几项，直接铺在页面上。

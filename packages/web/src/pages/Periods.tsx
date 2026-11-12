@@ -38,7 +38,7 @@ interface Detail extends Period {
         file_name: string;
         is_final: number;kind:string;file_role:string;
     }[];
-    readiness:{validFinalIds:number[];recordDocumentsReady:boolean;inspectionRevisions:{id:number;revision:number;project:string;date:string}[];monthly:boolean;missing:string[];canComplete:boolean;external:ExternalMaterial[];finalCount:number;recordCount:number;recordsReady:boolean;reported:boolean};
+    readiness:{validFinalIds:number[];recordDocumentsReady:boolean;inspectionRevisions:{id:number;revision:number;project:string;date:string}[];monthly:boolean;missing:string[];canComplete:boolean;external:ExternalMaterial[];finalCount:number;recordCount:number;draftCount:number;recordsReady:boolean;reported:boolean};
     reported_on:string|null;
 }
 export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeriodId, onRuleChanged, timesheet = false,onPeriodSelected }: {
@@ -47,7 +47,7 @@ export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeri
     workTypeCode?:string;
     timesheet?:boolean;
     initialPeriodId?: string;
-    onPeriodSelected?:(id:string)=>void;
+    onPeriodSelected:(id:string)=>void;
     onRuleChanged?: () => void;
 }) {
     const list = useApi<{
@@ -55,18 +55,23 @@ export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeri
         rule: PeriodRule | null;
     }>(`/api/workbenches/${workbenchId}/periods`), { busy, run } = useAction();
     const navigation=useNavigationGuard();
-    const [selected, setSelected] = useState(initialPeriodId??''), [configure, setConfigure] = useState(false);
+    const [defaultId,setDefaultId]=useState(''), [configure, setConfigure] = useState(false);
     useEffect(() => { void run(async () => { await api.post(`/api/workbenches/${workbenchId}/periods/sync`); list.reload(); }); }, [workbenchId]);
-    useEffect(() => { if (initialPeriodId)
-        setSelected(initialPeriodId); }, [initialPeriodId]);
-    useEffect(() => { if (!selected && list.data?.items.length){const id=String(list.data.items.find(p => p.status === 'open')?.id ?? list.data.items[0]!.id);setSelected(id);onPeriodSelected?.(id);} }, [list.data, selected]);
+    const items=list.data?.items;
+    useEffect(()=>{
+        if(!items?.length || items.some(p=>String(p.id)===defaultId))return;
+        setDefaultId(String((items.find(p=>p.status==='open')??items[0]!).id));
+    },[items,defaultId]);
+    const requested=initialPeriodId || defaultId;
+    const selected=items?.find(p=>String(p.id)===requested);
     const sync = () => run(async () => { await api.post(`/api/workbenches/${workbenchId}/periods/sync`); list.reload(); });
     return <Card className="period-panel" title="办理期次" extra={<Button disabled={!list.data} onClick={()=>configure?navigation.request(()=>setConfigure(false)):setConfigure(true)}>高级排期设置</Button>}>
  {list.error && <p role="alert">{list.error.message} <Button onClick={list.reload}>重试</Button></p>}
  {configure&&list.data&&<PeriodRuleEditor key={'rule-'+workbenchId} workbenchId={workbenchId} rule={list.data.rule} onClose={()=>setConfigure(false)} onSaved={()=>{list.reload();onRuleChanged?.();}}/>}
- <div className="row"><Select value={selected} onChange={v=>navigation.request(()=>{setSelected(v);onPeriodSelected?.(v);})} options={[{ value: '', label: '选择报告期' }, ...(list.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.report_period} · 截止 ${p.due_date} · ${p.status === 'done' ? '已完成' : '待办理'}` }))]}/><Button disabled={busy} onClick={() => void sync()}>补齐期次</Button></div>
+ <div className="row"><Select value={selected?String(selected.id):''} onChange={onPeriodSelected} placeholder={selected?undefined:'选择报告期'} options={(items ?? []).map(p => ({ value: String(p.id), label: `${p.report_period} · 截止 ${p.due_date} · ${p.status === 'done' ? '已完成' : '待办理'}` }))}/><Button disabled={busy} onClick={() => void sync()}>补齐期次</Button></div>
  {!list.loading&&!list.data?.rule && <p>尚未启用独立期次。可按实际业务在高级设置启用排期。</p>}
- {selected && <PeriodDetail timesheet={timesheet} key={selected} id={Number(selected)} workbenchId={workbenchId} workTypeId={workTypeId} workTypeCode={workTypeCode} onChange={()=>{list.reload();onRuleChanged?.();}}/>}
+ {initialPeriodId&&items&&!selected&&!list.loading&&<p role="alert">当前工作没有链接指定的期次，请重新选择报告期。</p>}
+ {selected && <PeriodDetail timesheet={timesheet} key={selected.id} id={selected.id} workbenchId={workbenchId} workTypeId={workTypeId} workTypeCode={workTypeCode} onChange={()=>{list.reload();onRuleChanged?.();}}/>}
  </Card>;
 }
 function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,timesheet }: {
@@ -131,7 +136,7 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
  <p className={`period-summary${monthly?' monthly-summary':''}`}><strong>{p.report_period}</strong> · {monthly?`${readiness.recordCount} 次已确认检查 · ${readiness.recordsReady?'文件已生成':'待起草／编辑中'}`:timesheet?'本期部门工时：上传资料，核对人员与项目后计算':'准备内容，生成文件后可下载或继续修改'}</p>
 
  {workTypeCode==='integrity-quarter-summary'&&<PeriodExecution period={p} purpose="summary" onSaved={refresh}/>}
- {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary>检查草稿、已确认记录与单次表册</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
+ {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary><span>检查草稿、已确认记录与单次表册</span> · 待确认草稿 {readiness.draftCount} 份，已确认 {readiness.recordCount} 次</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
  {timesheet&&<MonthlyTimesheet embedded workbenchId={workbenchId} periodId={id} initialMonth={p.report_period} boundTemplates={templates}/>}
  <div id={`period-${id}-documents`}>
  {timesheet?<details><summary>其他模板与通用文书</summary>{documentPanel}</details>:documentPanel}

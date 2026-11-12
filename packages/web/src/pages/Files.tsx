@@ -1,4 +1,5 @@
 import {useEditorGuard} from '../components/NavigationGuard';
+import {useModalSave} from '../components/useUnsavedClose';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
@@ -50,6 +51,17 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   const [detailId, setDetailId] = useState<number | null>(null);
   /** B4-12 正在页面内预览的那份文件（点「预览」或点缩略图） */
   const [previewOf, setPreviewOf] = useState<number | null>(null);
+  const linkedArtifactId = Number(params.artifact);
+  const linkedPreview = Number.isSafeInteger(linkedArtifactId) && linkedArtifactId > 0;
+  const previewId = linkedPreview ? linkedArtifactId : previewOf;
+  const closePreview = () => {
+    setPreviewOf(null);
+    if (linkedPreview) {
+      const rest = {...params};
+      delete rest.artifact;
+      go('files', rest);
+    }
+  };
   const debounced = useDebounced(keyword, 400);
   const [page,setPage]=useState(0);
   useEffect(()=>setPage(0),[debounced,workbenchId,kind,mode]);
@@ -74,6 +86,10 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   const items = searching ? searchResult.data?.items ?? [] : browse.data?.items ?? [];
   const loading = searching ? searchResult.loading : browse.loading;
   const wbName = (id: number | null) => workbenches.data?.items.find((w) => w.id === id);
+  const categories = Object.entries(KIND_TEXT).map(([value,label]) => {
+    if (value === 'template') return {value:'template-library',label:'前往模板库 →'};
+    return {value,label:value==='generated'?'成果文件':label,count:stats.data?.byKind.find(k=>k.kind===value)?.n};
+  });
 
   const reloadAll = () => {
     if (searching) searchResult.reload();
@@ -82,7 +98,8 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   };
 
   return (
-    <PageSplit nav={<SectionNav value={kind} onChange={v=>{if(v==='template')go('knowledge',{module:'template'});else setKind(v);}} items={[{value:'',label:'全部业务文件'},...Object.entries(KIND_TEXT).map(([value,label])=>({value,label:value==='generated'?'成果文件':label,count:stats.data?.byKind.find(k=>k.kind===value)?.n}))]}/>}><div className="section-content">
+    <PageSplit nav={<SectionNav value={kind} onChange={v=>{if(v==='template-library')go('knowledge',{module:'template'});else setKind(v);}}
+      items={[{value:'',label:'全部业务文件'},...categories]}/>}><div className="section-content">
       <Card
         title="查找文件"
         extra={
@@ -94,8 +111,8 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
           </>
         }
       >
-        <div className="row" style={{ gap: 10 }}>
-          <div style={{ flex: 1 }}>
+        <div className="file-search-inputs">
+          <div>
             <Input value={keyword} onChange={setKeyword} placeholder="搜文件内容、标题、文件名…例如：验收资料 / 应急照明 / 开箱" />
           </div>
           <Select
@@ -182,12 +199,13 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
           <table className="table">
             <thead>
               <tr>
-                <th>文件</th>
-                <th>所属工作</th>
-                <th>类别</th>
-                <th>版本 / 状态</th>
-                <th>时间</th>
-                <th />
+                <th scope="col">文件</th>
+                <th scope="col">所属工作</th>
+                <th scope="col">类别</th>
+                <th scope="col">版本 / 状态</th>
+                <th scope="col">大小</th>
+                <th scope="col">时间</th>
+                <th scope="col" aria-label="文件操作" />
               </tr>
             </thead>
             <tbody>
@@ -233,7 +251,8 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
                     <td className="small nowrap">
                       <Tag>{KIND_TEXT[a.kind] ?? a.kind}</Tag>
                     </td>
-                    <td className="small muted nowrap">{a.kind==='generated'?<><Tag>{a.is_final?'已定稿':'未定稿'}</Tag><div>版本 {a.revision??'未标注'}</div></>:fmtSize(a.size_bytes)}</td>
+                    <td className="small muted nowrap">{a.kind==='generated'?<><Tag>{a.is_final?'已定稿':'未定稿'}</Tag><div>版本 {a.revision??'未标注'}</div></>:'—'}</td>
+                    <td className="small muted nowrap">{fmtSize(a.size_bytes)}</td>
                     <td className="small muted nowrap">{fmtTime(a.captured_at ?? a.created_at)}</td>
                     <td className="nowrap">
                       {/* B4-12 真·预览：页面里直接看内容，不必下载（图片/PDF 直接渲染） */}
@@ -296,7 +315,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
       </Card>
 
       {detailId !== null && <FileDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={reloadAll} />}
-      {previewOf !== null && <FilePreview id={previewOf} onClose={() => setPreviewOf(null)} />}
+      {previewId !== null && <FilePreview key={previewId} id={previewId} onClose={closePreview} />}
       {versionId!==null&&<DocVersionsModal id={versionId} onClose={()=>setVersionId(null)} onChanged={reloadAll}/>}
       <Modal open={uploadOpen} title="上传业务文件" onClose={closeUpload} footer={<><Button disabled={uploadBusy} onClick={closeUpload}>取消</Button><Button kind="primary" disabled={uploadBusy||!uploadFile||!workbenchId} onClick={()=>void saveUpload().catch(()=>{})}>{uploadBusy?'上传中…':'上传文件'}</Button></>}>
         <Field label="所属工作"><WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="请选择工作" disabled={uploadBusy}/></Field><Field label="类别"><Select disabled={uploadBusy} value={uploadKind} onChange={setUploadKind} options={[{value:'source',label:'原始资料'},{value:'other',label:'附件 / 其他'}]}/></Field><Field label="文件"><input type="file" disabled={uploadBusy} onChange={e=>setUploadFile(e.target.files?.[0]??null)}/></Field>{uploadError&&<p role="alert" className="notice notice-err">{uploadError}。所选文件保留，请核对文件库后重试。</p>}
@@ -318,7 +337,7 @@ interface FileDetailData {
 function FileDetailModal({ id, onClose, onChanged }: { id: number; onClose: () => void; onChanged: () => void }) {
   const toast = useToast();
   const d = useApi<FileDetailData>(`/api/artifacts/${id}`);
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState<string | null>(null);
 
   // 识别中时自动刷新
   useEffect(() => {
@@ -330,6 +349,14 @@ function FileDetailModal({ id, onClose, onChanged }: { id: number; onClose: () =
   }, [d.data]);
 
   const a = d.data?.artifact;
+  const editor = useModalSave(note !== null && note !== a?.title, async () => {
+    if (!a || !note?.trim()) throw Error('请填写文件标题');
+    await api.put(`/api/artifacts/${a.id}`, {title: note.trim()});
+    setNote(null);
+    toast('已保存', 'ok');
+    d.reload();
+    onChanged();
+  }, onClose);
   const text = a?.ocr_text || a?.extracted_text || '';
   const isImg = a ? /\.(png|jpe?g|webp|gif|bmp|tiff?)$/i.test(a.file_name) : false;
 
@@ -347,10 +374,11 @@ function FileDetailModal({ id, onClose, onChanged }: { id: number; onClose: () =
       open
       wide
       title={a?.title || a?.file_name || '文件详情'}
-      onClose={onClose}
+      onClose={editor.close}
+      busy={editor.busy}
       footer={
         <>
-          <Button onClick={onClose}>关闭</Button>
+          <Button disabled={editor.busy} onClick={editor.close}>关闭</Button>
           {a && (
             <Button kind="primary" onClick={() => api.download(`/api/artifacts/${a.id}/file`, a.file_name)}>
               下载文件
@@ -429,20 +457,12 @@ function FileDetailModal({ id, onClose, onChanged }: { id: number; onClose: () =
           )}
 
           <Field label="备注 / 标题" hint="改完点保存，会同步更新检索索引">
-            <Input value={note || a.title} onChange={setNote} />
+            <Input value={note ?? a.title} onChange={setNote} />
           </Field>
           <Button
             size="sm"
-            onClick={async () => {
-              try {
-                await api.put(`/api/artifacts/${a.id}`, { title: note || a.title });
-                toast('已保存', 'ok');
-                d.reload();
-                onChanged();
-              } catch (e) {
-                toast((e as { message: string }).message, 'err');
-              }
-            }}
+            disabled={editor.busy || note === null || !note.trim() || note === a.title}
+            onClick={editor.save}
           >
             保存
           </Button>

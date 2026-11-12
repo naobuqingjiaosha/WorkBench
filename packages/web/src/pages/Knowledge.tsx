@@ -16,6 +16,7 @@ import {
   useAction, useDebounced, useToast,
 } from '../ui';
 import { TemplatePanel } from './Template';
+import type {RouteKey} from '../App';
 
 /* ============================== 类型 ============================== */
 
@@ -79,12 +80,18 @@ interface DisplayHit {
 
 type PolicyTab = 'docs' | 'files' | 'ask' | 'evidence';
 
-export default function KnowledgePage({params={}}:{params?:Record<string,string>}) {
+export default function KnowledgePage({params,go}:{params:Record<string,string>;go:(key:RouteKey,params?:Record<string,string>)=>void}) {
   const [section, setSection] = useState('template');
-  return <PageSplit nav={<SectionNav value={section} onChange={setSection} items={[
+  const id = Number(params.templateId);
+  const linkedTemplateId = Number.isSafeInteger(id) && id > 0 ? id : undefined;
+  const activeSection = linkedTemplateId ? 'template' : section;
+  return <PageSplit nav={<SectionNav value={activeSection} onChange={setSection} items={[
     {value:'template',label:'模板库'}, {value:'coverage',label:'字段映射'},
   ]}/>}><div className="section-content">
-    {section === 'template' ? <TemplatePanel /> : <CoveragePanel />}
+    {activeSection === 'template' ? <TemplatePanel
+      linkedTemplateId={linkedTemplateId}
+      onCloseLinked={()=>{const rest={...params};delete rest.templateId;go('knowledge',rest);}}
+    /> : <CoveragePanel />}
   </div></PageSplit>;
 }
 
@@ -362,7 +369,7 @@ function CoveragePanel() {
                     { value: 'name', label: '按变量名' },
                   ]}
                 />
-                {limit < 200 && (
+                {limit < 200 && (un.data?.total ?? 0) > items.length && !un.loading && !un.error && (
                   <Button size="sm" onClick={() => setLimit(limit === 20 ? 50 : 200)}>
                     显示更多（{limit === 20 ? 50 : 200}）
                   </Button>

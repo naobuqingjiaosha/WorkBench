@@ -41,12 +41,13 @@ body { font-size: 13px; }
 .table td { padding: 10px; font-size: 13px; }
 .table thead { position: sticky; top: 0; z-index: 2; background: white; }
 .file-results .table { table-layout: fixed; }
-.file-results th:nth-child(1) { width: 30%; }
-.file-results th:nth-child(2) { width: 18%; }
+.file-results th:nth-child(1) { width: 26%; }
+.file-results th:nth-child(2) { width: 16%; }
 .file-results th:nth-child(3) { width: 9%; }
 .file-results th:nth-child(4) { width: 10%; }
-.file-results th:nth-child(5) { width: 13%; }
-.file-results th:nth-child(6) { width: 20%; }
+.file-results th:nth-child(5) { width: 8%; }
+.file-results th:nth-child(6) { width: 13%; }
+.file-results th:nth-child(7) { width: 18%; }
 .file-results td.nowrap { white-space: normal; }
 .file-results td:first-child > .row { flex-wrap: nowrap; }
 .file-results .check-main { min-width: 0; flex: 1; }
@@ -176,8 +177,6 @@ body { font-size: 13px; }
 .home-file-icon { width: 26px; height: 30px; font-size: 17px; }
 .home-file-row > .btn { font-size: 11px; min-height: 26px; padding: 3px 6px; }
 .home-file-note { font-size: 11px; margin-top: 5px; }
-.home-record-link { min-height: 40px; padding: 8px 12px; gap: 10px; font-size: 13px; }
-.home-record-link svg { width: 20px; height: 20px; }
 .home-pagination { padding-top: 4px; }
 @media (min-width: 1000px) and (min-height: 600px) {
   .page-dashboard { overflow: hidden; }

@@ -2,12 +2,17 @@ import {createContext, useContext, useEffect, useMemo, useRef, useState, type Re
 import {Button, Modal} from '../ui';
 
 type Editor = {dirty:boolean; busy?:boolean; save?:()=>Promise<void>; discard?:()=>void};
-const GuardContext = createContext({register:(_id:symbol,_editor:()=>Editor)=>()=>{}, changed:()=>{}, request:(next:()=>void)=>next()});
+const GuardContext = createContext({register:(_id:symbol,_editor:()=>Editor)=>()=>{}, changed:()=>{}, hasEdits:():boolean=>false, request:(next:()=>void,_only?:symbol)=>next()});
+
+function activeEditors(editors:Map<symbol,()=>Editor>, only?:symbol) {
+  return [...editors].filter(([id])=>only===undefined||id===only)
+    .map(([,read])=>read()).filter(editor=>editor.dirty||editor.busy);
+}
 
 /** Keep editor buffers mounted until an explicit discard or a successful save. */
 export function NavigationGuard({children}:{children:ReactNode}) {
   const editors=useRef(new Map<symbol,()=>Editor>());
-  const [pending,setPending]=useState<{next:()=>void}|null>(null);
+  const [pending,setPending]=useState<{next:()=>void; only?:symbol}|null>(null);
   const [saving,setSaving]=useState(false), [error,setError]=useState('');
   const value=useMemo(()=>{
     // The dialog keeps only the destination. Editor state and callbacks stay live.
@@ -15,10 +20,14 @@ export function NavigationGuard({children}:{children:ReactNode}) {
     return {
       register:(id:symbol,editor:()=>Editor)=>{editors.current.set(id,editor);changed();return ()=>{editors.current.delete(id);changed();};},
       changed,
-      request:(next:()=>void)=>{const dirty=[...editors.current.values()].some(read=>{const e=read();return e.dirty||e.busy;});if(!dirty){next();return;}setError('');setPending({next});},
+      hasEdits:()=>activeEditors(editors.current).length>0,
+      request:(next:()=>void,only?:symbol)=>{
+        if(!activeEditors(editors.current,only).length){setPending(null);next();return;}
+        setError('');setPending({next,only});
+      },
     };
   },[]);
-  const readActive=()=>[...editors.current.values()].map(read=>read()).filter(e=>e.dirty||e.busy);
+  const readActive=()=>activeEditors(editors.current,pending?.only);
   const active=pending?readActive():[];
   const busy=active.some(e=>e.busy), canSave=active.every(e=>e.save);
   const discard=()=>{
@@ -35,6 +44,7 @@ export function NavigationGuard({children}:{children:ReactNode}) {
     try {
       // Re-read after each awaited save; prior saves may update/unmount editors.
       for(const [id,read] of [...editors.current]){
+        if(pending.only!==undefined && id!==pending.only)continue;
         if(!editors.current.has(id))continue;
         const editor=read();
         if(!editor.dirty&&!editor.busy)continue;
@@ -46,16 +56,17 @@ export function NavigationGuard({children}:{children:ReactNode}) {
     finally{setSaving(false);}
   };
   useEffect(()=>{const unload=(e:BeforeUnloadEvent)=>{if([...editors.current.values()].some(read=>(read().dirty||read().busy))){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);return ()=>window.removeEventListener('beforeunload',unload);},[]);
-  return <GuardContext.Provider value={value}>{children}<Modal open={!!pending} title="还有未保存的修改" onClose={()=>{if(!saving)setPending(null);}} footer={<>
-    <Button disabled={saving} onClick={()=>setPending(null)}>继续编辑</Button>
+  const stay=()=>{if(!saving)setPending(null);};
+  return <GuardContext.Provider value={value}>{children}<Modal open={!!pending} title="还有未保存的修改" onClose={stay} footer={<>
+    <Button disabled={saving} onClick={stay}>继续编辑</Button>
     <Button disabled={saving||busy} onClick={discard}>不保存离开</Button>
     <Button kind="primary" disabled={saving||busy||!canSave} onClick={save}>{saving?'保存中…':'保存并离开'}</Button>
   </>}>{busy&&<p role="status">当前操作尚未结束，请继续留在编辑页，等待完成后再离开。</p>}<p>离开前可以保存当前修改。放弃只会丢弃尚未保存的输入，已保存记录和文件会保留。</p>{!canSave&&<p className="muted">当前表单需在原编辑区保存，请选择“继续编辑”。</p>}{error&&<div role="alert" className="notice notice-err">{error}。页面与输入已保留。</div>}</Modal></GuardContext.Provider>;
 }
 export const useNavigationGuard=()=>useContext(GuardContext);
-export function useEditorGuard(editor:Editor){
+export function useEditorGuard(editor:Editor,scope:'page'|'editor'='page'){
   const guard=useNavigationGuard(),id=useRef(Symbol()),latest=useRef(editor);latest.current=editor;
   useEffect(()=>guard.register(id.current,()=>latest.current),[guard]);
   useEffect(()=>guard.changed(),[guard,editor.dirty,editor.busy,Boolean(editor.save)]);
-  return guard.request;
+  return scope==='editor' ? (next:()=>void)=>guard.request(next,id.current) : guard.request;
 }

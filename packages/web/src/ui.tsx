@@ -95,10 +95,11 @@ export function Card({
   return (
     <section className={`card ${className}${fill ? ' card-fill' : ''}`}>
       {(title || extra) && (
-        <header className="card-head">
-          <h3 onClick={collapsible ? () => setOpen((o) => !o) : undefined} className={collapsible ? 'clickable' : ''}>
-            {collapsible && <span className={`caret${open ? ' open' : ''}`}>▸</span>}
-            {title}
+        <header className={`card-head${collapsible?' card-fold-head':''}`}>
+          <h3>
+            {collapsible ? <button type="button" className="card-fold-toggle" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>
+              <span aria-hidden="true" className={`caret${open?' open':''}`}>▸</span>{title}
+            </button> : title}
           </h3>
           <div className="card-extra">{extra}</div>
         </header>
@@ -168,12 +169,14 @@ export function Textarea({
   placeholder,
   rows = 4,
   disabled,
+  onKeyDown,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   rows?: number;
   disabled?: boolean;
+  onKeyDown?: React.KeyboardEventHandler<HTMLTextAreaElement>;
 }) {
   return (
     <textarea
@@ -183,6 +186,7 @@ export function Textarea({
       disabled={disabled}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
+      onKeyDown={onKeyDown}
     />
   );
 }
@@ -221,6 +225,7 @@ export function Modal({
   children,
   footer,
   wide,
+  busy,
 }: {
   open: boolean;
   title: ReactNode;
@@ -228,6 +233,7 @@ export function Modal({
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
+  busy?: boolean;
 }) {
   const close=()=>{if(activeActions===0)onClose();};
   const dialogRef=useRef<HTMLDivElement>(null);
@@ -256,7 +262,7 @@ export function Modal({
             ✕
           </button>
         </header>
-        <div className="modal-body">{children}</div>
+        <div className="modal-body" inert={busy} aria-busy={busy || undefined}>{children}</div>
         {footer && <footer className="modal-foot">{footer}</footer>}
       </div>
     </div>

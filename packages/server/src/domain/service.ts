@@ -1885,6 +1885,8 @@ export interface WorkbenchPositionDoc {
 export function listWorkbenches(filter: { workTypeId?: number; status?: string; keyword?: string; limit?: number; offset?: number; archived?: boolean; now?: Date } = {}): (Workbench & {
   work_type_name: string;
   work_type_mode: string;
+  period_due: string | null;
+  next_period_id: number | null;
   position_done: number;
   position_total: number;
   artifact_count: number;
@@ -1908,17 +1910,20 @@ export function listWorkbenches(filter: { workTypeId?: number; status?: string; 
     where.push('(w.name LIKE ? OR w.code LIKE ? OR w.counterpart LIKE ?)');
     params.push(`%${filter.keyword}%`, `%${filter.keyword}%`, `%${filter.keyword}%`);
   }
-  const rows = all<Workbench & { work_type_name: string; work_type_mode: string; position_done: number; position_total: number; artifact_count: number }>(
+  const rows = all<Workbench & { work_type_name: string; work_type_mode: string; period_due: string | null; next_period_id: number | null; position_done: number; position_total: number; artifact_count: number }>(
     `SELECT w.*, t.name AS work_type_name, t.mode AS work_type_mode, t.domain AS work_type_domain,
        (SELECT frequency FROM work_period_rule WHERE workbench_id=w.id) AS period_frequency,
        (SELECT COUNT(*) FROM work_period WHERE workbench_id=w.id) AS period_total,
        (SELECT COUNT(*) FROM work_period WHERE workbench_id=w.id AND status='done') AS period_done,
-       (SELECT MIN(due_date) FROM work_period WHERE workbench_id=w.id AND status='open') AS period_due,
+       next_period.due_date AS period_due, next_period.id AS next_period_id,
 
        (SELECT COUNT(*) FROM position_instance p WHERE p.workbench_id = w.id AND p.status IN ('done','skipped') AND ${liveFilter('position_instance', 'p')}) AS position_done,
        (SELECT COUNT(*) FROM position_instance p WHERE p.workbench_id = w.id AND ${liveFilter('position_instance', 'p')}) AS position_total,
        (SELECT COUNT(*) FROM artifact a WHERE a.workbench_id = w.id AND ${liveFilter('artifact', 'a')}) AS artifact_count
      FROM workbench w JOIN work_type t ON t.id = w.work_type_id
+     LEFT JOIN work_period next_period ON next_period.id=(
+       SELECT id FROM work_period WHERE workbench_id=w.id AND status='open' ORDER BY due_date, id LIMIT 1
+     )
      WHERE ${where.join(' AND ')}
      ORDER BY w.updated_at DESC, w.id DESC LIMIT ? OFFSET ?`,
     [...params, Math.min(500,Math.max(1,filter.limit ?? 200)),Math.max(0,filter.offset ?? 0)],

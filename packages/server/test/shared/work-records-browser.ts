@@ -57,5 +57,34 @@ await withBrowserPage(async(page,base)=>{
     assert.equal(record.occurred_from,'2028-02-29');
     assert.deepEqual(history.map((r:{revision:number;text:string;nature:string;status:string})=>[r.revision,r.text,r.nature,r.status]),
         [[2,corrected,'progress','active'],[1,original,'plan','active']]);
-    console.log('真实 Chromium 留存工作原话、日期未知与计划性质；更正另存版本，撤回后仅在撤回范围及历史可查。');
+    const {token}=await get('/api/session');
+    for(let i=1;i<=32;i++){
+        const response=await fetch(base+'/api/work-records',{method:'POST',
+            headers:{'Content-Type':'application/json','x-workbench-token':token},
+            body:JSON.stringify({text:'长列表定位样例 '+i,request_key:crypto.randomUUID()})});
+        assert.ok(response.ok);
+    }
+    await page.reload();
+    const rows=page.locator('article');
+    await rows.nth(29).waitFor({state:'attached'});
+    const opener=rows.first().getByRole('button',{name:'查看来源与历史'});
+    await opener.scrollIntoViewIfNeeded();
+    const origin=await page.locator('.content').evaluate((e:HTMLElement)=>e.scrollTop);
+    await opener.click();
+    const historyDialog=page.getByRole('dialog',{name:/来源与更正历史/});
+    await historyDialog.waitFor();
+    const bounds=await historyDialog.boundingBox();
+    assert.ok(bounds && bounds.y>=0 && bounds.y+bounds.height<=page.viewportSize().height+1);
+    assert.equal(await historyDialog.getByRole('button',{name:'查看来源与历史'}).count(),0);
+    await historyDialog.getByRole('button',{name:'关闭详情'}).click();
+    assert.equal(await opener.evaluate((e:Element)=>document.activeElement===e),true);
+    assert.ok(Math.abs(await page.locator('.content').evaluate((e:HTMLElement)=>e.scrollTop)-origin)<=2);
+    const composer=page.getByLabel('做了什么，直接说');
+    await composer.fill('另一个编辑区尚未保存的工作记录');
+    await rows.first().getByRole('button',{name:'更正'}).click();
+    await page.getByLabel('原话／更正内容').fill('单独取消这项更正');
+    await page.keyboard.press('Escape');
+    await button('不保存离开').click();
+    assert.equal(await composer.inputValue(),'另一个编辑区尚未保存的工作记录');
+    console.log('真实 Chromium 核对工作记录保存、更正、撤回、长列表就地查看历史及关闭后恢复焦点和滚动。');
 });

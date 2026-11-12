@@ -1,0 +1,153 @@
+import assert from 'node:assert/strict';
+import {join} from 'node:path';
+import ExcelJS from 'exceljs';
+import {bootstrap} from '../../src/core/bootstrap.ts';
+import {closeDatabase} from '../../src/db/index.ts';
+import {softDeleteWorkbench} from '../../src/core/trash.ts';
+import {createWorkbench,registerTemplate} from '../../src/domain/service.ts';
+import {projectFixture} from './project-fixture.ts';
+import {withBrowserPage} from './browser-fixture.ts';
+
+bootstrap();
+const flow=projectFixture();
+assert.ok(flow.publishedId);
+const publishedId=flow.publishedId;
+const sample=(name:string)=>createWorkbench({workTypeId:flow.typeId,publishedConfigId:publishedId,name});
+const work=sample('合成编辑测试');
+softDeleteWorkbench(sample('合成回收测试').id);
+const book=new ExcelJS.Workbook();book.addWorksheet('清单').getCell('A1').value='合成列';
+const file=join(process.env.WORKBENCH_ISOLATION_ROOT!,'编辑模板.xlsx');
+await book.xlsx.writeFile(file);
+const template=registerTemplate({absSourcePath:file,workTypeId:flow.typeId,name:'合成编辑模板'});
+closeDatabase();
+
+await withBrowserPage(async(page,base)=>{
+  const button=(name:string)=>page.getByRole('button',{name,exact:true});
+  const guard=page.getByRole('dialog',{name:'还有未保存的修改'});
+  const go=(key:string)=>page.goto(base+'/#/'+key);
+  const get=async<T,>(path:string)=>{
+    const response=await fetch(base+path);
+    assert.ok(response.ok,path);
+    return ((await response.json()) as {data:T}).data;
+  };
+  const {token}=await get<{token:string}>('/api/session');
+  const headers={'x-workbench-token':token};
+  const templatePath='/api/templates/'+template.id;
+  const scopeNote='scope:record;合成工作记录';
+  const seeded=await fetch(base+templatePath,{method:'PUT',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({usageNote:scopeNote})});
+  assert.ok(seeded.ok);
+  const data=new FormData();
+  data.append('file',new Blob(['样例正文']), '编辑样例.txt');data.append('workbenchId',String(work.id));data.append('kind','source');
+  const upload=await fetch(base+'/api/artifacts/upload',{method:'POST',headers,body:data});
+  assert.ok(upload.ok);const {items}=((await upload.json()) as {data:{items:{id:number}[]}}).data;
+  assert.ok(items[0]);const artifactId=items[0].id;
+
+  await go('files');
+  await page.locator('summary').filter({hasText:'更多'}).first().click();
+  await button('详情').click();
+  const input=page.getByLabel(/备注 \/ 标题/);
+  await input.fill('修改后标题');await page.keyboard.press('Escape');
+  await guard.getByRole('button',{name:'继续编辑'}).click();assert.equal(await input.inputValue(),'修改后标题');
+  await button('关闭').last().click();
+  const route=base+'/api/artifacts/'+artifactId;
+  await page.route(route,(r:any)=>r.request().method()==='PUT'?r.fulfill({status:503,json:{ok:false,error:{message:'合成保存失败',code:'TEST'}}}):r.continue());
+  await guard.getByRole('button',{name:'保存并离开'}).click();await guard.getByRole('alert').waitFor();
+  await page.unroute(route);await guard.getByRole('button',{name:'继续编辑'}).click();
+  assert.equal(await input.inputValue(),'修改后标题');
+  await page.keyboard.press('Escape');await guard.getByRole('button',{name:'保存并离开'}).click();
+  await page.getByRole('dialog').first().waitFor({state:'hidden'});assert.equal((await get<{artifact:{title:string}}>('/api/artifacts/'+artifactId)).artifact.title,'修改后标题');
+
+  await go('knowledge');
+  const row=page.locator('tr').filter({hasText:'合成编辑模板'});
+  await row.getByRole('button',{name:'设置',exact:true}).click();await page.getByLabel('模板名称').fill('新模板名');
+  await page.keyboard.press('Escape');await guard.getByRole('button',{name:'不保存离开'}).click();
+  await row.getByRole('button',{name:'设置',exact:true}).click();assert.equal(await page.getByLabel('模板名称').inputValue(),'合成编辑模板');
+  await page.getByLabel('模板名称').fill('新模板名');await page.keyboard.press('Escape');await guard.getByRole('button',{name:'保存并离开'}).click();
+  await page.getByRole('dialog').first().waitFor({state:'hidden'});
+  const savedTemplate=(await get<{template:{name:string;usage_note:string}}>(templatePath)).template;
+  assert.equal(savedTemplate.name,'新模板名');assert.equal(savedTemplate.usage_note,scopeNote);
+
+  await go('dashboard');await button('配置模型 →').click();await button('＋ 添加服务商').click();
+  const provider=page.getByRole('dialog',{name:'添加服务商'});const key=provider.getByPlaceholder('sk-…');
+  await key.fill('synthetic-value');assert.equal(await key.getAttribute('type'),'password');
+  await provider.getByRole('button',{name:'显示密钥'}).click();assert.equal(await key.getAttribute('type'),'text');
+  await provider.getByRole('button',{name:'隐藏密钥'}).click();assert.equal(await key.getAttribute('type'),'password');
+  await provider.getByLabel(/显示名称/).fill('合成服务');
+  await provider.getByLabel(/Base URL/).fill('http://127.0.0.1:1/v1');
+  await page.keyboard.press('Escape');await guard.getByRole('button',{name:'继续编辑'}).click();assert.equal(await key.inputValue(),'synthetic-value');
+  await page.keyboard.press('Escape');await guard.getByRole('button',{name:'保存并离开'}).click();await provider.waitFor({state:'hidden'});
+  assert.ok((await get<{providers:{name:string;has_key:boolean}[]}>('/api/ai/overview')).providers.some(p=>p.name==='合成服务' && p.has_key));
+  const pane=page.locator('.page-settings > .page-split > .section-content');
+  await pane.evaluate((e:HTMLElement)=>{e.scrollTop=400;});await page.waitForTimeout(100);
+  const y=await pane.evaluate((e:HTMLElement)=>e.scrollTop);assert.ok(y>0);
+  await button('目录与备份').click();await page.getByRole('heading',{name:'目录与运行环境'}).waitFor();assert.equal(await pane.evaluate((e:HTMLElement)=>e.scrollTop),0);
+  await button('模型与资料').click();await page.waitForURL(/section=models/);await page.waitForFunction((value:number)=>document.querySelector('.page-settings > .page-split > .section-content')?.scrollTop===value,y);
+  await button('运行状态').click();const fold=button('高级诊断');await fold.focus();await page.keyboard.press('Enter');
+  assert.equal(await fold.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await fold.getAttribute('aria-expanded'),'false');
+
+  await go('agent');const message=page.getByPlaceholder(/Enter 发送/);
+  await message.fill('合成待发送');await button('工作记录').click();await guard.getByRole('button',{name:'保存并离开'}).click();
+  await button('向助手查询或整理总结 →').click();assert.equal(await message.inputValue(),'合成待发送');
+  await message.press('Shift+Enter');assert.match(await message.inputValue(),/\n/);
+  await message.dispatchEvent('keydown',{key:'Enter',isComposing:true});assert.match(await message.inputValue(),/合成待发送/);
+  let sends=0;
+  await page.route('**/api/agent/chat',(r:any)=>{sends++;return r.fulfill({json:{ok:true,data:{sessionId:1,messageId:1,text:'合成回复',trace:[],actions:[],model:'synthetic',usage:{total:0}}}});});
+  await message.press('Enter');await page.getByText('合成回复',{exact:true}).waitFor();assert.equal(sends,1);
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('workbench.chat.draft')),null);
+
+  await go('trash');
+  const filter=page.locator('.page-trash select').first();await filter.selectOption('workbench');
+  await page.getByRole('option',{name:'阶段（1）'}).waitFor({state:'attached'});
+  await filter.selectOption('artifact');await page.getByText('回收站里没有文件。').waitFor();
+  assert.equal(await button('清空回收站').isEnabled(),true);
+  await filter.selectOption('workbench');await button('彻底删除').first().click();
+  assert.equal(await page.getByLabel(/只删记录，磁盘文件留着/).isChecked(),true);await page.keyboard.press('Escape');
+
+  await page.setViewportSize({width:390,height:844});await go('dashboard');
+  const menu=button('切换导航');await menu.click();await button('关闭导航').waitFor();await page.keyboard.press('Escape');
+  assert.equal(await menu.evaluate((e:Element)=>e===document.activeElement),true);
+  await menu.click();await page.mouse.click(375,500);await button('关闭导航').waitFor({state:'hidden'});
+  await menu.click();await page.locator('.sidebar').getByRole('button',{name:'工作台首页'}).click();await button('关闭导航').waitFor({state:'hidden'});
+
+  await page.setViewportSize({width:1366,height:850});
+  await go('agent');await page.unroute('**/api/agent/chat');
+  await message.fill('合成照片说明');
+  const photoRequest=page.waitForRequest((r:any)=>r.url()===base+'/api/agent/chat');
+  const uploadResult=page.waitForResponse((r:any)=>r.url()===base+'/api/artifacts/upload'&&r.request().method()==='POST');
+  await page.route('**/api/agent/chat',(r:any)=>r.fulfill({status:503,json:{ok:false,error:{message:'合成图片对话失败',code:'TEST'}}}),{times:1});
+  const photo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WlY98gAAAAASUVORK5CYII=','base64');
+  await page.locator('.chat-composer input[type=file]').setInputFiles({name:'合成照片.png',mimeType:'image/png',buffer:photo});
+  assert.ok((await uploadResult).ok());
+  const photoPayload=(await photoRequest).postDataJSON();
+  assert.equal(photoPayload.message,'合成照片说明');assert.equal(photoPayload.artifactIds.length,1);
+  await page.getByText(/照片已上传，对话未收到成功回执/).waitFor();assert.equal(await message.inputValue(),'合成照片说明');
+
+  await page.locator('.page-agent select').first().selectOption('capture');
+  const recordText='今天核对了合成回执清单。';
+  await message.fill(recordText);
+  const chatPath=base+'/api/agent/chat';let firstKey='';
+  await page.route(chatPath,async(r:any)=>{
+    firstKey=r.request().postDataJSON().requestKey;assert.ok((await r.fetch()).ok());await r.abort('failed');
+  },{times:1});
+  const lost=page.waitForEvent('requestfailed',(r:any)=>r.url()===chatPath);
+  await button('发送').click();await lost;
+  await page.locator('.chat-composer textarea:not(:disabled)').waitFor();
+  assert.equal(await message.inputValue(),recordText);
+  await button('工作记录').click();await guard.getByRole('button',{name:'保存并离开'}).click();
+  await button('对话').click();assert.equal(await message.inputValue(),recordText);
+  const retry=page.waitForResponse((r:any)=>r.url()===chatPath);
+  await button('发送').click();
+  const receipt=await retry;assert.ok(receipt.ok());assert.ok(firstKey);assert.equal(receipt.request().postDataJSON().requestKey,firstKey);
+  const records=await get<{items:{text:string}[]}>('/api/work-records');
+  assert.equal(records.items.filter(item=>item.text===recordText).length,1);
+  await page.locator('.chat-composer textarea:not(:disabled)').waitFor();
+
+  await go('dashboard');
+  await page.locator('.sidebar').getByRole('button',{name:'文件库',exact:true}).click();await page.locator('.page-files').waitFor();
+  await page.locator('.sidebar').getByRole('button',{name:'AI 助手',exact:true}).click();await message.fill('合成待编辑内容');
+  await page.goBack();await guard.getByRole('button',{name:'继续编辑'}).click();
+  assert.equal(await message.inputValue(),'合成待编辑内容');
+  await page.goBack();await guard.getByRole('button',{name:'不保存离开'}).click();await page.locator('.page-files').waitFor();
+  assert.equal(new URL(page.url()).hash,'#/files');
+  console.log('编辑关闭、失败重试、API Key 遮掩、设置滚动、键盘开合、对话草稿和发送、回收范围与侧栏关闭通过');
+});

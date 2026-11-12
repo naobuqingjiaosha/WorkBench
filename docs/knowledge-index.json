@@ -128,9 +128,10 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "829967ceb467ef8b9c1065099f7dc1fb8f788ae921bca81a0a490aae53acfc79",
+      "sha256": "469a5ff728de5d7437f6ce3f8f99a4749048b1779adb96a30ed68e59233e2ffc",
       "linksTo": [
         "docs/guides/INSTALLATION.md",
+        "docs/guides/USER_GUIDE.md",
         "docs/management/PROJECT_PLAN.md",
         "docs/management/QUALITY_AND_ACCEPTANCE.md",
         "docs/management/WORK_LOG.md"
@@ -163,6 +164,12 @@
         {
           "target": "docs/management/QUALITY_AND_ACCEPTANCE.md",
           "path": "docs/management/QUALITY_AND_ACCEPTANCE.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "docs/guides/USER_GUIDE.md",
+          "path": "docs/guides/USER_GUIDE.md",
           "availability": "repository",
           "exists": true
         },
@@ -308,7 +315,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前需求、业务规则、场景及代码验证追溯",
-      "sha256": "9e0706e7440b0bb3b5fb3cf8304a23ebb0ebf4e4b00f93c7817f6562aee73d84",
+      "sha256": "bc85f24c7bb6beedcd7167ef9779e77ea73566df500ae8d178569568665cd2d1",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -560,7 +567,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "3472bc87e1e8ce7c235ef84e3a98c6591f1dc6e6203d35211f4aecd70456c654",
+      "sha256": "ede63c4c042505dd1e24bffc4b51d691fb88b79a70e2ad351cb36bc4e23d3bf9",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -1053,7 +1060,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界",
-      "sha256": "7282b310c96b5ba15881b586320d1a4c7b8970e16e7be727f8100441a408bdee",
+      "sha256": "4f30ea188b1ba867792756bd048d6065a6a44c3964c911bbd8d8860384c68d5d",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1113,10 +1120,11 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界",
-      "sha256": "bfb4fd02d799ed0969950753217bb3f4999160fdc281e9ba12f9b444f5b8a75a",
+      "sha256": "bdc2b16dd1384f6851a8a96de5739f7e7ad75057618205edb08e52962087103a",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
-        "docs/guides/INSTALLATION.md"
+        "docs/guides/INSTALLATION.md",
+        "docs/management/WORK_LOG.md"
       ],
       "localLinks": [
         {
@@ -1136,6 +1144,18 @@
           "path": "docs/reference/current-baseline.json",
           "availability": "local-evidence",
           "exists": null
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../management/WORK_LOG.md",
+          "path": "docs/management/WORK_LOG.md",
+          "availability": "repository",
+          "exists": true
         },
         {
           "target": "INSTALLATION.md",
@@ -1230,7 +1250,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前日常版操作、异常处理及反馈",
-      "sha256": "18dcc314fca83dd7b3cffe7336ef04b22e9851a5f983b412fa46f8699adb06c1",
+      "sha256": "3e6ac217cfac8ec6503c029eda204f1ca1ed0ca3bdee7eaed9536188da31f14e",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1259,6 +1279,12 @@
         {
           "target": "MONTHLY_DEVELOPMENT.md",
           "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
           "availability": "repository",
           "exists": true
         },
@@ -1544,7 +1570,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "6abc783f3536cd979e1a9ffe34d8cfd00cb81acfaee218451a554f31d5e23171",
+      "sha256": "a02477a56122fd8206c3bdf9d71c9cbb71267052b6b41d23c39c54927d4eb3cc",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1588,6 +1614,12 @@
         {
           "target": "../guides/MONTHLY_DEVELOPMENT.md",
           "path": "docs/guides/MONTHLY_DEVELOPMENT.md",
+          "availability": "repository",
+          "exists": true
+        },
+        {
+          "target": "../../DEVELOPMENT_PROGRESS.md",
+          "path": "DEVELOPMENT_PROGRESS.md",
           "availability": "repository",
           "exists": true
         },
@@ -1724,7 +1756,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "3ac5d62939639a4e76f6e9bde127a41483dc125bbbdf8f775ffd60f430d2b059",
+      "sha256": "9e193ce384fce5698a0b7b61ce699d9b9e9884091e09118309c5c432dcc62683",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",

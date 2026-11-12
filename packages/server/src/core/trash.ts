@@ -1227,11 +1227,14 @@ export function emptyTrash(olderThanDays?: number): EmptyTrashResult {
 }
 
 /** 回收站规模（界面上的角标/概览用） */
-export function trashCount(): number {
-  let n = 0;
+export function trashKindCounts(): Record<TrashKind,number> {
+  const counts = {workbench:0, artifact:0, position:0, field:0, alias:0};
   for (const kind of TRASH_KINDS) {
     if (!tableHasDeletedAt(KIND_TABLE[kind])) continue;
-    n += get<{ n: number }>(`SELECT COUNT(*) AS n FROM ${KIND_TABLE[kind]} WHERE deleted_at IS NOT NULL`)?.n ?? 0;
+    counts[kind] = get<{ n: number }>(`SELECT COUNT(*) AS n FROM ${KIND_TABLE[kind]} WHERE deleted_at IS NOT NULL`)?.n ?? 0;
   }
-  return n;
+  return counts;
+}
+export function trashCount(): number {
+  return Object.values(trashKindCounts()).reduce((sum, count) => sum + count, 0);
 }

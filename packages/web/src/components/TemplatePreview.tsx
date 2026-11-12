@@ -48,7 +48,7 @@ function sampleValues(data: Inspection): Record<string, string> {
 }
 
 export function TemplatePreview({ template, onClose, onRescanned }: {
-  template: { id: number; name: string }; onClose: () => void; onRescanned: () => void;
+  template: { id: number; name: string }; onClose: () => void; onRescanned?: () => void;
 }) {
   const inspection = useApi<Inspection>(`/api/templates/${template.id}/preview`);
   const { busy, run } = useAction();
@@ -65,6 +65,7 @@ export function TemplatePreview({ template, onClose, onRescanned }: {
   const [testMode,setTestMode]=useState(false);
   const touched=useRef(new Set<string>());
   const data = inspection.data;
+  const name = data?.template.name ?? template.name;
   useEffect(() => {
     let current=true;
     if (data) {
@@ -94,15 +95,15 @@ export function TemplatePreview({ template, onClose, onRescanned }: {
   const warnings = [...new Set([...(data?.scan.warnings ?? []), ...(data?.structure.warnings ?? [])])];
   const locations = (data?.scan.locations ?? []).filter(p => !selected || p.name === selected);
 
-  return <Modal open wide title={`模板预览与核对：${template.name}`} onClose={onClose} footer={<>
+  return <Modal open wide title={`模板预览与核对：${name}`} onClose={onClose} footer={<>
     <Button disabled={busy} onClick={onClose}>关闭</Button>
     <Button disabled={busy || !data?.health.ok} onClick={() => run(async () => {
       await api.post(`/api/templates/${template.id}/scan`);
-      onRescanned(); inspection.reload(); toast('已重新识别并更新变量清单', 'ok');
+      onRescanned?.(); inspection.reload(); toast('已重新识别并更新变量清单', 'ok');
     })}>重新识别变量</Button>
     <Button disabled={busy || !canTrial} onClick={() => run(async () => {
       const r = await api.postBlob(`/api/templates/${template.id}/preview`, { values: parseValues(), download: true });
-      api.saveBlob(r.blob, `试填_${template.name}.${data?.template.file_format ?? 'docx'}`);
+      api.saveBlob(r.blob, `试填_${name}.${data?.template.file_format ?? 'docx'}`);
       if (r.missing.length) toast(`试填文件还有 ${r.missing.length} 个变量未填写`, 'info');
     })}>下载试填文件</Button>
     <Button kind="primary" disabled={busy || !canTrial} onClick={() => run(async () => {
@@ -118,7 +119,7 @@ export function TemplatePreview({ template, onClose, onRescanned }: {
         <strong>{!data.health.ok ? '模板文件不可用' : !data.renderable ? '该格式不支持变量填充' : '模板结构检查通过，可以试填'}</strong>
         <div className="mt8">{data.health.reason ?? '系统会带入有可靠来源的内容，请核对来源和字段位置；其余内容保持待填。结构检查通过不代表业务内容已经确认。'}</div>
       </div>
-      {canTrial&&<TemplateFieldRecognition templateId={template.id} onApplied={()=>{onRescanned();inspection.reload();}}/>}
+      {canTrial&&<TemplateFieldRecognition templateId={template.id} onApplied={()=>{onRescanned?.();inspection.reload();}}/>}
       <div className="mt12">
         <Field label="从工作档案自动带入" hint="切换工作会重新带入并清空本窗口当前填写值，请先完成当前核对。">
           <WorkbenchSelect collection={works} value={workbenchId} onChange={setWorkbenchId} placeholder="仅使用系统日期，不关联工作" disabled={busy}/>

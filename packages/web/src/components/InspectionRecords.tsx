@@ -18,7 +18,7 @@ export function InspectionRecords({periodId,workbenchId,month,templates,disabled
  const edit=(r:Inspection|null)=>{const next=r?{...extra,...r}:{project:'',inspection_date:today.startsWith(month)?today:'',subject:'',content:'',result:'',rectification:'',...extra};initial.current=JSON.stringify(next);setEditing(r);setForm(next);};
  const refresh=()=>{data.reload();onChanged();};
  const set=(k:keyof Form)=>(value:string)=>setForm(a=>({...a,[k]:value}));
- return <><InspectionDrafts key={periodId} periodId={periodId} workbenchId={workbenchId} templates={templates} onChanged={refresh}/><Card title={`已确认检查记录（${data.data?.records.length??0}）`}>
+ return <><InspectionDrafts showWorkLink={false} key={periodId} periodId={periodId} workbenchId={workbenchId} templates={templates} onChanged={refresh}/><Card title={`已确认检查记录（${data.data?.records.length??0}）`}>
   <p className="small muted">一次检查只填一次。不同项目、多次检查分别保存，同一记录可生成适用的 Word、Excel 表册。</p>
   {data.error&&<p role="alert">检查记录加载失败：{data.error.message} <Button onClick={data.reload}>重试</Button></p>}
   {data.loading&&!data.data&&<p>正在加载检查记录…</p>}

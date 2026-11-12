@@ -1,4 +1,4 @@
-import {useNavigationGuard} from '../components/NavigationGuard';
+import {useEditorGuard,useNavigationGuard} from '../components/NavigationGuard';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
 /**
@@ -102,7 +102,7 @@ export default function AgentPage() {
 
       {tab === 'chat' && <div className="chat-layout"><aside className="chat-history"><Card title="最近业务问答" extra={<Button size="sm" onClick={history.reload}>刷新</Button>}>{history.error?<LoadError error={history.error} retry={history.reload}/>:history.loading?<Loading/>:!history.data?.items.length?<Empty text="还没有业务问答记录"/>:history.data.items.slice(0,20).map(r=><button className="chat-history-item" key={r.id} onClick={()=>setSavedRun(r.id)}>{r.question.slice(0,55)}<span className="small muted">{fmtTime(r.created_at)}</span></button>)}</Card></aside><div className="section-content"><ChatPanel onPending={setPendingCount}/>{savedRun&&<Card title="问答证据" extra={<Button size="sm" onClick={()=>setSavedRun(null)}>关闭</Button>}><BusinessAssistantEvidence key={savedRun} runId={savedRun}/></Card>}</div></div>}
       {tab !== 'chat' && <div className="agent-secondary">
-      {tab === 'records' && <WorkRecordsPage/>}
+      {tab === 'records' && <WorkRecordsPage onAsk={()=>navigation.request(()=>setTab('chat'))}/>}
       {tab === 'memory' && <><MemoryPanel /><MemoryLifecycle /></>}
       {tab === 'proposals' && <ProposalsPanel onPending={setPendingCount} />}
       {tab === 'audit' && <AuditPanel />}
@@ -113,22 +113,52 @@ export default function AgentPage() {
 
 /* ============================== 对话 ============================== */
 
+const chatDraftKey='workbench.chat.draft';
+type ChatRequest={body:string;key:string};
+type ChatDraft={text:string; sessionId:number|null; workbenchId:string; periodId:string; recordMode:string; retry?:ChatRequest|null};
+function readChatDraft(): ChatDraft | null {
+  try {
+    const draft=JSON.parse(sessionStorage.getItem(chatDraftKey)??'null');
+    if (draft && typeof draft.text==='string' && typeof draft.workbenchId==='string' && typeof draft.periodId==='string'
+      && typeof draft.recordMode==='string' && (draft.sessionId===null || Number.isSafeInteger(draft.sessionId))
+      && (!draft.retry || (typeof draft.retry.body==='string' && typeof draft.retry.key==='string'))) return draft;
+  } catch { /* The composer also works without browser storage. */ }
+  return null;
+}
+function clearChatDraft() { try { sessionStorage.removeItem(chatDraftKey); } catch { /* Storage can be unavailable. */ } }
+
 function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
+  const [restored]=useState(readChatDraft);
   const toast = useToast();
   const { busy, run } = useAction();
-  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState<number | null>(restored?.sessionId??null);
   const [messages, setMessages] = useState<AgentMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(restored?.text??'');
   const [lastTrace, setLastTrace] = useState<AgentReply['trace']>([]);
-  const [workbenchId, setWorkbenchId] = useState('');
-  const [periodId,setPeriodId]=useState('');
+  const [workbenchId, setWorkbenchId] = useState(restored?.workbenchId??'');
+  const [periodId,setPeriodId]=useState(restored?.periodId??'');
   const [suggestOnOpen,setSuggestOnOpen]=useState<number|undefined>();
   const [inspectionContext,setInspectionContext]=useState<{templates:{id:number;name:string}[]}|null>(null);
   useEffect(()=>{let active=true;setInspectionContext(null);if(periodId)api.get<{readiness:{monthly:boolean};snapshot:string}>(`/api/periods/${periodId}`).then(p=>{if(active&&p.readiness.monthly)setInspectionContext({templates:JSON.parse(p.snapshot).templates.filter((t:{generation_scope?:string})=>t.generation_scope!=='period')});}).catch(()=>{});return()=>{active=false;};},[periodId]);
   const [businessPeriods,setBusinessPeriods]=useState<{id:number;report_period:string}[]>([]);
-  useEffect(()=>{let active=true;setPeriodId('');setBusinessPeriods([]);if(workbenchId)api.get<{items:{id:number;report_period:string}[]}>(`/api/workbenches/${workbenchId}/periods`).then(r=>{if(active)setBusinessPeriods(r.items);}).catch(()=>{});return ()=>{active=false;};},[workbenchId]);
-  const chatRequest=useRef<{body:string;key:string}|null>(null);
-  const [recordMode,setRecordMode]=useState('');
+  useEffect(()=>{let active=true;setBusinessPeriods([]);if(workbenchId)api.get<{items:{id:number;report_period:string}[]}>(`/api/workbenches/${workbenchId}/periods`).then(r=>{if(active)setBusinessPeriods(r.items);}).catch(()=>{});return ()=>{active=false;};},[workbenchId]);
+  const chatRequest=useRef<ChatRequest|null>(restored?.retry??null);
+  const [recordMode,setRecordMode]=useState(restored?.recordMode??'');
+  const navigation=useEditorGuard({dirty:input.length>0,busy,
+    save:async()=>{
+      sessionStorage.setItem(chatDraftKey,JSON.stringify({text:input,sessionId,workbenchId,periodId,recordMode,retry:chatRequest.current} satisfies ChatDraft));
+      toast('对话草稿已保存在此浏览器标签页','ok');
+    },
+    discard:()=>{clearChatDraft();chatRequest.current=null;setInput('');},
+  });
+  useEffect(()=>{
+    if(!restored?.sessionId)return;
+    let active=true;
+    api.get<{items:AgentMessage[]}>(`/api/agent/messages?sessionId=${restored.sessionId}`).then(r=>{
+      if(active)setMessages(existing=>[...r.items,...existing.filter(m=>!r.items.some(old=>old.id===m.id))]);
+    }).catch(()=>{if(active)toast('对话历史暂时无法读取，草稿已保留','err');});
+    return ()=>{active=false;};
+  },[restored,toast]);
   const endRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
   const workbenches = useWorkbenchCollection();
@@ -149,8 +179,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
    * 然后把 artifact id 一起发过去 —— 助手用 review_photos 工具让视觉模型看懂它，
    * 再自己决定接下来做什么（核销清单 / 写字段 / 记备忘 / 直接回答）。
    */
-  const sendPhotos = (files: FileList | null) => {
-    const list = Array.from(files ?? []);
+  const sendPhotos = (list: File[]) => {
     if (!list.length) return;
     void run(async () => {
       const ids: number[] = [];
@@ -168,10 +197,10 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
         for (const it of r.items) ids.push(it.id);
       }
       const text = input.trim() || '看看这几张照片，告诉我拍得对不对，然后该做什么就做什么。';
-      setInput('');
+      const optimisticId = -Date.now();
       setMessages((prev) => [
         ...prev,
-        { id: -Date.now(), role: 'user', content: `${text}\n（附了 ${ids.length} 张照片）`, created_at: new Date().toISOString(), actions: [] },
+        { id: optimisticId, role: 'user', content: `${text}\n（附了 ${ids.length} 张照片）`, created_at: new Date().toISOString(), actions: [] },
       ]);
       try {
         const r = await api.post<AgentReply>('/api/agent/chat', {
@@ -181,6 +210,8 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           artifactIds: ids,
           periodId:periodId?Number(periodId):null,
         });
+        clearChatDraft();
+        setInput('');
         setSessionId(r.sessionId);
         setLastTrace(r.trace);
         const openedDraft=r.trace.find(t=>t.tool==='inspection_draft');if(openedDraft?.args.periodId)setPeriodId(String(openedDraft.args.periodId));if(openedDraft?.args.created)setSuggestOnOpen(Number(openedDraft.args.draftId));
@@ -188,9 +219,10 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           ...prev,
           { id: r.messageId, role: 'assistant', content: r.text, created_at: new Date().toISOString(), actions: r.actions, businessRunId:r.business?.id },
         ]);
-        await loadActions(r.sessionId);
+        await loadActions(r.sessionId).catch(()=>toast('回复已保存，待确认列表刷新失败','err'));
       } catch (e) {
-        toast((e as { message: string }).message, 'err');
+        setMessages(prev=>prev.filter(message=>message.id!==optimisticId));
+        toast('照片已上传，对话未收到成功回执：'+(e as Error).message, 'err');
       }
     });
   };
@@ -219,6 +251,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           workbenchId: workbenchId ? Number(workbenchId) : null,
           periodId:periodId?Number(periodId):null,
         });
+        clearChatDraft();
         chatRequest.current=null;
         setSessionId(r.sessionId);
         setLastTrace(r.trace);
@@ -280,17 +313,18 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
         extra={
           <>
             <Select value={recordMode} onChange={setRecordMode} options={[{value:'',label:'自动识别'},{value:'capture',label:'记工作记录'},{value:'query',label:'查工作记录／总结'}]}/>
-            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="不指定工作"/>
+            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={v=>{setWorkbenchId(v);setPeriodId('');}} placeholder="不指定工作"/>
             {!!businessPeriods.length&&<Select value={periodId} onChange={setPeriodId} placeholder="期间由问题或唯一资料期次确定" options={businessPeriods.map(p=>({value:String(p.id),label:p.report_period}))}/>}
             {sessionId && (
               <Button
                 size="sm"
-                onClick={() => {
+                onClick={() => navigation(() => {
+                  setInput('');
                   setSessionId(null);
                   setMessages([]);
                   setLastTrace([]);
                   onPending(0);
-                }}
+                })}
               >
                 新对话
               </Button>
@@ -310,7 +344,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
         </div>
 
         {messages.length === 0 && !busy && (
-          <Empty text="还没有对话。上面输入框里直接交代一件事，或者先问一句「我有哪些工作？」" />
+          <Empty text="可以在下方输入一件事，或问一句「我有哪些工作？」" />
         )}
 
         <div className="col" style={{ gap: 14, marginTop: messages.length ? 12 : 0 }}>
@@ -380,7 +414,13 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           <div style={{ flex: 1 }}>
             <Textarea
               value={input}
-              onChange={setInput}
+              onChange={value=>{setInput(value);if(!value)clearChatDraft();}}
+              disabled={busy}
+              onKeyDown={e=>{
+                if(e.key!=='Enter'||e.shiftKey||e.nativeEvent.isComposing||e.nativeEvent.keyCode===229)return;
+                e.preventDefault();
+                if(!busy && !e.repeat && input.trim())void send();
+              }}
               rows={2}
               placeholder="交代一件事，或者问一句…（Enter 发送，Shift+Enter 换行）"
             />
@@ -399,7 +439,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           multiple
           style={{ display: 'none' }}
           onChange={(e) => {
-            const files = e.target.files;
+            const files = Array.from(e.target.files ?? []);
             e.target.value = '';
             sendPhotos(files);
           }}

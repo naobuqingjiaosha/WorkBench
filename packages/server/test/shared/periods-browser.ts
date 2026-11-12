@@ -32,7 +32,7 @@ function wordTemplate(title:string,lines:string[]){
         const inputs=join(process.env.PERIOD_SAMPLE_DIR,'试用输入');mkdirSync(inputs,{recursive:true});
         writeFileSync(join(inputs,name+'.docx'),template,{flag:'wx'});
       }
-      form.append('file',new Blob([template]),name+'.docx');
+      form.append('file',new Blob([new Uint8Array(template)]),name+'.docx');
       templateIds.push((await request('/api/templates/upload','POST',form)).items[0].template.id);
     }
     const work=await request('/api/workbenches','POST',{workTypeId:wt.id,publishedConfigId:wt.published_config_id,name,firstPeriod:first,templateIds});
@@ -65,6 +65,7 @@ function wordTemplate(title:string,lines:string[]){
 
   // New generic reminder through the same form used by a person.
   await page.goto(base+'/#/workbench?create=1');
+  assert.equal(await page.getByRole('button',{name:'创建',exact:true}).count(),0);
   await page.getByRole('button',{name:/行政管理工作/}).click();
   await page.getByLabel('工作类型',{exact:false}).first().selectOption(String(type('admin').id));
   await page.getByPlaceholder('例如：清廉工程月度监督检查').fill('合成周期提醒');
@@ -73,15 +74,43 @@ function wordTemplate(title:string,lines:string[]){
   await page.getByLabel('到期日号',{exact:false}).fill('28');
   await page.getByLabel('提前提醒天数',{exact:false}).fill('31');
   await page.getByRole('button',{name:'创建',exact:true}).click();
-  const done=page.getByRole('button',{name:'完成本期',exact:true});await done.waitFor();
+  const done=page.getByRole('button',{name:'确认本次提醒已处理',exact:true});await done.waitFor();
   const reminderUrl=page.url();
   await page.goto(base+'/#/dashboard');
   await page.locator('#home-inbox').getByText('合成周期提醒',{exact:true}).waitFor();
   await page.goto(reminderUrl);await done.click();
-  await page.getByText(/本期已完成，下一期/).waitFor();
+  await page.getByText(/本次提醒已处理，下次提醒/).waitFor();
 
   const meeting=await setup('safety-report','安全例会纪要',year+'-10',['办理期次 {报告期}','会议记录 {业务内容}']);
-  await openPeriod(meeting);
+  const periods=(await request('/api/workbenches/'+meeting.work.id+'/periods')).items;
+  const another=periods.find((item:{id:number})=>item.id!==meeting.p.id)!;
+  await page.goto(base+'/#/workbench');
+  const list=page.locator('.workbench-list'),filter=list.getByPlaceholder('搜索工作名称、编号、单位');
+  await list.getByRole('row').filter({hasText:'合成周期提醒'}).getByText(/周期提醒/).last().waitFor();
+  await filter.fill('安全例会纪要');
+  const row=list.getByRole('row').filter({hasText:'安全例会纪要'});
+  await row.getByText('待办期次截止 '+meeting.p.due_date,{exact:true}).waitFor();
+  await row.getByRole('button',{name:'继续办理'}).click();
+  const select=page.locator('.period-panel > .card-body > .row select');
+  await page.waitForURL('**/workbench?id='+meeting.work.id+'&periodId='+meeting.p.id);
+  await page.locator('.period-workspace').waitFor();
+  assert.equal(await select.inputValue(),String(meeting.p.id));
+  await select.selectOption(String(another.id));
+  await page.waitForURL('**/workbench?id='+meeting.work.id+'&periodId='+another.id);
+  await page.reload();await page.locator('.period-workspace').waitFor();
+  assert.equal(await select.inputValue(),String(another.id));
+  await page.goBack();await select.locator('option:checked[value="'+meeting.p.id+'"]').waitFor({state:'attached'});
+  await page.goForward();await select.locator('option:checked[value="'+another.id+'"]').waitFor({state:'attached'});
+  await page.goBack();await page.goBack();await list.getByRole('button',{name:'继续办理'}).first().waitFor();
+  assert.equal(await filter.inputValue(),'安全例会纪要');
+  await page.setViewportSize({width:390,height:844});
+  const bounds=await row.getByRole('button',{name:'继续办理'}).boundingBox();
+  assert.ok(bounds && bounds.x>=0 && bounds.x+bounds.width<=390,'窄屏主操作应在首屏宽度内');
+  const info=row.locator('.work-list-mobile-info');
+  await info.locator('summary').click();assert.equal(await info.getAttribute('open'),'');
+  await info.locator('summary').click();assert.equal(await info.getAttribute('open'),null);
+  await page.setViewportSize({width:1366,height:850});
+  await row.getByRole('button',{name:'继续办理'}).click();
   const content=page.getByPlaceholder('填写工作安排、实际情况、会议记录或拟稿要点…');
   await content.fill('合成例会 已核对演练名单，后续日期待定。');
   // A second editor saves after this page loaded. Keep both values visible until the user chooses.
@@ -98,9 +127,15 @@ function wordTemplate(title:string,lines:string[]){
   await generateAndRead('安全例会纪要',[year+'-10','合成例会','后续日期待定'],meeting,'safety-minutes');
 
   const monthly=await setup('integrity-monthly-inspection','合成月度监督',year+'-10');
+  await page.goto(base+`/#/workbench?id=${monthly.work.id}&periodId=${meeting.p.id}`);
+  await page.getByText('当前工作没有链接指定的期次，请重新选择报告期。',{exact:true}).waitFor();
+  assert.equal(await page.locator('.period-workspace').count(),0);
   await openPeriod(monthly);
+  await page.getByText('草稿 0 份，已确认 0 次',{exact:false}).last().waitFor();
   await page.getByText('检查草稿、已确认记录与单次表册',{exact:true}).click();
   await page.getByRole('button',{name:'新建检查记录',exact:true}).click();
+  await page.getByText(/草稿 1 份，已确认 0 次/).last().waitFor();
+  assert.equal(await page.getByRole('link',{name:'在工作页面继续编辑'}).count(),0);
   await page.getByLabel('检查项目',{exact:false}).first().fill('合成项目');
   await page.getByLabel('检查重点',{exact:false}).first().fill('核对合成标识');
   // Commit the actual write, then drop only its acknowledgement before reopening.
@@ -180,5 +215,32 @@ function wordTemplate(title:string,lines:string[]){
   assert.equal(await subject.inputValue(),remote.fields.subject);
   assert.equal(await saveDraft.isDisabled(),true);
   assert.equal((await request(draftPath)).drafts[0].revision,remote.revision);
+  // A list entry restores its page and scrolled row even after the detail is reloaded.
+  const admin=type('admin');
+  for(let i=0;i<36;i++)await request('/api/workbenches','POST',{workTypeId:admin.id,publishedConfigId:admin.published_config_id,
+    name:'合成翻页工作 '+i,recurrence:'monthly',recurDay:8});
+  await page.goto(base+'/#/workbench');
+  await filter.fill('合成翻页工作');
+  await list.getByRole('button',{name:'行政管理',exact:true}).click();
+  await list.getByRole('button',{name:'下一页',exact:true}).click();
+  await list.getByText('第 2 页 · 每页 20 项',{exact:true}).waitFor();
+  const table=list.locator('.workbench-list-content');
+  const openLast=table.getByRole('button',{name:'继续办理',exact:true}).last();
+  await openLast.scrollIntoViewIfNeeded();
+  const scrollTop=()=>table.evaluate((el:{scrollTop:number})=>el.scrollTop);
+  const top=await scrollTop();
+  assert.ok(top>0);
+  await openLast.click();await page.locator('.work-detail').waitFor();
+  await page.reload();await page.locator('.work-detail').waitFor();
+  await page.goBack();
+  await list.getByText('第 2 页 · 每页 20 项',{exact:true}).waitFor();
+  assert.equal(await filter.inputValue(),'合成翻页工作');
+  assert.ok((await list.getByRole('button',{name:'行政管理',exact:true}).getAttribute('class')).includes('selected'));
+  assert.ok(Math.abs((await scrollTop())-top)<2,'浏览器返回应定位至打开工作时的列表位置');
+  await openLast.click();await page.locator('.work-detail').waitFor();
+  await page.reload();await page.getByRole('link',{name:'我的工作台',exact:true}).click();
+  await list.getByText('第 2 页 · 每页 20 项',{exact:true}).waitFor();
+  assert.equal(await filter.inputValue(),'合成翻页工作');
+  assert.ok(Math.abs((await scrollTop())-top)<2,'返回列表链接应恢复原滚动位置');
   console.log('浏览器验收通过：提醒新建、通知、完成本期，例会填报、参考附件、保存下载，检查草稿重开与明确登记，季度选期、统计、Word 生成与重开。');
 });

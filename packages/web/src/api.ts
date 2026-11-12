@@ -314,6 +314,7 @@ export interface Workbench {
   period_total?:number;
   period_done?:number;
   period_due?:string|null;
+  next_period_id?:number|null;
   historical?: number;
   archive_status?: string | null;
   actual_end_date?: string | null;
@@ -520,6 +521,7 @@ export interface Template {
   file_rel: string;
   file_format: string;
   variable_count: number;
+  vars_rel?: string | null;
   description: string | null;
   renderable?: boolean;
   file_exists?: boolean;

@@ -464,7 +464,7 @@ function searchTemplates(terms: string[], pool: number, atOf: Map<string, string
       subtitle: [r.code, r.work_type_name, r.file_format, r.archived_at ? '已归档' : null].filter(Boolean).join(' · '),
       snippet: snippetOf(body, terms, `${r.code} ${r.name} ${r.file_rel}`),
       score: m.score,
-      route: '/knowledge?module=template',
+      route: `/knowledge?module=template&templateId=${r.id}`,
     });
     atOf.set(`template#${r.id}`, r.updated_at ?? '');
   }

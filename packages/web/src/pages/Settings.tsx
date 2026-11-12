@@ -1,7 +1,8 @@
 import {PolicyMaintenancePanel} from './Knowledge';
 import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
 import {useEditorGuard} from '../components/NavigationGuard';
-import { useEffect, useRef, useState } from 'react';
+import {useModalSave} from '../components/useUnsavedClose';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import LocalModelSettings from '../components/LocalModelSettings';
 import { api, useApi, type AiProfile, type AiProvider, type KbComplianceConfig, type KbExtractConfig, type KbExtractSettings, type KbSource } from '../api';
 
@@ -35,11 +36,26 @@ const appForm = (values:Record<string,string>):AppForm => ({org:values['app.org'
 
 export default function SettingsPage({params={}}:{params?:Record<string,string>}) {
   const toast = useToast();
-  const [section,setSection]=useState(params.section==='references'?'models':'runtime');
+  const section = params.section === 'references' ? 'models'
+    : ['models','backup','app'].includes(params.section) ? params.section : 'runtime';
+  const panel = useRef<HTMLDivElement>(null);
+  const positions = useRef(new Map<string, {pane:number; page:number; windowY:number}>());
+  useLayoutEffect(() => {
+    const pane = panel.current?.parentElement;
+    const page = pane?.closest<HTMLElement>('.content');
+    if (!pane || !page) return;
+    const saved = positions.current.get(section);
+    pane.scrollTop = saved?.pane ?? 0;
+    page.scrollTop = saved?.page ?? 0;
+    window.scrollTo(0,saved?.windowY ?? 0);
+    const remember = () => positions.current.set(section, {pane:pane.scrollTop, page:page.scrollTop, windowY:window.scrollY});
+    for (const target of [pane,page,window]) target.addEventListener('scroll', remember);
+    return () => { for (const target of [pane,page,window]) target.removeEventListener('scroll', remember); };
+  }, [section]);
   const [referenceMounted,setReferenceMounted]=useState(params.section==='references');
   const [referenceOpen,setReferenceOpen]=useState(params.section==='references');
   useEffect(()=>{
-    if(params.section==='references'){setSection('models');setReferenceMounted(true);setReferenceOpen(true);}
+    if(params.section==='references'){setReferenceMounted(true);setReferenceOpen(true);}
   },[params.section]);
   const health=useApi<{status:string;webBuilt:boolean;time:string;loadedBuild:{startedAt:string;sourceSha256:string;frontendSha256:string}}>('/api/health');
   const overview = useApi<{
@@ -94,11 +110,11 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
       throw e;
     } finally {saving.current=false;setBusy(false);}
   };
-  const request=useEditorGuard({dirty,busy,save:saveForm,discard:()=>{setForm(conflict??JSON.parse(baseline));if(conflict)setBaseline(JSON.stringify(conflict));setConflict(null);}});
+  useEditorGuard({dirty,busy,save:saveForm,discard:()=>{setForm(conflict??JSON.parse(baseline));if(conflict)setBaseline(JSON.stringify(conflict));setConflict(null);}});
 
 
   return (
-    <PageSplit nav={<SectionNav value={section} onChange={v=>request(()=>setSection(v))} items={[{value:'runtime',label:'运行状态'},{value:'models',label:'模型与资料'},{value:'backup',label:'目录与备份'},{value:'app',label:'应用与导出'}]}/>}><div className="section-content">
+    <PageSplit nav={<SectionNav value={section} onChange={v=>{if(v!==section)window.location.hash='#/settings?section='+v;}} items={[{value:'runtime',label:'运行状态'},{value:'models',label:'模型与资料'},{value:'backup',label:'目录与备份'},{value:'app',label:'应用与导出'}]}/>}><div className="section-content" ref={panel}>
       {section==='runtime'&&<><Card title="运行状态" extra={<Button onClick={health.reload}>重新检查</Button>}>{health.error?<LoadError error={health.error} retry={health.reload}/>:health.loading?<Loading/>:<><div className="summary-grid"><div>服务状态<strong>{health.data?.status==='ok'?'正常':'待核查'}</strong></div><div>前端构建<strong>{health.data?.webBuilt?'已加载':'未找到'}</strong></div><div>运行方式<strong>本机</strong></div></div><p className="small muted">检查时间 {fmtTime(health.data?.time)} · 当前连接 {window.location.origin}</p></>}</Card><Card title="高级诊断" collapsible defaultOpen={false}><dl className="kv"><dt>启动时间</dt><dd>{fmtTime(health.data?.loadedBuild.startedAt)}</dd><dt>后端摘要</dt><dd className="mono">{health.data?.loadedBuild.sourceSha256}</dd><dt>前端摘要</dt><dd className="mono">{health.data?.loadedBuild.frontendSha256}</dd></dl></Card></>}
       <div className="settings-panel" hidden={section!=='models'}>
       <details className="reference-maintenance card" open={referenceOpen} onToggle={e=>{setReferenceOpen(e.currentTarget.open);if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details>
@@ -204,7 +220,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
         )}
       </Card>
 
-      <Card title="模型档案（按用途指定用哪个模型）">
+      <details className="settings-maintenance card"><summary>按用途配置模型</summary><div className="card-body">
         <div className="small muted mb12">
           文本用途未配置时回退到「文书写作」；图像识别和向量化必须单独配置对应模型。
         </div>
@@ -232,7 +248,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
             ))}
           </tbody>
         </table>
-      </Card>
+      </div></details>
 
       </div><div className="settings-panel" hidden={section!=='app'}>
       <Card title="应用设置">
@@ -294,7 +310,11 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
       </Card>
 
       <BackupCard />
-      </div><div className="settings-panel" hidden={section!=='models'}><AiLogsCard/><KbExtractCard/><ComplianceCard/><OcrCard/></div>
+      </div><div className="settings-panel" hidden={section!=='models'}>
+        <AiLogsCard/>
+        <details className="settings-maintenance card"><summary>资料提取与规则维护</summary><KbExtractCard/><ComplianceCard/></details>
+        <details className="settings-maintenance card"><summary>OCR 与文字识别</summary><OcrCard/></details>
+      </div>
 
       {editProvider && (
         <ProviderModal
@@ -475,34 +495,35 @@ function ProviderModal({ provider, onClose, onSaved }: { provider?: AiProvider; 
     remark: provider?.remark ?? '',
     extraHeaders: '',
   });
-  const { busy, run } = useAction();
+  const initial = useRef(JSON.stringify(form));
+  const [showKey,setShowKey] = useState(false);
+  const toast = useToast();
+  const editor = useModalSave(JSON.stringify(form)!==initial.current, async () => {
+    if (!form.name.trim() || !form.baseUrl.trim()) throw Error('请填写服务商名称和 Base URL');
+    const payload = {
+      name:form.name, baseUrl:form.baseUrl, apiKey:form.apiKey || undefined,
+      apiKeyEnv:form.apiKeyEnv || undefined, remark:form.remark || undefined,
+      ...(!provider ? {code:form.code || form.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')} : {}),
+    };
+    if (provider) await api.put(`/api/ai/providers/${provider.id}`,payload);
+    else await api.post('/api/ai/providers',payload);
+    onSaved();
+    toast('已保存','ok');
+  }, onClose);
 
   return (
     <Modal
       open
       title={provider ? `配置服务商：${provider.name}` : '添加服务商'}
-      onClose={onClose}
+      onClose={editor.close}
+      busy={editor.busy}
       footer={
         <>
-          <Button onClick={onClose}>取消</Button>
+          <Button disabled={editor.busy} onClick={editor.close}>取消</Button>
           <Button
             kind="primary"
-            disabled={busy || !form.name || !form.baseUrl}
-            onClick={() =>
-              run(async () => {
-                const payload: Record<string, unknown> = {
-                  name: form.name,
-                  baseUrl: form.baseUrl,
-                  apiKey: form.apiKey || undefined,
-                  apiKeyEnv: form.apiKeyEnv || undefined,
-                  remark: form.remark || undefined,
-                };
-                if (!provider) payload.code = form.code || form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                if (provider) await api.put(`/api/ai/providers/${provider.id}`, payload);
-                else await api.post('/api/ai/providers', payload);
-                onSaved();
-              }, '已保存')
-            }
+            disabled={editor.busy || !form.name.trim() || !form.baseUrl.trim()}
+            onClick={editor.save}
           >
             保存
           </Button>
@@ -527,12 +548,12 @@ function ProviderModal({ provider, onClose, onSaved }: { provider?: AiProvider; 
       <Field label="Base URL" required hint="通常以 /v1 结尾，例如 https://api.deepseek.com/v1">
         <Input value={form.baseUrl} onChange={(v) => setForm({ ...form, baseUrl: v })} placeholder="https://api.deepseek.com/v1" />
       </Field>
-      <Field
+      <div className="secret-entry"><Field
         label="API Key"
         hint={provider?.has_key ? `已保存（${provider.key_hint}）。留空表示不改动；填 __CLEAR__ 可清空。` : '直接粘贴，只存本机数据库'}
       >
-        <Input value={form.apiKey} onChange={(v) => setForm({ ...form, apiKey: v })} placeholder={provider?.has_key ? '••••••••（不改动）' : 'sk-…'} />
-      </Field>
+        <input className="input" autoComplete="off" spellCheck={false} type={showKey?'text':'password'} value={form.apiKey} onChange={e=>setForm({...form,apiKey:e.target.value})} placeholder={provider?.has_key ? '••••••••（不改动）' : 'sk-…'} />
+      </Field><button type="button" className="btn" aria-pressed={showKey} onClick={()=>setShowKey(v=>!v)}>{showKey?'隐藏密钥':'显示密钥'}</button></div>
       <Field label="或使用环境变量名" hint="填了环境变量名时优先读环境变量，例如 DEEPSEEK_API_KEY">
         <Input value={form.apiKeyEnv} onChange={(v) => setForm({ ...form, apiKeyEnv: v })} />
       </Field>
@@ -559,6 +580,7 @@ function AiLogsCard() {
     <Card
       title="模型调用记录（用于控成本和排查）"
       collapsible
+      defaultOpen={false}
       extra={
         <>
           <Button size="sm" onClick={() => logs.reload()}>

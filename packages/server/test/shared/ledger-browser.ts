@@ -14,6 +14,7 @@ await withBrowserPage(async(page,base)=>{
   const view=async()=>(await (await fetch(base+route)).json()).data;
   const button=(name:string)=>page.getByRole('button',{name,exact:true});
   await page.goto(base+'/#/workbench?id='+work.id+'&periodId='+period.id);
+  await page.getByText('尚未绑定年度台账 · 导入或绑定',{exact:true}).click();
   await page.getByLabel(/导入年度 Excel/).setInputFiles({name:'年度台账.xlsx',mimeType:'application/octet-stream',buffer:files.ledger});
   await page.getByRole('button',{name:/合成交付核对/}).click();
   await page.getByText(/模板与位置/).click();

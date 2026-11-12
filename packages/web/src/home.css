@@ -86,9 +86,6 @@
 .home-file-icon::after { content: ''; position: absolute; right: 0; top: 0; width: 10px; height: 10px; background: #ffffff50; }
 .home-file-icon.excel { background: #158456; }
 .home-file-note { margin: 9px 0 0; font-size: 13px; color: #788da9; }
-.home-record-link { min-height: 68px; display: flex; align-items: center; gap: 18px; width: 100%; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--text); padding: 16px 20px; font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
-.home-record-link svg { color: #5367ef; width: 26px; height: 26px; }
-.home-record-link > span { margin-left: auto; color: var(--text-3); font-size: 26px; line-height: 1; }
 @media (max-width: 1200px) {
   .home-page .dashboard-grid { grid-template-columns: 1fr; }
   .home-header { align-items: flex-start; flex-wrap: wrap; }

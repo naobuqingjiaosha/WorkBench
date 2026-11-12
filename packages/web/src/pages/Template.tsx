@@ -1,9 +1,11 @@
 import { TemplateHistory } from '../components/BusinessEvidence';
+import {useModalSave} from '../components/useUnsavedClose';
 import { useRef, useState } from 'react';
 import type React from 'react';
 import { api, useApi, type Template, type TemplateVarSpec, type WorkType } from '../api';
 import { Button, Card, Empty, Field, Input, Loading, Modal, Select, Tag, fmtTime, useAction, useToast } from '../ui';
 import { TemplatePreview } from '../components/TemplatePreview';
+import {LoadError} from '../components/DesignSystem';
 
 const CATEGORY_TEXT: Record<string, string> = { general: '通用', admin: '行政管理', project: '项目实施', safety:'行政管理 · 安全生产',integrity:'行政管理 · 清廉工程',department:'行政管理 · 部门综合' };
 const CATEGORY_OPTIONS=Object.entries(CATEGORY_TEXT).map(([value,label])=>({value,label}));
@@ -33,7 +35,7 @@ function brokenNote(t: TemplateRow): string {
  * 模板属于「知识」的一部分 —— 和制度、规范、历史资料一样，都是开展工作的依据。
  * 分成两个入口反而让人不知道该去哪找。
  */
-export function TemplatePanel() {
+export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId?:number;onCloseLinked:()=>void}) {
   const toast = useToast();
   const types = useApi<{ items: WorkType[] }>('/api/work-types');
   const [keyword, setKeyword] = useState('');
@@ -48,6 +50,7 @@ export function TemplatePanel() {
   const { busy: deletingBusy, run: runDelete } = useAction();
   const [editing, setEditing] = useState<Template | null>(null);
   const [previewing, setPreviewing] = useState<{ id: number; name: string } | null>(null);
+  const preview = linkedTemplateId ? {id:linkedTemplateId,name:`模板 #${linkedTemplateId}`} : previewing;
   /**
    * 扫描结果。`raw` 是 /scan-preview 给的原始命中（带 `{#循环 …}` / `{@图片 …}` 标记原文），
    * 变量清单接口只给名字，光看名字分不出「集合名」和普通变量，所以这里两个接口一起拿。
@@ -136,10 +139,10 @@ export function TemplatePanel() {
 
       </div></details>
       <Card
-        title={`模板库（${rows.length}）`}
+        title={`${archived ? '已归档模板' : '模板库'}（${rows.length}）`}
         extra={
           <>
-            <Button onClick={()=>setArchived(v=>!v)}>{archived?'返回在用模板':'查看归档'}</Button>
+            <Button onClick={()=>{setArchived(v=>!v);setCategory('');setKeyword('');}}>{archived?'返回在用模板':'查看归档'}</Button>
             <Input value={keyword} onChange={setKeyword} placeholder="搜模板名" />
             <Select
               value={category}
@@ -167,14 +170,10 @@ export function TemplatePanel() {
       >
         {list.loading ? (
           <Loading />
-        ) : rows.length === 0 ? (
+        ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : rows.length === 0 ? (
           <Empty
-            text={allRows.length ? '当前目录或关键词下没有匹配的模板。' : '还没有模板。先把你最常用的那份 Word 模板改好变量传上来。'}
-            action={
-              <Button kind="primary" onClick={() => setUploadOpen(true)}>
-                上传第一个模板
-              </Button>
-            }
+            text={allRows.length ? '当前目录或关键词下没有匹配的模板。' : archived ? '暂无已归档的模板。' : '暂无在用模板，可上传 Word 或 Excel 模板。'}
+            action={allRows.length ? <Button onClick={()=>{setKeyword('');setCategory('');}}>清除筛选</Button> : undefined}
           />
         ) : (
           <table className="table template-table">
@@ -217,7 +216,7 @@ export function TemplatePanel() {
                     </div>
                   </td>
                   <td className="small">{CATEGORY_TEXT[t.category] ?? t.category.replaceAll('/',' / ')}</td>
-                  <td className="small nowrap">{t.variable_count > 0 ? <Tag kind="info">{t.variable_count} 个</Tag> : <Tag kind="warn">未扫描</Tag>}</td>
+                  <td className="small nowrap">{t.variable_count > 0 || t.vars_rel ? <Tag kind="info">{t.variable_count} 个</Tag> : <Tag>暂无变量清单</Tag>}</td>
                   <td className="small nowrap">{t.renderable === false ? <Tag kind="err">不可填充</Tag> : <Tag kind="ok">可填充</Tag>}</td>
                   <td className="small muted nowrap">{fmtTime(t.updated_at ?? undefined)}</td>
                   <td className="nowrap">
@@ -250,8 +249,8 @@ export function TemplatePanel() {
                     <Button size="sm" kind="ghost" onClick={() => api.download(`/api/templates/${t.id}/file`, `${t.name}.${t.file_format}`)}>
                       下载
                     </Button>
-                    <Button size="sm" kind="danger" onClick={() => setDeleting(t)}>
-                      {archived ? '彻底删除' : '删除'}
+                    <Button size="sm" kind={archived ? 'danger' : 'ghost'} onClick={() => setDeleting(t)}>
+                      {archived ? '彻底删除' : '归档'}
                     </Button>
                   </td>
                 </tr>
@@ -262,24 +261,24 @@ export function TemplatePanel() {
         )}
       </Card>
 
-      {previewing && <TemplatePreview key={previewing.id} template={previewing} onClose={() => setPreviewing(null)} onRescanned={list.reload} />}
+      {preview && <TemplatePreview key={preview.id} template={preview} onClose={linkedTemplateId ? onCloseLinked : () => setPreviewing(null)} onRescanned={list.reload} />}
 
       {deleting && (
-        <Modal open title={archived ? '彻底删除模板' : '删除模板'}
+        <Modal open title={archived ? '彻底删除模板' : '归档模板'}
           onClose={() => { if (!deletingBusy) setDeleting(null); }}
           footer={<>
             <Button disabled={deletingBusy} onClick={() => setDeleting(null)}>取消</Button>
-            <Button kind="danger" disabled={deletingBusy} onClick={() => runDelete(async () => {
+            <Button kind={archived ? 'danger' : 'primary'} disabled={deletingBusy} onClick={() => runDelete(async () => {
               await api.del(`/api/templates/${deleting.id}${archived ? '/permanent' : ''}`);
               setDeleting(null);
               list.reload();
-              toast(archived ? '模板已彻底删除' : '模板已删除，可在「查看归档」中恢复', 'ok');
-            })}>{deletingBusy ? '删除中…' : '确认删除'}</Button>
+              toast(archived ? '模板已彻底删除' : '模板已归档，可在「查看归档」中恢复', 'ok');
+            })}>{deletingBusy ? '处理中…' : archived ? '确认彻底删除' : '确认归档'}</Button>
           </>}>
-          <p>确认{archived ? '彻底删除' : '删除'}「{deleting.name}」？</p>
+          <p>确认{archived ? '彻底删除' : '归档'}「{deleting.name}」？</p>
           <div className="notice notice-warn">{archived
             ? '将删除模板记录和当前文件，无法恢复。已生成过文件的模板会保留以供追溯，系统将阻止彻底删除。'
-            : '删除后模板将移入归档，不再用于新文件生成；已有文件不受影响，可在「查看归档」中恢复。'}</div>
+            : '归档后可在「查看归档」中恢复。已生成的文件仍可查看。'}</div>
         </Modal>
       )}
 
@@ -583,38 +582,44 @@ function TemplateSettingsModal({
     workTypeId: template.work_type_id ? String(template.work_type_id) : '',
     positionCode: template.position_code ?? '',
     description: template.description ?? '',
-    usageNote: '',
   });
   const [vars, setVars] = useState<TemplateVarSpec[] | null>(null);
   const { busy, run } = useAction();
 
   const list = vars ?? detail.data?.vars.variables ?? [];
+  const initialMeta = useRef(JSON.stringify(meta));
+  const varsChanged = vars !== null && JSON.stringify(vars) !== JSON.stringify(detail.data?.vars.variables ?? []);
+  const editor = useModalSave(JSON.stringify(meta)!==initialMeta.current || varsChanged, async () => {
+    if (!meta.name.trim()) throw Error('请填写模板名称');
+    const editedMeta = JSON.stringify(meta);
+    const saveMeta = editedMeta!==initialMeta.current;
+    if (saveMeta) {
+      await api.put(`/api/templates/${template.id}`, {
+        ...meta, workTypeId: meta.workTypeId ? Number(meta.workTypeId) : null, positionCode: meta.positionCode || null,
+      });
+      initialMeta.current = editedMeta;
+    }
+    if (varsChanged) {
+      try { await api.put(`/api/templates/${template.id}/vars`, {variables:list}); }
+      catch (error) { throw Error((saveMeta?'基本信息已保存。':'')+'变量设置保存失败：'+(error as Error).message); }
+    }
+    onSaved();
+  }, onClose, busy);
 
   return (
     <Modal
       open
       wide
       title={`模板设置：${template.name}`}
-      onClose={onClose}
+      onClose={editor.close}
+      busy={editor.busy}
       footer={
         <>
-          <Button onClick={onClose}>关闭</Button>
+          <Button disabled={editor.busy} onClick={editor.close}>关闭</Button>
           <Button
             kind="primary"
-            disabled={busy}
-            onClick={() =>
-              run(async () => {
-                await api.put(`/api/templates/${template.id}`, {
-                  ...meta,
-                  workTypeId: meta.workTypeId ? Number(meta.workTypeId) : null,
-                  positionCode: meta.positionCode || null,
-                });
-                if (list.length) {
-                  await api.put(`/api/templates/${template.id}/vars`, { variables: list });
-                }
-                onSaved();
-              })
-            }
+            disabled={editor.busy || !meta.name.trim()}
+            onClick={editor.save}
           >
             保存
           </Button>
@@ -654,6 +659,8 @@ function TemplateSettingsModal({
         <div className="spacer" />
         <Button
           size="sm"
+          disabled={varsChanged||editor.busy}
+          title={varsChanged?'请先保存修改的变量，再重新扫描':undefined}
           onClick={() =>
             run(async () => {
               await api.post(`/api/templates/${template.id}/scan`);
