@@ -49,12 +49,14 @@ await withBrowserPage(async (page, base) => {
     const expand = deadlinePanel.getByRole('button',{name:'查看全部 6 项截止'});
     await expand.waitFor();
     const rows = deadlinePanel.locator('.home-deadline-list li');
-    assert.equal(await rows.count(),5);
+    assert.equal(await rows.count(),width===390?5:2);
     const rowBox=await rows.first().boundingBox();
     assert.ok(rowBox&&rowBox.height<=65,'短名称的日期、工作与类型应为紧凑行');
     await expand.click();
-    assert.equal(await rows.count(),6);
-    await deadlinePanel.getByRole('button',{name:'收起截止安排'}).click();
+    const schedule=page.getByRole('dialog',{name:'全部截止安排'});
+    assert.equal(await schedule.locator('.home-deadline-list li').count(),6);
+    await page.keyboard.press('Escape');
+    assert.equal(await expand.evaluate((el:Element)=>el===document.activeElement),true);
     await page.locator('.content').evaluate((el:Element)=>el.scrollTo({top:0}));
     const box = await quickRecord.boundingBox();
     assert.ok(box && box.y >= 0 && box.y+box.height <= height);

@@ -19,15 +19,20 @@ export function RecordComposer({onSaved,compact=false}:{compact?:boolean;onSaved
  const [saved,setSaved]=useState<RecordItem|null>(null);const request=useRef<{body:string;key:string}|null>(null);
  const {busy,run}=useAction();const works=useWorkbenchCollection();
  useEditorGuard({dirty:Boolean(text||from||to||nature||work),busy});
+ const [optionsOpen,setOptionsOpen]=useState(false);
  const save=()=>void run(async()=>{if(!text.trim())return;const payload={text:text.trim(),...(from?{occurred_from:from,occurred_to:to||from}:{}),...(nature?{nature}:{}),workbench_id:work?Number(work):null};const r=await api.post<RecordItem>('/api/work-records',{...payload,request_key:submissionKey(request,payload)});setSaved(r);setText('');setFrom('');setTo('');setNature('');setWork('');request.current=null;onSaved?.(r);},'已记下，已保存到本机工作记录');
- return <Card className={compact ? "home-record" : undefined} title={compact ? <span className="home-card-title"><NavIcon name="records"/>随手记工作</span> : "记一句工作情况"}>
-  {!compact&&<p className="muted small">自己办，告诉工作台一声就好。可以记录已做、进展和计划，不产生待办。</p>}
-  <Field label={compact?"工作情况":"做了什么，直接说"}><Textarea value={text} onChange={setText} rows={2} disabled={busy} placeholder="例如：今天把部门会议材料整理好，发给办公室了。"/></Field>
-  <details><summary>{compact?"补充日期、性质或关联工作":"补充或指定时间、性质、关联（可不填）"}</summary><div className="grid grid-2">
+ const extraFields=<div className="grid grid-2">
    <Field label="发生日期／范围开始"><Input type="date" value={from} onChange={setFrom} disabled={busy}/></Field><Field label="范围结束（可空）"><Input type="date" value={to} onChange={setTo} disabled={busy}/></Field>
    <Field label="内容性质"><Select value={nature} onChange={setNature} disabled={busy} options={[{value:'',label:'按原话保守识别'},...options]}/></Field>
    <Field label="关联工作（可空）"><WorkbenchSelect collection={works} value={work} onChange={setWork} placeholder="不关联" disabled={busy}/></Field>
-  </div></details>
+  </div>;
+ return <Card className={compact ? "home-record" : undefined} title={compact ? <span className="home-card-title"><NavIcon name="records"/>随手记工作</span> : "记一句工作情况"}>
+  {!compact&&<p className="muted small">自己办，告诉工作台一声就好。可以记录已做、进展和计划，不产生待办。</p>}
+  <Field label={compact?"工作情况":"做了什么，直接说"}><Textarea value={text} onChange={setText} rows={2} disabled={busy} placeholder={compact?"记下当前工作进展…":"例如：今天把部门会议材料整理好，发给办公室了。"}/></Field>
+  {compact ? <>
+    <button type="button" className="home-record-options" onClick={()=>setOptionsOpen(true)}>{from||to||nature||work?'编辑补充信息':'补充日期、性质或关联工作'}</button>
+    {optionsOpen&&<Modal open title="随手记补充信息" onClose={()=>setOptionsOpen(false)} footer={<Button onClick={()=>setOptionsOpen(false)}>返回随手记</Button>}>{extraFields}</Modal>}
+  </> : <details><summary>补充或指定时间、性质、关联（可不填）</summary>{extraFields}</details>}
   <div className="row mt12"><Button kind="primary" disabled={busy||!text.trim()||Boolean(to&&!from)} onClick={save}>{busy?'保存中…':compact?'保存':'记下来'}</Button>{!compact&&<span className="muted small">原话保留；日期或性质不明确时标为待明确，可更正。</span>}</div>
   {to&&!from&&<p className="notice notice-warn">填写范围结束前，请先填写开始日期。</p>}
   {saved&&<p role="status" className="notice notice-info">已保存记录 #{saved.id} · {dateText(saved)} · {labels[saved.nature]}　<a href={`#/records?id=${saved.id}`}>查看、更正或撤回</a></p>}

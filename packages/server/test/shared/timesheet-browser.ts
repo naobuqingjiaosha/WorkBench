@@ -27,15 +27,15 @@ await withBrowserPage(async(page,base)=>{
   assert.equal(await page.getByLabel('数据月份').inputValue(),fixture.month);
   assert.equal(await page.getByLabel('数据月份').isDisabled(),true);
   await page.getByText('月份随所属期次，请先返回所属工作再选择月份。').waitFor();
-  await input.nth(0).setInputFiles(workbookFile('合成研发.xlsx',fixture.rd));
+  await page.getByLabel('研发中心工时表',{exact:true}).setInputFiles(workbookFile('合成研发.xlsx',fixture.rd));
   await page.getByText('合成研发.xlsx 已识别',{exact:false}).waitFor();
-  await input.nth(1).setInputFiles(workbookFile('合成模板.xlsx',fixture.template));
+  await page.getByLabel('统一模板 / 上期部门工时表',{exact:true}).setInputFiles(workbookFile('合成模板.xlsx',fixture.template));
   await page.getByText('合成模板.xlsx 已识别',{exact:false}).waitFor();
   // Force the recovery path. The copy is retained and a manually verified mapping adopts it.
   const unusual=new ExcelJS.Workbook();await unusual.xlsx.load(fixture.attendance as never);
   unusual.worksheets[0]!.getCell('A1').value='当期参与者';
   const attendanceBytes=Buffer.from(await unusual.xlsx.writeBuffer());
-  await input.nth(2).setInputFiles(workbookFile('合成考勤.xlsx',attendanceBytes));
+  await page.getByLabel('考勤资料',{exact:true}).setInputFiles(workbookFile('合成考勤.xlsx',attendanceBytes));
   const pending=page.getByRole('region',{name:'待核对考勤'});
   await pending.getByRole('alert').waitFor();
   assert.equal(await button('采用此考勤').isDisabled(),true);
@@ -131,7 +131,7 @@ await withBrowserPage(async(page,base)=>{
   sheet.getCell('C9').value='模板保留总计';
   sheet.getCell('AM9').value={formula:'SUM(INDIRECT("AM5:AM8"))',result:396};
   await button('人员与项目').click();
-  await input.nth(1).setInputFiles(workbookFile('需核对公式.xlsx',Buffer.from(await custom.xlsx.writeBuffer())));
+  await page.getByLabel('统一模板 / 上期部门工时表',{exact:true}).setInputFiles(workbookFile('需核对公式.xlsx',Buffer.from(await custom.xlsx.writeBuffer())));
   await page.getByText('需核对公式.xlsx 已识别',{exact:false}).waitFor();
   await button('重新计算并保存').click();
   await page.getByText(/模板公式.*工时明细表（填写）!AN11.*INDIRECT/).waitFor();

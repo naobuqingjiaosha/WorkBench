@@ -65,7 +65,7 @@ function wordTemplate(title:string,lines:string[]){
 
   // New generic reminder through the same form used by a person.
   await page.goto(base+'/#/workbench?create=1');
-  assert.equal(await page.getByRole('button',{name:'创建',exact:true}).count(),0);
+  assert.ok(await page.getByRole('button',{name:'创建',exact:true}).isDisabled(),'未选择工作性质时不能创建');
   await page.getByRole('button',{name:/行政管理工作/}).click();
   await page.getByLabel('工作类型',{exact:false}).first().selectOption(String(type('admin').id));
   await page.getByPlaceholder('例如：清廉工程月度监督检查').fill('合成周期提醒');

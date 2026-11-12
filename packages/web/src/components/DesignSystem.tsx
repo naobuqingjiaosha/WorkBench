@@ -13,6 +13,7 @@ const paths:Record<string,string>={
   agent:'m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3z',
   trash:'M4 6h16M9 3h6M6 6l1 15h10l1-15M10 10v7m4-7v7',
   settings:'m9 3 1-1h4l1 3 2 1 3-1 2 4-2 2v2l2 2-2 4-3-1-2 1-1 3h-4l-1-3-2-1-3 1-2-4 2-2v-2l-2-2 2-4 3 1 2-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0',
+  chat:'M21 11a8.5 8.5 0 0 1-9 8H8l-5 3 1-6a9 9 0 1 1 17-5z',
   bell:'M4 18h16l-2-3V9a6 6 0 0 0-12 0v6z M10 21h4',
   clipboard:'M8 5H4v17h16V5h-4 M9 3h6v4H9z M8 13l3 3 5-6',
   clock:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v6l4 2',
@@ -20,3 +21,7 @@ const paths:Record<string,string>={
   search:'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6',
 };
 export function NavIcon({name}:{name:string}){return <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]??paths.files}/></svg>;}
+
+export function SectionTitle({icon,children}:{icon:string;children:ReactNode}) {
+  return <span className="section-title"><NavIcon name={icon}/>{children}</span>;
+}

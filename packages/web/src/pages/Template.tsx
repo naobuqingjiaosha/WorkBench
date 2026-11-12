@@ -1,3 +1,4 @@
+import {PageActions} from '../components/PageActions';
 import { TemplateHistory } from '../components/BusinessEvidence';
 import {useModalSave} from '../components/useUnsavedClose';
 import { useRef, useState } from 'react';
@@ -5,7 +6,7 @@ import type React from 'react';
 import { api, useApi, type Template, type TemplateVarSpec, type WorkType } from '../api';
 import { Button, Card, Empty, Field, Input, Loading, Modal, Select, Tag, fmtTime, useAction, useToast } from '../ui';
 import { TemplatePreview } from '../components/TemplatePreview';
-import {LoadError} from '../components/DesignSystem';
+import {LoadError, NavIcon, SectionTitle} from '../components/DesignSystem';
 
 const CATEGORY_TEXT: Record<string, string> = { general: '通用', admin: '行政管理', project: '项目实施', safety:'行政管理 · 安全生产',integrity:'行政管理 · 清廉工程',department:'行政管理 · 部门综合' };
 const CATEGORY_OPTIONS=Object.entries(CATEGORY_TEXT).map(([value,label])=>({value,label}));
@@ -85,7 +86,8 @@ export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId
     <div className="section-content template-library">
 
       <div className="library-toolbar">
-            <Input value={keyword} onChange={v=>{setKeyword(v);setPage(0);}} placeholder="搜模板名" />
+            <Input value={keyword} onChange={v=>{setKeyword(v);setPage(0);}} placeholder="搜模板名、关键词…" />
+            <label className="directory-filter">目录筛选 <select className="input" value={category} onChange={e=>selectCategory(e.target.value)}><option value="">全部目录</option>{folderOptions.map(v=><option key={v} value={v}>{CATEGORY_TEXT[v]??v}</option>)}</select></label>
             <Button onClick={()=>{setArchived(v=>!v);selectCategory('');setKeyword('');}}>{archived?'返回在用模板':'查看归档'}</Button>
             <Button
               disabled={checking}
@@ -99,16 +101,16 @@ export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId
             >
               {checking ? '检查中…' : '检查模板是否可用'}
             </Button>
-            <Button kind="primary" onClick={() => setUploadOpen(true)}>
+            <PageActions><Button kind="primary" onClick={() => setUploadOpen(true)}>
               ＋ 上传模板
-            </Button>
+            </Button></PageActions>
       </div>
       <div className="template-browser">
-        <Card className="template-categories" title="资料分类">
+        <Card className="template-categories" title={<SectionTitle icon="files">目录</SectionTitle>}>
           <nav aria-label="模板资料分类">{['',...folderOptions].map(value=><button type="button" key={value} aria-pressed={value===category}
-            onClick={()=>selectCategory(value)}>{value ? CATEGORY_TEXT[value]??value.replaceAll('/',' / ') : '全部资料'}</button>)}</nav>
+            onClick={()=>selectCategory(value)}><NavIcon name="files"/>{value ? CATEGORY_TEXT[value]??value.replaceAll('/',' / ') : '全部资料'}</button>)}</nav>
         </Card>
-        <Card className="template-list" title={archived?'已归档模板':'模板资料'} extra={<span className="muted">共 {rows.length} 份</span>}>
+        <Card className="template-list" title={<SectionTitle icon="chart">{archived?'已归档模板':'模板资料'}</SectionTitle>} extra={<span className="muted">共 {rows.length} 份</span>}>
         {list.loading ? (
           <Loading />
         ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : rows.length === 0 ? (
@@ -118,12 +120,12 @@ export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId
           />
         ) : (
           <><table className="table template-table">
-            <thead><tr><th>资料名称</th><th>变量</th><th>更新日期</th></tr></thead>
+            <thead><tr><th>资料名称</th><th>目录</th><th>更新日期</th><th>操作</th></tr></thead>
             <tbody>{visibleRows.map(t=><tr key={t.id} className={t.id===selected?.id?'is-selected':''}>
               <td><button className="template-select" type="button" aria-pressed={selected?.id===t.id} onClick={()=>{setSelectedId(t.id);if(matchMedia('(max-width:760px)').matches)detailRef.current?.scrollIntoView({block:'start'});}}><span className={`file-ico ${t.file_format?.includes('xls')?'xls':'doc'}`}>{t.file_format?.toUpperCase()}</span><strong>{t.name}</strong></button>
                 {t.file_exists===false&&<Tag kind="err">文件丢失</Tag>}{t.health_ok===0&&<Tag kind="err">模板损坏</Tag>}</td>
-              <td>{t.variable_count>0||t.vars_rel?t.variable_count+' 个':'暂无变量清单'}</td>
-              <td>{t.updated_at?.slice(0,10)||'—'}</td></tr>)}</tbody>
+              <td>{CATEGORY_TEXT[t.category]??t.category}<small className="template-vars">{t.variable_count>0||t.vars_rel?t.variable_count+' 个':'暂无变量清单'}</small></td>
+              <td>{t.updated_at?.slice(0,10)||'—'}</td><td><a className="btn btn-sm" href={`#/knowledge?module=template&templateId=${t.id}`} onClick={e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();setPreviewing(t);}}>预览核对</a></td></tr>)}</tbody>
           </table><div className="library-pagination"><span>第 {currentPage+1} 页，共 {Math.ceil(rows.length/pageSize)} 页</span>
           <Button size="sm" disabled={!currentPage} onClick={()=>setPage(currentPage-1)}>上一页</Button>
           <Button size="sm" disabled={(currentPage+1)*pageSize>=rows.length} onClick={()=>setPage(currentPage+1)}>下一页</Button></div></>

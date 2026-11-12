@@ -1,3 +1,4 @@
+import {NavIcon} from '../components/DesignSystem';
 import {useEditorGuard,useNavigationGuard} from '../components/NavigationGuard';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
@@ -89,7 +90,7 @@ export default function AgentPage() {
       <div className="view-tabs agent-tabs" aria-label="助手功能">
         {tabs.map(([k, label]) => (
           <button key={k} className={tab===k?'selected':''} aria-pressed={tab===k} onClick={() => {if(k!==tab)navigation.request(()=>setTab(k));}}>
-            {label}
+            <NavIcon name={k==='chat'?'chat':k==='records'?'workbench':k==='proposals'?'clipboard':k==='audit'?'clock':'records'}/>{label}
             {k === 'proposals' && pendingCount > 0 ? `（${pendingCount}）` : ''}
           </button>
         ))}

@@ -98,3 +98,55 @@
 @media (max-width: 680px) {
   .models-layout .model-profiles { order: -1; }
 }
+
+/* Work list, work creation, settings and recovery. */
+.work-list-toolbar .view-tabs button { min-width:100px; font-weight:600; }
+.work-list-toolbar .view-tabs strong { margin-left:4px; }
+.work-list-filters .view-tabs button { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 14px; }
+.work-list-filters .view-tabs button.selected { background:var(--primary-soft); border-color:#c0d7fa; }
+.work-list-panel .table .btn,.trash-actions .btn:not(.btn-danger) { border-color:#aec7e8; color:var(--primary); }
+.work-list-panel .card-body { padding:18px 20px; }
+.work-list-panel .table td { padding-block:13px; }
+.modal:has(.create-choices) { width:min(940px,100%); }
+.create-choices>.choice-subtitle { font-size:17px; margin-bottom:12px; }
+.create-choice-grid { margin:24px 0; gap:20px; }
+.create-choice-grid .pick-card { grid-template-columns:auto minmax(0,1fr); padding:20px; row-gap:10px; }
+.create-choice-grid .pick-desc { grid-column:2; }
+.create-choice-grid .pick-card::after { grid-area:3 / 2; justify-self:end; align-self:end; }
+.choice-tags { display:flex; flex-wrap:wrap; gap:8px; grid-area:3/1/4/3; padding-right:16px; margin-top:8px; }
+.choice-tags span { padding:2px 7px; border-radius:4px; background:#f1f3f6; font-size:13px; }
+.settings-view > .section-nav { width:fit-content; max-width:100%; padding:4px 8px; border-radius:24px; }
+.settings-view > .section-nav button { border-radius:20px; padding-inline:22px; }
+.settings-view > .section-nav button.selected { background:var(--primary); color:white; }
+.model-maintenance .card-body { display:grid; gap:4px; padding:8px 12px; }
+.model-maintenance .card-body>.card { border:0; border-bottom:1px solid var(--line); margin:0; }
+@media(min-width:1121px) {
+  .models-layout { grid-template-columns:minmax(0,1.72fr) minmax(300px,1fr); }
+  .models-layout>.model-providers { grid-column:1; }
+  .models-layout>.model-maintenance { grid-column:2; margin:0; }
+}
+@media(min-width:1000px) {
+  .work-list-panel>.card-body { min-height:clamp(360px,65vh,750px); display:flex; flex-direction:column; }
+  .work-list-panel .workbench-list-pagination { margin-top:auto; }
+  .work-list-filters { padding:20px 0; }
+  .work-list-toolbar .view-tabs button { font-size:17px; padding-inline:24px; }
+  .trash-results .table td { padding-block:12px; }
+  .trash-results .card-head,.trash-results .card-body { padding-inline:20px; }
+}
+@media(max-width:680px) {
+  .work-list-toolbar .view-tabs button { min-width:0; }
+  .create-choice-grid { gap:10px; margin:12px 0; }
+  .create-choice-grid .pick-card { padding:12px; }
+  .settings-view > .section-nav { width:100%; border-radius:10px; }
+  .settings-view > .section-nav button { padding-inline:8px; }
+}
+
+.trash-breakdown { display:inline-flex; flex-wrap:wrap; gap:10px; margin:0 8px; }
+.trash-breakdown>span+span { border-left:1px solid var(--line); padding-left:10px; }
+@media(min-width:1000px) {
+  .modal:has(.create-choices) .modal-head h3 { font-size:26px; }
+  .create-choice-grid .pick-card { min-height:170px; }
+  .create-choice-grid .pick-title { font-size:20px; }
+  .create-choice-grid .pick-desc { font-size:15px; }
+  .create-choices+.modal-foot { min-height:64px; }
+}

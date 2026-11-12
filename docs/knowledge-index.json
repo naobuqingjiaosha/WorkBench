@@ -128,7 +128,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前发布、能力分层和验收边界",
-      "sha256": "9d9aec5a13b02728fc8a4b9dec0c7b58309cabcd12ddd8652863df8ce748b621",
+      "sha256": "898ff3f897813d8cc13257eeddf3bd6b4e04a0557d66611696f100de00afdc33",
       "linksTo": [
         "docs/guides/INSTALLATION.md",
         "docs/guides/USER_GUIDE.md",
@@ -137,12 +137,6 @@
         "docs/management/WORK_LOG.md"
       ],
       "localLinks": [
-        {
-          "target": "docs/management/WORK_LOG.md",
-          "path": "docs/management/WORK_LOG.md",
-          "availability": "repository",
-          "exists": true
-        },
         {
           "target": "docs/management/WORK_LOG.md",
           "path": "docs/management/WORK_LOG.md",
@@ -168,8 +162,8 @@
           "exists": true
         },
         {
-          "target": "outputs/ui-reference-13-20261112/index.html",
-          "path": "outputs/ui-reference-13-20261112/index.html",
+          "target": "outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
           "availability": "local-evidence",
           "exists": null
         },
@@ -178,6 +172,12 @@
           "path": "docs/management/WORK_LOG.md",
           "availability": "repository",
           "exists": true
+        },
+        {
+          "target": "outputs/home-viewport/after/results.json",
+          "path": "outputs/home-viewport/after/results.json",
+          "availability": "local-evidence",
+          "exists": null
         },
         {
           "target": "docs/guides/USER_GUIDE.md",
@@ -218,7 +218,7 @@
       "role": "entry",
       "status": "current-baseline",
       "purpose": "AI最小接续上下文及按需阅读路线",
-      "sha256": "2b708f1f868e41b6c749847f73c50c0fb644527eebaeb7b65e63487e6c0a1de6",
+      "sha256": "90e162395311900fea185d8d2bcb87a5cc17be20da779bf01f319cd0709af8c2",
       "linksTo": [
         "AGENTS.md",
         "CONTEXT.md",
@@ -289,6 +289,12 @@
           "exists": true
         },
         {
+          "target": "outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
+          "availability": "local-evidence",
+          "exists": null
+        },
+        {
           "target": "DEVELOPMENT_PROGRESS.md",
           "path": "DEVELOPMENT_PROGRESS.md",
           "availability": "repository",
@@ -327,7 +333,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前需求、业务规则、场景及代码验证追溯",
-      "sha256": "6f736c60747b0913c8bad69342f12314d55198eb720bb88c8b63c9e819771c24",
+      "sha256": "0ed506590b57307a39531c5bbcc4d1e5a56953034a7c12467ab0285f09fd0791",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -585,7 +591,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前结构、关键链路、运行与候选边界",
-      "sha256": "fc6fde42841ce298d85c851d1e1e2d201864cc4e983dc7cdc48aaa9c72367e7d",
+      "sha256": "8ea086a1b25e10b0aabdff955185549995f13873e309812808ce999b0c63f936",
       "linksTo": [
         "CONTEXT.md",
         "DEVELOPMENT_PROGRESS.md",
@@ -1138,7 +1144,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "GOV-13 十三页设计实施、隔离验收、实页截图与历史验证范围",
-      "sha256": "95449c6b62f1a11f100a3bbd336d7bfec48a8491754d9bd7706ac661de6e87e8",
+      "sha256": "47af58fe5d5eb10006166163e93fc8af9f286f8f3adcbbc2fc8f1a51f46a9e95",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "PRODUCT_REQUIREMENTS.md",
@@ -1171,8 +1177,20 @@
           "exists": null
         },
         {
-          "target": "../../outputs/ui-reference-13-20261112/index.html",
-          "path": "outputs/ui-reference-13-20261112/index.html",
+          "target": "../../outputs/home-viewport/after/3860x2140.png",
+          "path": "outputs/home-viewport/after/3860x2140.png",
+          "availability": "local-evidence",
+          "exists": null
+        },
+        {
+          "target": "../../outputs/home-viewport/after/2560x1660.png",
+          "path": "outputs/home-viewport/after/2560x1660.png",
+          "availability": "local-evidence",
+          "exists": null
+        },
+        {
+          "target": "../../outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
           "availability": "local-evidence",
           "exists": null
         },
@@ -1275,7 +1293,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "当前源码的页面操作、异常处理与目标设备版本核对",
-      "sha256": "714240f392e8538bbfc3cbacd28d6adaaa0bcbd79feadd26efb9959d8a5f146c",
+      "sha256": "5899d6849eea20dd80a0bb09b98b5d413e7aed72eedd4469cce1100d34b22cc6",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/INSTALLATION.md",
@@ -1291,8 +1309,8 @@
           "exists": true
         },
         {
-          "target": "../../outputs/ui-reference-13-20261112/index.html",
-          "path": "outputs/ui-reference-13-20261112/index.html",
+          "target": "../../outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
           "availability": "local-evidence",
           "exists": null
         },
@@ -1588,7 +1606,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "目标、范围、交付、责任、资源和阶段出口",
-      "sha256": "ce187079a886acb61d6c3da190ce9b5284745795d2bb7df1bf8b8215e63ccb0d",
+      "sha256": "81211ca02b998eae977e59d6537db31fb13eb582c0bdbaa29a9d992612cbc4e8",
       "linksTo": [
         "docs/management/PROJECT_PLAN.md"
       ],
@@ -1608,7 +1626,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "唯一GOV执行队列、依赖、状态与下一步",
-      "sha256": "448d152b75171bc4331149e8aa6bcc797c931d0cccf37c8202ea8abe4d2b93a1",
+      "sha256": "42c5664875acbc07b9d981efea10f51d3b6539e13f71cd83d3826be780c95da1",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/MONTHLY_DEVELOPMENT.md",
@@ -1655,8 +1673,8 @@
           "exists": true
         },
         {
-          "target": "../../outputs/ui-reference-13-20261112/index.html",
-          "path": "outputs/ui-reference-13-20261112/index.html",
+          "target": "../../outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
           "availability": "local-evidence",
           "exists": null
         },
@@ -1687,7 +1705,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "质量方法、验收计划和证据要求",
-      "sha256": "ed8e03650c573795dd2ad143acbc0db7a8dedd01d9d4a57d887ef9c438a45ecc",
+      "sha256": "f52840dca9ee5db39b6981df76606439cf34431dcc6fafbbeb656364aecf4dc3",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/guides/DEVELOPMENT.md",
@@ -1714,8 +1732,8 @@
           "exists": true
         },
         {
-          "target": "../../outputs/ui-reference-13-20261112/index.html",
-          "path": "outputs/ui-reference-13-20261112/index.html",
+          "target": "../../outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
           "availability": "local-evidence",
           "exists": null
         },
@@ -1805,7 +1823,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "每次工作的目标、修改、验证、文档复核及交付记录",
-      "sha256": "3718840f621c6e06cf25d6563194145a875df4730c1d2831343fc1ffc5f157d7",
+      "sha256": "13e7b340946a5a539180dfd89bdd53fcc675a21e488e244ce8f048b82fe208fc",
       "linksTo": [
         "DEVELOPMENT_PROGRESS.md",
         "docs/management/CHANGELOG.md",
@@ -1875,6 +1893,12 @@
           "exists": null
         },
         {
+          "target": "../../outputs/design-review-13/index.html",
+          "path": "outputs/design-review-13/index.html",
+          "availability": "local-evidence",
+          "exists": null
+        },
+        {
           "target": "../../DEVELOPMENT_PROGRESS.md",
           "path": "DEVELOPMENT_PROGRESS.md",
           "availability": "repository",
@@ -1895,7 +1919,7 @@
       "role": "current",
       "status": "current-baseline",
       "purpose": "关键数据字典、API约定及源码定位",
-      "sha256": "2957ef0f111aed4aa8602822d3faf68722ebc1e9cf7f01e1d2a8f6ddf7ed5f5b",
+      "sha256": "7899ed2ac8b59d7d1e0028796e2315d84199e65acb16a5dda58507f958687b85",
       "linksTo": [
         "CONTEXT.md"
       ],

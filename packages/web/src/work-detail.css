@@ -85,3 +85,50 @@
   .work-detail-layout .card-head,.work-detail-layout .card-body {min-width:0;}
 }
 
+
+.work-context { position:relative; }
+.detail-heading-tools { justify-self:end; grid-area:1/1; }
+.work-context>nav,.standalone-timesheet>.work-context>.btn-ghost { grid-area:1/1; align-self:center; justify-self:start; }
+.work-title>svg { width:27px; height:30px; color:var(--primary); }
+.config-disclosure { border:1px solid #d2e1f6; border-radius:8px; background:var(--primary-soft); }
+.config-disclosure>summary { padding:10px 16px; color:#284a75; font-size:14px; }
+.config-disclosure>summary span { float:right; color:var(--primary); }
+.detail-sections { display:flex; flex-wrap:wrap; align-items:center; gap:6px; border-bottom:1px solid var(--line); }
+.detail-sections button,.detail-sections a { padding:8px 16px; font:inherit; background:transparent; border:0; color:var(--text); text-decoration:none; cursor:pointer; }
+.detail-sections button:first-child { color:var(--primary); border-bottom:2px solid; font-weight:600; }
+.stage-note-slot:empty { display:none; }
+.stage-note-slot .stage-note { padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+.stage-note-slot .field-label,.period-documents>h3 { font-size:17px; font-weight:650; }
+.stage-note-slot .stage-note textarea { min-height:84px; }
+.period-documents { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.period-documents>h3 { margin:0 0 8px; }
+.period-workspace>.period-documents[id]>.document-workspace { border:0; padding:0; }
+.period-completion { order:2; }
+.timesheet-workspace .source-pick { padding:4px 7px; border:1px solid var(--line); border-radius:4px; }
+@media(min-width:1000px) {
+  .work-context h2 { font-size:30px; }
+  .work-detail .work-context { row-gap:4px; }
+  .work-detail-layout:has(.stage-layout) { grid-template-columns:minmax(0,2.85fr) minmax(255px,1fr); }
+  .work-detail-layout:has(.period-panel):not(.work-detail-wide) { grid-template-columns:minmax(0,1.82fr) minmax(295px,1fr); }
+  .work-detail-layout .stage-layout { grid-template-columns:minmax(185px,.43fr) minmax(0,1fr); }
+  .work-detail-layout .stage-layout .section-nav button { min-height:44px; border-bottom:1px solid var(--line); }
+}
+@media(max-width:600px) {
+  .detail-sections { gap:2px; }
+  .detail-sections button,.detail-sections a { padding:6px; }
+}
+
+.period-completion { position:sticky; bottom:0; z-index:3; background:var(--panel); }
+.standalone-timesheet .timesheet-versions-link { justify-self:end; grid-column:2; grid-row:2/4; align-self:center; }
+.standalone-timesheet .work-context { grid-template-columns:minmax(0,1fr) auto; }
+.standalone-timesheet .detail-heading-tools { grid-column:2; }
+@media(max-width:680px) {
+  .standalone-timesheet .timesheet-versions-link { grid-row:auto; grid-column:1/-1; justify-self:start; }
+  .period-completion { position:static; }
+}
+
+.standalone-timesheet .work-context>h2 { grid-column:1; grid-row:2; }
+.standalone-timesheet .work-context>p { grid-column:1; grid-row:3; }
+@media(max-width:680px) {
+  .standalone-timesheet .work-context>h2,.standalone-timesheet .work-context>p { grid-column:1/-1; }
+}

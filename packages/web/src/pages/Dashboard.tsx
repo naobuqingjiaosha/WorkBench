@@ -1,7 +1,7 @@
 import {RecordComposer} from './WorkRecords';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {useWorkflowInbox, type Inbox} from '../components/WorkflowPanels';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {api, useApi, type Workbench, type Artifact} from '../api';
 import {Button, Card, Empty, Input, Loading, Modal, Tag, STATUS_TEXT, statusKind, fmtTime, useDebounced, useToast} from '../ui';
 import type {RouteKey} from '../App';
@@ -9,7 +9,28 @@ import {FilePreview, FilePreviewButton} from '../components/FilePreview';
 import {TemplatePreview} from '../components/TemplatePreview';
 import {LoadError, NavIcon} from '../components/DesignSystem';
 
-const inboxPageSize = 5;
+// CSS pixels follow window size, display scaling and browser zoom.
+const homeDensities = [
+  {query:'(min-width:1000px) and (max-height:684px)',rows:2},
+  {query:'(min-width:1000px) and (max-height:890px)',rows:3},
+  {query:'(min-width:1000px) and (max-height:1100px)',rows:4},
+  {query:'(min-width:1600px) and (min-height:1900px)',rows:8},
+  {query:'(min-width:1600px) and (min-height:1500px)',rows:6},
+].map(({query,rows})=>({media:window.matchMedia(query),rows}));
+function watchHomeSize(notify:()=>void) {
+  homeDensities.forEach(({media})=>media.addEventListener('change',notify));
+  return ()=>homeDensities.forEach(({media})=>media.removeEventListener('change',notify));
+}
+function homePageSize() {
+  return homeDensities.find(({media})=>media.matches)?.rows ?? 5;
+}
+function HomePager({label,total,page,pageSize,change}:{label:string;total:number;page:number;pageSize:number;change:(offset:number)=>void}) {
+  const pages=Math.max(1,Math.ceil(total/pageSize));
+  return <nav className="home-pagination" aria-label={label}>
+    <span>共 {total} 项</span><Button size="sm" disabled={page===0} onClick={()=>change((page-1)*pageSize)}>上一页</Button>
+    <span>{page+1} / {pages}</span><Button size="sm" disabled={page>=pages-1} onClick={()=>change((page+1)*pageSize)}>下一页</Button>
+  </nav>;
+}
 type HomeAction = {key:string; category:string; entered?:string; workId?:number; name:string; detail:string; status:string; tone:'err'|'warn'|'info'; action:string; href?:string; todoId?:number; due?:string};
 const inboxCategory:Record<string,string> = {
   overdue:'周期提醒', dueToday:'周期提醒', docDraft:'成果核对', material:'材料清单', evidence:'影像清单',
@@ -29,42 +50,62 @@ function HomeTitle({icon,children}:{icon:string;children:React.ReactNode}) {retu
 function HomeInboxSort({value,onChange,refresh,disabled}:{value:string;onChange:(value:string)=>void;refresh:()=>void;disabled:boolean}) {
   const ref=useRef<HTMLDetailsElement>(null);
   useEffect(()=>{const close=(event:PointerEvent)=>{if(!ref.current?.contains(event.target as Node)&&ref.current)ref.current.open=false;};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[]);
-  return <details ref={ref} className="home-sort" onKeyDown={e=>{if(e.key==='Escape'&&ref.current){ref.current.open=false;ref.current.querySelector('summary')?.focus();}}}><summary>{value==='urgent'?'按紧急程度排序':'按工作名称排序'}<span aria-hidden="true">⌄</span></summary><div className="home-sort-menu">{[{value:'urgent',label:'按紧急程度排序'},{value:'name',label:'按工作名称排序'}].map(option=><button key={option.value} aria-pressed={value===option.value} onClick={()=>{onChange(option.value);if(ref.current)ref.current.open=false;}}>{option.label}</button>)}<button disabled={disabled} onClick={()=>{refresh();if(ref.current)ref.current.open=false;}}>刷新待办</button></div></details>;
+  return <details ref={ref} className="home-sort" onKeyDown={e=>{if(e.key==='Escape'&&ref.current){ref.current.open=false;ref.current.querySelector('summary')?.focus();}}}><summary>{value==='due'?'截止时间（从近到远）':value==='urgent'?'按紧急程度排序':'按工作名称排序'}<span aria-hidden="true">⌄</span></summary><div className="home-sort-menu">{[{value:'due',label:'截止时间（从近到远）'},{value:'urgent',label:'按紧急程度排序'},{value:'name',label:'按工作名称排序'}].map(option=><button key={option.value} aria-pressed={value===option.value} onClick={()=>{onChange(option.value);if(ref.current)ref.current.open=false;}}>{option.label}</button>)}<button disabled={disabled} onClick={()=>{refresh();if(ref.current)ref.current.open=false;}}>刷新待办</button></div></details>;
 }
 
-export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,string>)=>void}) {
+export function SearchControl({go}:{go:(key:RouteKey,params?:Record<string,string>)=>void}) {
+  const [search,setSearch]=useState(false);
+  const [searchPreview,setSearchPreview]=useState<SearchTarget|null>(null);
+  useEffect(()=>{
+    const shortcut=(event:KeyboardEvent)=>{
+      if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'&&!document.querySelector('[role="dialog"]')) {
+        event.preventDefault(); setSearch(true);
+      }
+    };
+    window.addEventListener('keydown',shortcut);
+    return ()=>window.removeEventListener('keydown',shortcut);
+  },[]);
+  return <><button className="home-search" aria-label="搜索工作、成果、模板" onClick={()=>setSearch(true)}><NavIcon name="search"/><span>搜索工作、文件、资料或知识…</span><kbd>Ctrl K</kbd></button>
+    {search&&<Modal open title="搜索工作、成果、模板" wide onClose={()=>setSearch(false)}><GlobalSearch go={(key,params)=>{setSearch(false);go(key,params);}} onPreview={setSearchPreview}/></Modal>}
+    {searchPreview?.kind==='artifact' && <FilePreview id={searchPreview.id} onClose={()=>setSearchPreview(null)}/>}
+    {searchPreview?.kind==='template' && <TemplatePreview template={{id:searchPreview.id,name:searchPreview.title}} onClose={()=>setSearchPreview(null)}/>}
+  </>;
+}
+
+export default function DashboardPage({go,openAlerts=false}:{openAlerts?:boolean;go:(k:RouteKey,p?:Record<string,string>)=>void}) {
   const all=useWorkbenchCollection(), inbox=useWorkflowInbox();
   const files=useApi<{items:Artifact[]}>('/api/artifacts?kind=generated&limit=3');
-  const [notifications,setNotifications]=useState(false);
-  const [searchPreview,setSearchPreview]=useState<SearchTarget|null>(null);
-  const [search,setSearch]=useState(false),[page,setPage]=useState(0),[busy,setBusy]=useState(false),[actionError,setActionError]=useState(''),[sort,setSort]=useState('urgent');
+  const [notifications,setNotifications]=useState(openAlerts);
+  const inboxPageSize=useSyncExternalStore(watchHomeSize,homePageSize);
+  const [inboxOffset,setInboxOffset]=useState(0),[recentOffset,setRecentOffset]=useState(0);
+  const [calendarOpen,setCalendarOpen]=useState(false);
+  const [busy,setBusy]=useState(false),[actionError,setActionError]=useState(''),[sort,setSort]=useState('due');
   const items=all.data?.items??[], active=items.filter(w=>!['done','archived'].includes(w.status)), actions=inboxActions(inbox.data,active);
+  if(sort==='due')actions.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
   if(sort==='name')actions.sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
-  const recent=[...active].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||b.id-a.id).slice(0,5);
+  const recent=[...active].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||b.id-a.id).slice(0,Math.max(5,inboxPageSize));
   const deadlines=workDeadlines(active,inbox.data?.periods??[]);
   const reviewIds=new Set(actions.filter(a=>a.workId&&(a.status==='待核对'||/核对|确认|复核/.test(a.detail))).map(a=>a.workId));
   const reviewCount=active.filter(w=>reviewIds.has(w.id)).length;
-  const pageCount=Math.max(1,Math.ceil(actions.length/inboxPageSize)), safePage=Math.min(page,pageCount-1);
+  const pageCount=Math.max(1,Math.ceil(actions.length/inboxPageSize)), safePage=Math.min(Math.floor(inboxOffset/inboxPageSize),pageCount-1);
+  const recentPage=Math.floor(Math.min(recentOffset,Math.max(0,recent.length-1))/inboxPageSize);
   const refresh=async()=>{setBusy(true);try{await inbox.refresh();}finally{setBusy(false);}};
   const complete=async(id:number)=>{setBusy(true);setActionError('');try{await api.put(`/api/quick-todos/${id}`,{status:'done'});inbox.reload();}catch(e){setActionError((e as Error).message);}finally{setBusy(false);}};
   const showInbox=(key?:string)=>{
     const index=key?actions.findIndex(a=>a.key===key):-1;
-    setPage(index<0?0:Math.floor(index/inboxPageSize));setNotifications(false);
+    setInboxOffset(Math.max(0,index));setNotifications(false);
     requestAnimationFrame(()=>{const target=document.getElementById('home-inbox');target?.scrollIntoView({block:'start'});target?.focus();});
   };
   return <div className="home-page home-focused">
     <header className="home-header">
       <div><h2>工作台首页</h2></div>
       <div className="home-header-actions">
-        <button className="home-search" onClick={()=>setSearch(true)}><NavIcon name="search"/><span>搜索工作、成果、模板</span></button>
-        <button className="btn home-bell" aria-label="查看通知与提醒" aria-haspopup="dialog" onClick={()=>setNotifications(true)}><NavIcon name="bell"/><span>通知</span>{!inbox.loading&&!inbox.error&&actions.length>0&&<span className="home-notice-count" aria-label={`${actions.length}项待处理`}>{actions.length}</span>}{(inbox.error||inbox.syncError)&&<span aria-label="提醒信息不完整">!</span>}</button>
+        <SearchControl go={go}/>
+        <button className="btn home-bell" aria-label="查看通知与提醒" aria-haspopup="dialog" onClick={()=>setNotifications(true)}><NavIcon name="bell"/>{!inbox.loading&&!inbox.error&&actions.length>0&&<span className="home-notice-count" aria-label={`${actions.length}项待处理`}>{actions.length}</span>}{(inbox.error||inbox.syncError)&&<span aria-label="提醒信息不完整">!</span>}</button>
         <Button onClick={()=>go('records')}>随手记</Button>
         <Button kind="primary" onClick={()=>go('workbench',{create:'1'})}>＋ 新建工作</Button>
       </div>
     </header>
-    {search&&<Modal open title="搜索工作、成果、模板" wide onClose={()=>setSearch(false)}><GlobalSearch go={go} onPreview={setSearchPreview}/></Modal>}
-    {searchPreview?.kind==='artifact' && <FilePreview id={searchPreview.id} onClose={()=>setSearchPreview(null)}/>}
-    {searchPreview?.kind==='template' && <TemplatePreview template={{id:searchPreview.id,name:searchPreview.title}} onClose={()=>setSearchPreview(null)}/>}
     {notifications&&<Modal open title="通知与提醒" onClose={()=>setNotifications(false)} footer={<Button onClick={()=>showInbox()}>查看全部待处理</Button>}>
       <div className="home-notifications">
         <p className="muted">查看待处理事项与已登记的截止安排。</p>
@@ -73,35 +114,38 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
         {inbox.error?<LoadError error={inbox.error} retry={inbox.reload}/>:!inbox.data&&inbox.loading?<Loading/>:!actions.length?<Empty text="当前没有待处理提醒。"/>:actions.slice(0,5).map(a=><div className="home-notice-row" key={a.key}><div><strong>{a.name}</strong><p>{a.detail}</p></div>{a.href?<a className="btn btn-sm" href={a.href}>{a.action}</a>:<Button size="sm" onClick={()=>showInbox(a.key)}>查看待办</Button>}</div>)}
         {actions.length>5&&!inbox.error&&<p className="small muted">显示前5项，共{actions.length}项；可查看全部待处理。</p>}
         <h4>近期截止</h4>
-        {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<><DeadlineList entries={deadlines.slice(0,5)}/>{deadlines.length>5&&<p className="small muted">显示前5项截止，完整安排见首页“近期截止”。</p>}</>}
+        {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<><DeadlineList entries={deadlines.slice(0,5)}/>{deadlines.length>5&&<p className="small muted">显示前5项截止，完整安排见首页“日程”。</p>}</>}
       </div>
     </Modal>}
     <div className="home-main-grid">
       <div className="home-primary">
         <div id="home-inbox" tabIndex={-1}>
-          <Card className="home-inbox" title={<HomeTitle icon="clipboard">待我处理</HomeTitle>} extra={<HomeInboxSort value={sort} onChange={value=>{setSort(value);setPage(0);}} disabled={busy||inbox.loading} refresh={()=>void refresh()}/> }>
+          <Card className="home-inbox" title={<HomeTitle icon="clipboard">待我处理</HomeTitle>} extra={<HomeInboxSort value={sort} onChange={value=>{setSort(value);setInboxOffset(0);}} disabled={busy||inbox.loading} refresh={()=>void refresh()}/> }>
+            <p className="home-section-note">需要我继续跟进的工作事项{inbox.data&&!inbox.error?`，共 ${actions.length} 项`: ''}。</p>
             {inbox.syncError&&<div className="notice notice-err" role="alert">期次同步失败：{inbox.syncError}。当前待办可能不完整，请刷新重试。</div>}
             {actionError&&<div className="notice notice-err" role="alert">{actionError}</div>}
             {inbox.error?<LoadError error={inbox.error} retry={inbox.reload}/>:!inbox.data&&inbox.loading?<Loading/>:!actions.length?<Empty text="当前没有待办理事项。"/>:<table className="table home-table inbox-table">
               <thead><tr><th>工作事项</th><th>所属类型</th><th title="有登记记录时显示创建日期">登记时间</th><th>截止时间</th><th>操作</th></tr></thead>
               <tbody>{actions.slice(safePage*inboxPageSize,(safePage+1)*inboxPageSize).map(a=><tr key={a.key}>
-                <td><strong>{a.name}</strong>{a.detail&&<small>{a.detail}</small>}</td>
+                <td><span className="home-work-title"><NavIcon name="workbench"/><strong title={a.name}>{a.name}</strong></span>{a.detail&&<small className="home-task-detail" title={a.detail}>{a.detail}</small>}</td>
                 <td data-label="类型"><span className="tag">{a.category}</span></td>
                 <td data-label="登记">{a.entered?fmtTime(a.entered).slice(0,10):'—'}</td>
                 <td data-label="截止"><time>{a.due||'—'}</time><small className={'home-status '+a.tone}>{a.status}</small></td>
                 <td>{a.href?<a className="btn btn-default btn-sm" href={a.href}>{a.action}</a>:<Button size="sm" disabled={busy} onClick={()=>void complete(a.todoId!)}>{a.action}</Button>}</td>
               </tr>)}</tbody>
             </table>}
-            {inbox.data&&!inbox.error&&<div className="home-pagination"><span>共 {actions.length} 项</span><Button size="sm" disabled={!safePage} onClick={()=>setPage(safePage-1)}>上一页</Button><span>{safePage+1} / {pageCount}</span><Button size="sm" disabled={safePage===pageCount-1} onClick={()=>setPage(safePage+1)}>下一页</Button></div>}
+            {inbox.data&&!inbox.error&&<HomePager label="待办分页" total={actions.length} page={safePage} pageSize={inboxPageSize} change={setInboxOffset}/>}
             {inbox.data?.otherTruncated&&<p className="small muted">其他待办较多，请进入工作查看完整清单。</p>}
           </Card>
         </div>
         <Card className="home-continue" title={<HomeTitle icon="clock">继续办理</HomeTitle>} extra={<Button kind="ghost" size="sm" onClick={()=>go('workbench')}>全部工作 →</Button>}>
+          <p className="home-section-note">最近更新的在办工作</p>
           {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:!recent.length?<Empty text="暂无在办工作。" action={<Button onClick={()=>go('workbench',{create:'1'})}>新建工作</Button>}/>:<table className="table home-table continue-table">
             <thead><tr><th>工作事项</th><th>最近更新</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody>{recent.map(w=><tr key={w.id}><td><strong>{w.name}</strong><small>{w.work_type_name}</small></td><td data-label="更新">{fmtTime(w.updated_at)}</td><td><Tag kind={statusKind(w.status)}>{STATUS_TEXT[w.status]||w.status}</Tag></td><td><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>继续办理</Button></td></tr>)}</tbody>
+            <tbody>{recent.slice(recentPage*inboxPageSize,(recentPage+1)*inboxPageSize).map(w=><tr key={w.id}><td><span className="home-work-title"><NavIcon name="workbench"/><strong title={w.name}>{w.name}</strong></span><small title={w.work_type_name}>{w.work_type_name}</small></td><td data-label="更新">{fmtTime(w.updated_at)}</td><td><Tag kind={statusKind(w.status)}>{STATUS_TEXT[w.status]||w.status}</Tag></td><td><Button size="sm" onClick={()=>go('workbench',{id:String(w.id)})}>继续办理</Button></td></tr>)}</tbody>
           </table>}
 
+          {recent.length>inboxPageSize&&<HomePager label="最近工作分页" total={recent.length} page={recentPage} pageSize={inboxPageSize} change={setRecentOffset}/>}
         </Card>
       </div>
       <aside className="home-secondary" aria-label="截止与辅助入口">
@@ -110,10 +154,12 @@ export default function DashboardPage({go}:{go:(k:RouteKey,p?:Record<string,stri
       {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading text="正在读取工作统计…"/>:<><span>在办 <strong>{active.length}</strong></span><span title="在办工作中有明确待核对、确认或复核事项的工作数">待核对 <strong>{inbox.error||inbox.syncError?'—':inbox.loading?'…':reviewCount}</strong></span><span>已结束 <strong>{items.filter(w=>w.status==='done').length}</strong></span></>}
     </section>
         </Card>
-        <Card className="home-deadlines" title={<HomeTitle icon="clock">近期截止</HomeTitle>}>
-          <p className="small muted">在办工作的期次截止与计划结束</p>
-          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<RecentDeadlines entries={deadlines}/>}
-          <details className="home-calendar-disclosure"><summary>查看完整月历</summary>{!all.error&&!all.loading&&<WorkCalendar items={items} go={go}/>}</details>
+        <Card className="home-deadlines" title={<HomeTitle icon="clock">日程</HomeTitle>} extra={<Button size="sm" kind="ghost" onClick={()=>setCalendarOpen(true)}>查看完整月历</Button>}>
+
+          {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<RecentDeadlines entries={deadlines} limit={inboxPageSize>=5?5:inboxPageSize-1}/>}
+          {calendarOpen&&<Modal open title="完整月历" onClose={()=>setCalendarOpen(false)}>
+            {all.error?<LoadError error={all.error} retry={all.reload}/>:all.loading?<Loading/>:<WorkCalendar items={items} go={go}/>}
+          </Modal>}
         </Card>
         <Card className={`home-files${!files.loading&&!files.error&&!files.data?.items.length?' home-files-empty':''}`} title={<HomeTitle icon="workbench">最近成果</HomeTitle>}>
           {files.error?<LoadError error={files.error} retry={files.reload}/>:files.loading?<Loading/>:!files.data?.items.length?<Empty text="尚无生成成果，进入工作编辑草稿后生成。"/>:files.data.items.map(a=><div className="home-file-row" key={a.id}><span className={`home-file-icon ${/\.xlsx?$/i.test(a.file_name)?'excel':''}`}>{/\.xlsx?$/i.test(a.file_name)?'X':/\.docx?$/i.test(a.file_name)?'W':'文'}</span><div className="home-row-text"><strong title={a.title||a.file_name}>{a.title||a.file_name}</strong><p>{fmtTime(a.created_at)}</p></div><Tag kind={a.is_final?'ok':'default'}>{a.is_final==null?'未标注':a.is_final?'已定稿':'草稿'}</Tag><FilePreviewButton artifact={a}/></div>)}
@@ -138,11 +184,15 @@ function workDeadlines(items:Workbench[],periods:Inbox['periods']):Deadline[] {
 }
 function DeadlineList({entries}:{entries:Deadline[]}) {
   const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  return !entries.length?<Empty text="暂无已登记的截止安排。"/>:<ul className="home-deadline-list">{entries.map(d=><li key={d.key}><a href={`#/workbench?id=${d.workId}${d.periodId?`&periodId=${d.periodId}`:''}`}><span className="home-deadline-date"><time dateTime={d.date}>{d.date}</time>{d.date<=today&&<Tag kind={d.date<today?'err':'warn'}>{d.date<today?'已逾期':'今天'}</Tag>}</span><strong>{d.name}</strong><span className="small muted">{d.label}</span></a></li>)}</ul>;
+  return !entries.length?<Empty text="暂无已登记的截止安排。"/>:<ul className="home-deadline-list">{entries.map(d=><li key={d.key}><a href={`#/workbench?id=${d.workId}${d.periodId?`&periodId=${d.periodId}`:''}`}><span className="home-deadline-date"><time dateTime={d.date}>{d.date}</time>{d.date<=today&&<Tag kind={d.date<today?'err':'warn'}>{d.date<today?'已逾期':'今天'}</Tag>}</span><strong title={d.name}>{d.name}</strong><span className="small muted">{d.label}</span></a></li>)}</ul>;
 }
-function RecentDeadlines({entries}:{entries:Deadline[]}) {
+function RecentDeadlines({entries,limit}:{entries:Deadline[];limit:number}) {
   const [expanded,setExpanded]=useState(false);
-  return <><DeadlineList entries={expanded?entries:entries.slice(0,5)}/>{entries.length>5&&<Button kind="ghost" size="sm" onClick={()=>setExpanded(!expanded)}>{expanded?'收起截止安排':`查看全部 ${entries.length} 项截止`}</Button>}</>;
+  return <>
+    <DeadlineList entries={entries.slice(0,limit)}/>
+    {entries.length>limit&&<Button kind="ghost" size="sm" onClick={()=>setExpanded(true)}>查看全部 {entries.length} 项截止</Button>}
+    {expanded&&<Modal open title="全部截止安排" onClose={()=>setExpanded(false)}><DeadlineList entries={entries}/></Modal>}
+  </>;
 }
 
 function WorkCalendar({items,go}:{items:Workbench[];go:(k:RouteKey,p?:Record<string,string>)=>void}) {

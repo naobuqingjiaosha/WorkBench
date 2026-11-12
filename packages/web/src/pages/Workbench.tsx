@@ -1,4 +1,6 @@
-import {NavIcon} from '../components/DesignSystem';
+import {createPortal} from 'react-dom';
+import {PageActions} from '../components/PageActions';
+import {NavIcon, SectionTitle} from '../components/DesignSystem';
 import '../work-detail.css';
 import {WorkflowApplication} from '../components/WorkflowApplication';
 import {WorkRecordLinks} from '../components/WorkRecordLinks';
@@ -32,6 +34,7 @@ import { GenerateModal } from './GenerateModal';
 import { DocVersionsModal } from './DocVersions';
 // B4-12 真·预览：文件行上的「预览」入口（组件自带弹窗状态，不改既有下载按钮）
 import { FilePreviewButton } from '../components/FilePreview';
+import {SearchControl} from './Dashboard';
 import type { RouteKey } from '../App';
 import TimesheetsPage from './Timesheets';
 import MonthlyTimesheet from './MonthlyTimesheet';
@@ -47,8 +50,15 @@ export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Re
   if (params.task === 'timesheets') return (
     <div className="col standalone-timesheet" style={{ gap: 14 }}>
       <header className="work-context">
+        <div className="detail-heading-tools"><SearchControl go={go}/><button className="heading-bell" aria-label="查看通知与提醒" onClick={()=>go('dashboard',{view:'alerts'})}><NavIcon name="bell"/></button></div>
         <Button size="sm" kind="ghost" onClick={() => go('workbench',params.id?{id:params.id,...params.periodId?{periodId:params.periodId}:{}}:undefined)}>← 返回所属工作</Button>
         <h2>部门月度工时</h2>
+        <p>办理顺序 · 资料 → 核对 → 分配 → 导出</p>
+        <button className="btn timesheet-versions-link" onClick={()=>{
+          const control=document.querySelector<HTMLButtonElement>('.timesheet-history .card-fold-toggle');
+          if(control?.getAttribute('aria-expanded')==='false')control.click();
+          control?.focus();control?.scrollIntoView({block:'center'});
+        }}>查看已保存版本</button>
       </header>
       <TimesheetsPage workbenchId={params.id?Number(params.id):undefined} periodId={params.periodId?Number(params.periodId):undefined} runId={params.runId?Number(params.runId):undefined} initialMonth={params.month}/>
     </div>
@@ -58,6 +68,15 @@ export default function WorkbenchPage({ go, params }: { go: (k: RouteKey, p?: Re
 }
 
 /* ============================== 列表 ============================== */
+
+function jumpTo(id:string) {
+  const target=document.getElementById(id);
+  if(!target)return;
+  if(target instanceof HTMLDetailsElement)target.open=true;
+  const focus=target instanceof HTMLDetailsElement?target.querySelector('summary'):target;
+  focus?.focus({preventScroll:true});
+  target.scrollIntoView({block:'start'});
+}
 
 function workStatus(w: Workbench) {
   if (w.status === 'archived') return w.archive_status === 'done' ? '已归档' : '已收起';
@@ -74,6 +93,7 @@ function WorkbenchList({ go, autoCreate, lastList }: { go: (k: RouteKey, p?: Rec
   const toast=useToast(),types=useApi<{items:WorkType[]}>('/api/work-types?includeArchived=1');
   const [saved]=useState<ListPosition | null>(()=>window.history.state?.workbenchList ?? lastList.current);
   const [keyword,setKeyword]=useState(saved?.keyword??''),[group,setGroup]=useState(saved?.group??''),[filterType,setFilterType]=useState(saved?.filterType??''),[view,setView]=useState(saved?.view??'active'),[page,setPage]=useState(saved?.page??0),[creating,setCreating]=useState(Boolean(autoCreate));
+  useEffect(()=>{if(autoCreate)setCreating(true);},[autoCreate]);
   const table=useRef<HTMLDivElement>(null),restoreScroll=useRef(Boolean(saved));
   const rememberList=()=>{
     const position={keyword,group,filterType,view,page,tableTop:table.current?.scrollTop??0,contentTop:table.current?.closest('.content')?.scrollTop??0};
@@ -82,7 +102,14 @@ function WorkbenchList({ go, autoCreate, lastList }: { go: (k: RouteKey, p?: Rec
   };
   const [createdId,setCreatedId]=useState<number|null>(null);
   useEffect(()=>{if(createdId!==null)go('workbench',{id:String(createdId)});},[createdId]);
-  const list=useWorkbenchCollection(view==='archived');
+  const currentWorks=useWorkbenchCollection();
+  const archivedWorks=useWorkbenchCollection(true);
+  const list=view==='archived'?archivedWorks:currentWorks;
+  const counts:Record<string,number|undefined>={
+    active:currentWorks.data?.items.filter(w=>w.status!=='done').length,
+    done:currentWorks.data?.items.filter(w=>w.status==='done').length,
+    archived:archivedWorks.data?.items.length,
+  };
 
   const all=list.data?.items??[],byStatus=all.filter(w=>view==='archived'||(view==='done'?w.status==='done':!['done','archived'].includes(w.status)));
   const filtered=byStatus.filter(w=>(!group||types.data?.items.find(t=>t.id===w.work_type_id)?.navigation_group===group)&&(!filterType||w.work_type_id===Number(filterType))&&(!keyword||[w.name,w.code,w.counterpart].some(s=>s?.toLowerCase().includes(keyword.toLowerCase()))));
@@ -97,9 +124,9 @@ function WorkbenchList({ go, autoCreate, lastList }: { go: (k: RouteKey, p?: Rec
     <Card className="work-list-panel">
       <div className="page-toolbar work-list-toolbar">
         <div className="view-tabs" aria-label="工作状态">{[['active','在办'],['done','已结束'],['archived','收起与归档']].map(([v,label]) =>
-          <button aria-pressed={view===v} className={view===v?'selected':''} key={v} onClick={()=>{setView(v);setPage(0);}}>{label}</button>
+          <button aria-pressed={view===v} className={view===v?'selected':''} key={v} onClick={()=>{setView(v);setPage(0);}}>{label} <strong>{counts[v]??'—'}</strong></button>
         )}</div>
-        <Button kind="primary" onClick={()=>setCreating(true)}>＋ 新建工作</Button>
+        <PageActions><Button kind="primary" onClick={()=>setCreating(true)}>＋ 新建工作</Button></PageActions>
       </div>
       <div className="work-list-filters">
         <div className="view-tabs" aria-label="导航分类">{[{value:'',label:'全部'},...TYPE_GROUPS].map(g =>
@@ -339,9 +366,9 @@ function CreateWorkbenchModal({
             </Button>
           )}
           <Button onClick={close}>取消</Button>
-          {kind !== null && <Button kind="primary" onClick={submit} disabled={busy || !canSubmit}>
+          <Button kind="primary" onClick={submit} disabled={!kind || busy || !canSubmit}>
             {busy ? '创建中…' : '创建'}
-          </Button>}
+          </Button>
         </>
       }
     >
@@ -351,8 +378,8 @@ function CreateWorkbenchModal({
       {/* ---------------- 第一段：选性质 ---------------- */}
       {kind === null && (
         <div className="create-choices">
-          <p className="notice notice-info">
-            需要按期提醒、分期办理或按阶段留存材料时，在此建立工作。只需记下发生的事，可使用“工作记录”。
+          <p className="choice-subtitle">先选工作性质</p><p className="notice notice-info">
+            周期和专项工作在此新建。普通单次事项请使用“工作记录”。
           </p>
           <div className="create-choice-grid">
           <button
@@ -367,6 +394,7 @@ function CreateWorkbenchModal({
               办理安全例会、清廉工程、部门工时等需要持续跟进的事项。
               {!adminType && <span style={{ color: 'var(--err)' }}>（还没有行政管理工作类型）</span>}
             </div>
+            <span className="choice-tags"><span>安全例会</span><span>部门工时</span><span>周期事务</span></span>
           </button>
           <button
             className="pick-card"
@@ -380,6 +408,7 @@ function CreateWorkbenchModal({
               管理信息化项目或工程项目，按具体类型加载适用流程。
               {projectTypes.length === 0 && <span style={{ color: 'var(--err)' }}>（还没有项目类型）</span>}
             </div>
+            <span className="choice-tags"><span>信息化项目</span><span>工程项目</span><span>阶段流程</span></span>
           </button>
           </div>
           <p className="muted small">阶段、周期和办理方式由具体工作类型决定。</p>
@@ -510,6 +539,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
   const toast = useToast();
   const { busy, run } = useAction();
   const detail = useApi<WorkbenchDetail>(`/api/workbenches/${id}`);
+  const [noteTarget,setNoteTarget]=useState<HTMLDivElement|null>(null);
   const recheckLock=useRef(false);
   const [rechecking,setRechecking]=useState(false),[recheckError,setRecheckError]=useState(''),[rechecked,setRechecked]=useState(false);
   useEditorGuard({dirty:false,busy:rechecking});
@@ -577,13 +607,21 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
   return (
     <div className="col work-detail" style={{ gap: 14 }}>
       <header className="work-context">
+        <div className="detail-heading-tools"><SearchControl go={go}/><button className="heading-bell" aria-label="查看通知与提醒" onClick={()=>go('dashboard',{view:'alerts'})}><NavIcon name="bell"/></button></div>
         <nav aria-label="工作位置"><a href="#/workbench">我的工作台</a><span> / </span>{periodEnabled?'周期工作':isDocMode?'行政管理':'阶段工作'}</nav>
-        <div className="row"><h2>{wb.name}</h2><Tag kind={statusKind(wb.status)}>{workStatus(wb)}</Tag></div>
+        <div className="row work-title"><NavIcon name="workbench"/><h2>{wb.name}</h2><Tag kind={statusKind(wb.status)}>{workStatus(wb)}</Tag></div>
         <p>{d.workType?.executor==='timesheet'?'上传本月资料，核对人员与项目后办理部门工时':periodEnabled?'选择期次，填写本期内容并生成文书':reminderOnly?`${sched!.label} · 提醒日期 ${sched!.nextDue} · ${scheduleText(sched!)}`:isDocMode?'填写业务内容，选择模板生成文书':wb.historical?'按阶段补录已有材料，核对后可归档。':wb.status==='done'?'业务已结束，可核对材料和档案。':nextStage(d.positions)?'当前阶段：'+nextStage(d.positions)!.name:'阶段已办理完毕，可核对材料并结束工作。'}</p>
         {reminderOnly&&<Button kind="primary" disabled={busy||wb.status!=='active'||sched?.doneThroughCurrentPeriod} onClick={doComplete}>{doneLabel}</Button>}
         <div className="work-meta">{d.workType?.name} · {wb.code} · 已有文件 {stats.artifactCount} 份</div>
       </header>
-      <div className={`work-detail-layout${d.workType?.executor==='timesheet'?' work-detail-wide':''}`}><div className="work-detail-main">
+      <details className="work-support config-disclosure"><summary>流程配置更新<span>查看配置</span></summary><WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/></details>
+      {periodEnabled&&<nav className="detail-sections" aria-label="周期工作分区">
+        <button onClick={()=>jumpTo('period-area')}>本期办理</button>
+        <a href={`#/records?workbenchId=${id}`}>关联工作记录</a>
+        <a href={`#/files?workbenchId=${id}`}>工作文件</a>
+        <button onClick={()=>jumpTo('work-settings')}>工作设置</button>
+      </nav>}
+      <div className={`work-detail-layout${d.workType?.executor==='timesheet'?' work-detail-wide':''}`}><div id="period-area" tabIndex={-1} className="work-detail-main">
       {periods.error&&<p role="alert">办理范围读取失败：{periods.error.message} <Button onClick={periods.reload}>重试</Button></p>}
       {!periodEnabled&&!periods.loading&&!periods.error&&d.workType?.executor==='timesheet'&&<MonthlyTimesheet embedded workbenchId={id} boundTemplates={workTemplates.data?.items??[]}/>}
       {periodEnabled ? <BusinessPeriodPanel timesheet={d.workType?.executor==='timesheet'} workTypeId={wb.work_type_id} workTypeCode={d.workType?.code} workbenchId={id} initialPeriodId={initialPeriodId} onPeriodSelected={periodId=>go('workbench',{id:String(id),periodId})} onRuleChanged={()=>{periods.reload();detail.reload();}}/> : !periods.loading&&!periods.error && <details open={isDocMode&&!reminderOnly&&d.workType?.executor!=='timesheet'} className="work-documents-panel"><summary>通用业务内容与文书</summary><WorkDocuments workbenchId={id} workTypeId={wb.work_type_id} content={wb.business_content??''} onSaveContent={async(businessContent,expectedBusinessContent)=>{await api.put(`/api/workbenches/${id}`,{businessContent,expectedBusinessContent});}} templates={workTemplates.data?.items??[]} disabled={wb.status==='archived'} onChanged={()=>{workTemplates.reload();detail.reload();}}/></details>}
@@ -610,7 +648,7 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
             ))}
           </div>
 
-          {activeTab === 'flow' && <FlowTab detail={d} onChanged={detail.reload} onGenerate={openGenerate} />}
+          {activeTab === 'flow' && <FlowTab noteTarget={noteTarget} detail={d} onChanged={detail.reload} onGenerate={openGenerate} />}
           {activeTab === 'materials' && d.workType?.domain==='project' && <ProjectReadiness workbenchId={id} onChanged={detail.reload}/>}
           {activeTab === 'materials' && d.workType?.domain!=='project' && <MaterialsTab materials={materials} detail={d} onChanged={detail.reload} go={go} />}
           {activeTab === 'evidence' && <EvidenceTab evidences={evidences} detail={d} onChanged={detail.reload} />}
@@ -620,17 +658,18 @@ function WorkbenchDetailView({ id, go,initialPeriodId }: { id: number; go: (k: R
       )}
 
       </div><aside className="work-detail-aside">
-      <Card title="材料与进度核对">
+      <Card title={<SectionTitle icon="clipboard">材料与进度核对</SectionTitle>}>
         <p className="small muted">从磁盘重新核对影像数量、材料清单和完成时间。未保存的输入不参与核对。</p>
         <Button disabled={busy||rechecking} onClick={()=>void recheck()}>{rechecking?'正在核对…':'重新核对材料与进度'}</Button>
         {recheckError&&<p role="alert">核对失败：{recheckError}。原输入保留，可再次点击重试。</p>}
         {rechecked&&<p role="status">核对完成，已更新材料计数与进度。</p>}
       </Card>
+      <div className="stage-note-slot" ref={setNoteTarget}/>
       {d.workType?.domain==='project' && <DossierStatus id={id} revision={d}/>}
       <WorkRecordLinks key={id} workbenchId={id}/>
       </aside></div>
-      <details className="work-support card"><summary>流程配置更新</summary><WorkflowApplication key={"config-"+id} workbenchId={id} onApplied={()=>{detail.reload();periods.reload();}}/></details>
-      <details className="secondary-panel"><summary>工作设置与归档</summary>
+
+      <details id="work-settings" className="secondary-panel"><summary>工作设置与归档</summary>
         <div className="col mt12">
           <div className="row">
             <Button size="sm" onClick={()=>setEditing(true)}>编辑工作资料</Button>
@@ -1115,10 +1154,12 @@ function BoundFolderCard({ detail, onChanged }: { detail: WorkbenchDetail; onCha
 /* ------------------------------ 流程 ------------------------------ */
 
 function FlowTab({
+  noteTarget,
   detail,
   onChanged,
   onGenerate,
 }: {
+  noteTarget: HTMLDivElement | null;
   detail: WorkbenchDetail;
   onChanged: () => void;
   onGenerate: (templateId: number, templateName?: string, positionCode?: string | null) => void;
@@ -1144,7 +1185,7 @@ function FlowTab({
     });
 
   return (
-    <Card title="项目阶段办理" extra={<span className="small muted">文件生成与阶段完成分别确认</span>}>
+    <Card title={<SectionTitle icon="chart">项目阶段办理</SectionTitle>} extra={<span className="small muted">文件生成与阶段完成分别确认</span>}>
       <div className="stage-layout"><nav className="section-nav" aria-label="项目阶段">{detail.positions.map((p,i)=><button key={p.id} className={openPos===p.id?'selected':''} aria-current={openPos===p.id?"step":undefined} onClick={()=>{if(openPos!==p.id)navigation.request(()=>setOpenPos(p.id));}}><span>{i+1}. {p.name}</span><Tag kind={statusKind(p.status)}>{STATUS_TEXT[p.status]??p.status}</Tag></button>)}</nav>
       <div className="timeline">
         {detail.positions.filter(p=>p.id===openPos).map((p) => {
@@ -1254,7 +1295,7 @@ function FlowTab({
                         )}
                       </>
                     )}
-                    <StageNote key={p.id} position={p} onChanged={onChanged}/>
+                    {noteTarget&&createPortal(<StageNote key={p.id} position={p} onChanged={onChanged}/>,noteTarget)}
                     <div className="stage-state-actions">
                       <Button disabled={busy||p.status==='skipped'} onClick={()=>navigation.request(()=>void setStatus(p,'skipped'))}>暂不适用</Button>
                       <Button kind="primary" disabled={busy||p.status==='done'} onClick={()=>navigation.request(()=>void setStatus(p,'done'))}>标记本阶段完成</Button>

@@ -1,3 +1,4 @@
+import {PageActions} from '../components/PageActions';
 /**
  * 回收站
  *
@@ -10,7 +11,7 @@
  *
  * 风格沿用现有页面（Card / table / Button / Tag / useApi / useToast），不新造 CSS。
  */
-import {LoadError} from '../components/DesignSystem';
+import {LoadError, NavIcon, SectionTitle} from '../components/DesignSystem';
 import { useEffect, useRef, useState } from 'react';
 import {useNavigationGuard} from '../components/NavigationGuard';
 import { api, useApi } from '../api';
@@ -209,10 +210,10 @@ export default function TrashPage() {
 
   return (
     <div className="trash-view">
-      <div className="trash-toolbar">
+      <PageActions>
         <Button size="sm" disabled={emptyBusy} onClick={list.reload}>刷新</Button>
         <Button size="sm" kind="danger" disabled={emptyBusy || !!busyId || (!list.data?.count && !emptyError)} onClick={() => setEmptyOpen(true)}>清空回收站</Button>
-      </div>
+      </PageActions>
         <div className="notice notice-info">
           移入回收站会隐藏记录，磁盘文件默认保留。
           恢复时将核对原关联。<strong>彻底删除不可恢复</strong>，操作前需再次确认。
@@ -229,13 +230,13 @@ export default function TrashPage() {
             />
           </div>
           <div className="small muted">
-            {list.data && <>回收站共 <strong>{list.data.count}</strong> 项，当前显示 {items.length} 项。</>}清空操作适用于全部类型。
+            {list.data && <>回收站共 <strong>{list.data.count}</strong> 项，当前显示 {items.length} 项。<span className="trash-breakdown">{KIND_ORDER.filter(k=>countOf(k)>0).map(k=><span key={k}>{KIND_TEXT[k]} {countOf(k)}</span>)}</span></>}清空操作适用于全部类型。
           </div>
         </div>
 
       {(emptyResult || emptyError) && !emptyOpen && <Card title="最近一次清理结果">{emptyReport}</Card>}
       {purgeMessage && <Card title="最近一次单项删除结果"><p role="status">{purgeMessage}</p></Card>}
-      <Card className="trash-results" title={kind ? `回收站 · ${KIND_TEXT[kind]}` : '回收站里的全部内容'}>
+      <Card className="trash-results" title={<SectionTitle icon="trash">{kind ? `回收站 · ${KIND_TEXT[kind]}` : '回收站里的全部内容'}</SectionTitle>}>
         {list.loading ? (
           <Loading />
         ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : items.length === 0 ? (
@@ -262,7 +263,7 @@ export default function TrashPage() {
                     <td>
                       <div className="check-main">
                         <div className="check-title" title={e.title}>
-                          {e.title}
+                          <NavIcon name={e.kind==='position'?'chart':e.kind==='workbench'?'dashboard':'workbench'}/>{e.title}
                         </div>
                         <div className="small muted mono">#{e.id}</div>
                       </div>

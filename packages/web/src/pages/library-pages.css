@@ -115,3 +115,74 @@
  .assistant-conversation .chat-message > .row > div { grid-column:1/-1; grid-row:2; }
  .assistant-conversation .chat-message > .row > span:last-child { text-align:right; }
 }
+
+/* Reference 04–08: the navigation, list and detail panels share a lower edge. */
+.workflow-type-option .workflow-type-name { flex:1; }
+.workflow-type-option svg,.template-categories nav svg { width:18px; flex:none; color:var(--text-2); }
+.workflow-type-option::after { content:'›'; color:var(--text-3); }
+.workflow-config-editor .config-version .card-body > p { margin:0 0 8px; }
+.config-buttons { flex-wrap:wrap; }
+.workflow-config-editor .workflow-basic-fields + .field { margin-top:8px; }
+.workflow-basic-fields .field { gap:3px; }
+.workflow-config-editor .workflow-basic-fields .input { min-height:32px; padding:4px 8px; }
+.workflow-config-editor .card-body > .field > textarea { min-height:48px; }
+.template-library { gap:0; padding:14px; border:1px solid var(--line); background:var(--panel); border-radius:10px; }
+.template-library > .library-toolbar { padding:6px 8px 18px; }
+.directory-filter { display:flex; align-items:center; gap:10px; }
+.directory-filter select { width:auto; }
+.template-categories nav button { justify-content:flex-start; gap:12px; }
+.template-library .template-table th:first-child { width:39%; }
+.template-library .template-table th:last-child { width:22%; }
+.template-library .template-table td:last-child .btn { margin:0; }
+.template-table .file-ico { width:26px; height:29px; font-weight:700; background:#1974d5; color:white; border-radius:4px; }
+.template-table .file-ico.xls { background:#198657; }
+.template-operations { flex-direction:column; }
+.template-operations .btn { flex:none; }
+.file-library .library-toolbar { padding:4px 0 14px; }
+.file-library .section-nav button { padding-inline:16px; }
+.file-library .file-results .card-body { padding:16px; }
+.file-library .file-list-head:empty { display:none; }
+@media(min-width:1000px) {
+  .page-process>.workflow-config>.page-split { grid-template-columns:minmax(235px,28%) minmax(0,1fr); align-items:stretch; }
+  .workflow-type-list { align-self:start; }
+  .workflow-intro { min-height:clamp(360px,66vh,680px); align-self:start; }
+  .workflow-intro .card-body { display:flex; flex-direction:column; justify-content:center; }
+  .workflow-intro-lead { padding:20px 12px 38px; }
+  .workflow-intro-lead svg { width:74px; height:74px; stroke-width:1.1; }
+  .workflow-intro-lead h3 { font-size:22px; }
+  .workflow-type-list section + section { border-top:1px solid var(--line); padding-top:8px; margin-top:10px; }
+  .workflow-config .workflow-type-option { min-height:40px; font-size:15px; }
+  .template-browser { grid-template-columns:minmax(150px,.68fr) minmax(0,2.14fr) minmax(235px,1fr); align-items:stretch; min-height:clamp(380px,67vh,700px); }
+  .template-browser .template-list,.template-detail-pane>.card { display:flex; flex-direction:column; height:100%; }
+  .template-list>.card-body { flex:1; display:flex; flex-direction:column; align-items:stretch; }
+  .template-list .library-pagination { margin-top:auto; }
+  .template-library .template-table td { padding-block:13px; }
+  .page-agent>.col:has(.assistant-conversation) { min-height:100%; display:flex; flex-direction:column; }
+  .page-agent .assistant-conversation { align-items:stretch; flex:1 0 auto; grid-template-columns:minmax(220px,27%) minmax(0,1fr); }
+  .assistant-conversation .conversation-body { padding:0 16px 12px; }
+  .assistant-conversation .chat-transcript { flex:1; min-height:200px; }
+  .page-agent .assistant-conversation .chat-composer { margin-top:auto; }
+}
+@media(max-width:760px) {
+  .template-library { padding:8px; }
+  .directory-filter { flex-wrap:wrap; }
+  .template-library .template-list .template-table { min-width:0; }
+  .template-library .template-table td:last-child .btn { padding:3px; font-size:12px; }
+}
+
+.agent-tabs button { display:inline-flex; align-items:center; gap:8px; }
+.agent-tabs svg { width:17px; height:17px; }
+@media(max-width:600px) { .agent-tabs svg { display:none; } }
+
+.workflow-config-editor>.config-version { position:sticky; top:0; z-index:4; }
+.template-vars { display:block; color:var(--text-3); font-size:12px; }
+.template-list td a.btn { display:inline-block; color:var(--primary); text-decoration:none; }
+@media(min-width:1000px) {
+  .page-process>.workflow-config>.page-split>.workflow-intro { min-height:clamp(400px,68vh,690px); }
+  .file-library>.file-results>.card-body { display:flex; flex-direction:column; min-height:clamp(320px,64vh,700px); }
+  .file-results .library-pagination { margin-top:auto; }
+}
+@media(max-width:999px) {
+  .config-version>.card-body .workflow-back { margin-bottom:4px; }
+  .config-version .config-buttons .btn { min-height:28px; padding:3px 7px; font-size:12px; }
+}

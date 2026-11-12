@@ -1,3 +1,4 @@
+import {PageActions} from '../components/PageActions';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
 import {LoadError} from '../components/DesignSystem';
@@ -81,13 +82,12 @@ interface DisplayHit {
 type PolicyTab = 'docs' | 'files' | 'ask' | 'evidence';
 
 export default function KnowledgePage({params,go}:{params:Record<string,string>;go:(key:RouteKey,params?:Record<string,string>)=>void}) {
-  const [section, setSection] = useState('template');
+  const [section, setSection] = useState(params.module==='coverage'?'coverage':'template');
   const id = Number(params.templateId);
   const linkedTemplateId = Number.isSafeInteger(id) && id > 0 ? id : undefined;
   const activeSection = linkedTemplateId ? 'template' : section;
   return <div className="section-content knowledge-library">
-    <div className="view-tabs" aria-label="知识库功能">{[['template','模板库'],['coverage','字段映射']].map(([key,label])=>
-      <button key={key} type="button" className={activeSection===key?'selected':''} aria-pressed={activeSection===key} onClick={()=>setSection(key)}>{label}</button>)}</div>
+    <PageActions><Button onClick={()=>{const next=activeSection==='template'?'coverage':'template';setSection(next);if(linkedTemplateId)go('knowledge',{module:next});}}>{activeSection==='template'?'字段映射':'返回模板库'}</Button></PageActions>
     {activeSection === 'template' ? <TemplatePanel linkedTemplateId={linkedTemplateId}
       onCloseLinked={()=>{const rest={...params};delete rest.templateId;go('knowledge',rest);}}
     /> : <CoveragePanel />}

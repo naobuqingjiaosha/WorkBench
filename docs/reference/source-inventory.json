@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "5098db429b0e90c4214d99e7779453d4dbeab624",
+  "committedBase": "b89244980897a01d009ac647323b0a8bd1f79182",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -79,39 +79,39 @@
     },
     {
       "path": "packages/server/src/ai/consent.ts",
-      "sha256": "dfceca9fee5cd3954412012fbccd8d7a1921b5c4b6928bf2f0f96929e52c19f5"
+      "sha256": "943805d357626d43dda6ad449d1698132c36d8ebbbef6caa68718b3ef942cd01"
     },
     {
       "path": "packages/server/src/ai/gateway.ts",
-      "sha256": "fcdc016f9ab03388278a1c20f3a9687b3d79b21d1363707f7ee04ba2565b3682"
+      "sha256": "0e4afffcd4055055696218f8e86d76419e53e9880d14fa0fb80e1c2391c4bb2d"
     },
     {
       "path": "packages/server/src/ai/local-model.ts",
-      "sha256": "12d4c6d2bcf0dac2a400ef6eb6f122adf1cb7cda5f360fb5de587ceebed87af9"
+      "sha256": "b1743e400ff60ae092032b44239add1a2b35f10f0dea7df2f31a829a988bd060"
     },
     {
       "path": "packages/server/src/ai/providers.ts",
-      "sha256": "29d077948cc9b2dd5b396b6e2cfe54c8e6d17823713e735a3cb82a57e93f252c"
+      "sha256": "cb027f6caf17d4bf6f99dd04580c403eda4c5a76e44fb9d92b9df80e5c41fb6b"
     },
     {
       "path": "packages/server/src/api/reply.ts",
-      "sha256": "713e182d9e0d99703cdd102850cbbf1b90fad776933c0367e9f58cdc11a38740"
+      "sha256": "77ec5fa44ff24ae829e1fbe2e433d34a1e6f71ef449d88ba339cd6940b298e0f"
     },
     {
       "path": "packages/server/src/api/routes-agent.ts",
-      "sha256": "03b002d7bfd0c49f20b417b4cd1158147a72df0af6dba1b6d15902f90da4d06a"
+      "sha256": "2225a6c6d113f2df2058f0141c6cae95131babe51ebaf353c0e31e1e1cd0caf9"
     },
     {
       "path": "packages/server/src/api/routes-ai.ts",
-      "sha256": "e4d2cea6d308c23afcff25e5d095f3a63fb78f542fede463bdbf9100a07afca6"
+      "sha256": "5c3232dd50be1779b5ff71486b23d2c38fe64c6599a9a5cf918a27c765f3468f"
     },
     {
       "path": "packages/server/src/api/routes-archive.ts",
-      "sha256": "7d18cc0736fcec2685bc68cce42516ec238b4c7fc7847e16b181f48625106af4"
+      "sha256": "8f8f1975f4380f40a93ae1f49c18d0a32f2e44f55f6544c27e6fc932bb652bd9"
     },
     {
       "path": "packages/server/src/api/routes-consent.ts",
-      "sha256": "25e69e59f7656f8ef9454e16b1a566575062555a286dc449f454503d4fdcd5dc"
+      "sha256": "7ddf3e760bfe8270a12b5600da00c46c62f6788d083b614d8f46fbf4fb8d960b"
     },
     {
       "path": "packages/server/src/api/routes-core.ts",
@@ -143,11 +143,11 @@
     },
     {
       "path": "packages/server/src/api/routes-records.ts",
-      "sha256": "eab58a4ac2fc190869abee1742841aff355664cc98866fd2b3609909a9525724"
+      "sha256": "94af0bbdb93977606558154ff767510d02ab15bb8b89ce3a3de8da4209281336"
     },
     {
       "path": "packages/server/src/api/routes-search.ts",
-      "sha256": "c86a90727e46d30a6dbd33a90c33029921571f0687ae1a10ea0c588cda0b343c"
+      "sha256": "5c56d8aff00535fd020fe5f3aeacf3804f83cac821ba7c6d99f49616e2585b3f"
     },
     {
       "path": "packages/server/src/api/routes-template.ts",
@@ -159,7 +159,7 @@
     },
     {
       "path": "packages/server/src/api/routes-vision.ts",
-      "sha256": "391fa8f0fa97ed46f7335444adc35fd9ea29566db967a64a4325b391315c80dc"
+      "sha256": "92802545ebf5d578eedc6cd6bf751639e7a0a086eaac72480aec32b8a859e215"
     },
     {
       "path": "packages/server/src/api/routes-work.ts",
@@ -175,19 +175,19 @@
     },
     {
       "path": "packages/server/src/api/upload.ts",
-      "sha256": "8a076e2df3a67ff6d01d60d4885cbc12f1b058138b0171cff0dba2c6e4bf7f5c"
+      "sha256": "746a5ea06d34efe76d14628b5ef7b9aece10543a93c0bde712a1ceb4ba40386c"
     },
     {
       "path": "packages/server/src/cli/init-db.ts",
-      "sha256": "38cf2df8df55465c80c8715171fb745c9f0695c202c56d9b043b6a0299c03318"
+      "sha256": "c3b83a62b065478c6b622fa86b7f2368ad9a373423121cee0e7d13ea4b7804b7"
     },
     {
       "path": "packages/server/src/cli/reset.ts",
-      "sha256": "5598df29ce82f12ed99020e86e0bde52a5f16acf8f59e1fb71b2c0782b6e8f31"
+      "sha256": "0e2ac3a5babce43e14a8268f8250926797d374d2ac7ebf3081375b6e0909ca97"
     },
     {
       "path": "packages/server/src/cli/seed.ts",
-      "sha256": "db9c588e6b4c57bc48fc41026dd475adb52a6396e2340411c50db7688059c1e9"
+      "sha256": "ec8d16b20184fbccaf7b71aed4da33b138632160bc878a765851e0d17d08f727"
     },
     {
       "path": "packages/server/src/cli/upgrade-business.ts",
@@ -215,27 +215,27 @@
     },
     {
       "path": "packages/server/src/core/convert-legacy-excel.ps1",
-      "sha256": "49481bc5f55303e7dfa684aa715065e49488725c95c87ef34ef29e01987674bf"
+      "sha256": "a8539be484d9418d8a663af961782d99eb15795a77747a95b5be533a15cbabb6"
     },
     {
       "path": "packages/server/src/core/coverage.ts",
-      "sha256": "bcd7238dc319466e47398e4b29b11a60d3206d9639a9f7874fc8889eba43af4e"
+      "sha256": "8485a142553f5b3b3a4e6b27bd8f4585992b3b2bf4c95fdb6791f2a43d8fc9bc"
     },
     {
       "path": "packages/server/src/core/evidence-file.ts",
-      "sha256": "ccbc779dd9a202c6ef5e5d0e53a4a1214ac68eb823bdb75cf4d401e79fca14cd"
+      "sha256": "d685715cb95f2492352a081f798b52fc0182b6898415124e90d2bb577f8682b4"
     },
     {
       "path": "packages/server/src/core/extract.ts",
-      "sha256": "37ce94329c6953ad30fe6b49576b4a2b9c52e618bb99415f26495acfafe3a631"
+      "sha256": "e864bd48573fb3ca3d90bc2b3f09058194926c595a5d56d59fcd417baba2d711"
     },
     {
       "path": "packages/server/src/core/health.ts",
-      "sha256": "95fadd54d3647c6f46eca2a19df8dee857bc8b64a75f9f934224bb89859d2242"
+      "sha256": "b6efde6825247c20ba065064429a93f178232f2cc87705740c50fa297737689a"
     },
     {
       "path": "packages/server/src/core/ignore.ts",
-      "sha256": "379d68cdfa538195426c4b06c6c3250e7791906bf452184c91984587dbbb1757"
+      "sha256": "eb08d59db50d11eda9ab78407daaf2890ec987c4628996bd9dc00a3e9b6612a7"
     },
     {
       "path": "packages/server/src/core/kb-extract.ts",
@@ -263,11 +263,11 @@
     },
     {
       "path": "packages/server/src/core/office-package.ts",
-      "sha256": "69d35b09cde73eaf1fcff76829ca323d0c231818a8cfbb56e787848635f98575"
+      "sha256": "d5f04331ba73dcda3be3d206518b68e63eaecc8bfb5b89d17a6a452b1338a30b"
     },
     {
       "path": "packages/server/src/core/path-boundary.ts",
-      "sha256": "1cbfaefc213d90b3b95b65e2f5c7893abc9d1927597aad933d790b817fe559b4"
+      "sha256": "d610e244bb64122f8eb9dde8c42b5dde89a116a3a50ef33b662088b90220f5f4"
     },
     {
       "path": "packages/server/src/core/paths.ts",
@@ -275,15 +275,15 @@
     },
     {
       "path": "packages/server/src/core/period-dir.ts",
-      "sha256": "e3f5cf0a26564fb364d13814455b3e5d076570eb6a83bffa400b7a749435ead1"
+      "sha256": "0df9f72fbfd9e5bca7bc5d1239ffd96a2ac7decf3be52bf86693de5bd4cbdf89"
     },
     {
       "path": "packages/server/src/core/placeholders.ts",
-      "sha256": "65e24ba8fd7832ffa1923debfc4445ec687118e80e42732c753cc365ebcc3f10"
+      "sha256": "d4b867681f998df5de80bcefaff1a2bcb4e3a7918a067c4eddb3a7904306d7f1"
     },
     {
       "path": "packages/server/src/core/request-guard.ts",
-      "sha256": "09d3b5bd4f35d9f0dac17c7f8836f0123b68727b79e50489118385747200ad4a"
+      "sha256": "18665c36165905bfdc74379f540d9d2d5322908020dd9d54340fe7538f1eec30"
     },
     {
       "path": "packages/server/src/core/runtime-layout.ts",
@@ -303,7 +303,7 @@
     },
     {
       "path": "packages/server/src/core/startup-repair.ts",
-      "sha256": "d93d15281c5cdc06994f90f1f563aa06733f8f7734c832a279de594e432843b0"
+      "sha256": "a1ebe957408d9784e462348e5a52c16b326611bca2fea9bbf718d9f82a8286da"
     },
     {
       "path": "packages/server/src/core/store.ts",
@@ -311,7 +311,7 @@
     },
     {
       "path": "packages/server/src/core/template-fields.ts",
-      "sha256": "463959a24c1e97a20d870660c42e6e28ba2f2596f7e4b2d4465c391d501f4353"
+      "sha256": "4a27e263801715eee2865814413c03a53a54b5afb67ccf039daa82123da5ddc4"
     },
     {
       "path": "packages/server/src/core/template.ts",
@@ -327,11 +327,11 @@
     },
     {
       "path": "packages/server/src/core/vision.ts",
-      "sha256": "48886e55b9f6c546f2d2d3839e3a1a06a832227978f9e840a420494a8b69f11d"
+      "sha256": "9c65b273b1c655d44eb69e67f835af456d3d9b5601fdd68fdbd1f5283d135fb3"
     },
     {
       "path": "packages/server/src/db/index.ts",
-      "sha256": "d039d2eb8e1b008d660568f5eebbeff646ebd9c86b6d4fec8f738d8856d5cb67"
+      "sha256": "a3a64531a20b560963d8e7211ca951287c9743599494e87690a33325d71ca6d7"
     },
     {
       "path": "packages/server/src/db/migrate.ts",
@@ -339,163 +339,163 @@
     },
     {
       "path": "packages/server/src/db/migrations/001_core.sql",
-      "sha256": "1dc38441e862a280e5d1ad47c80a56c8974eeafab1b2818188554e5eedb520bc"
+      "sha256": "e6777d033b6dff032b80b4174cc6e050221a1dd6e5776c5456651c55215b478e"
     },
     {
       "path": "packages/server/src/db/migrations/002_fts.sql",
-      "sha256": "7a36615f47f82d841766dd11c35298072f214a63e14bfbb9dddfb35bfa6c56a0"
+      "sha256": "66ac21561d9dae6e8367d6f938e72eecba2a4d0758af5af628e9191ce9d72f07"
     },
     {
       "path": "packages/server/src/db/migrations/003_ocr.sql",
-      "sha256": "c82c1f0988d9a6c09ef24db38f23efb980f1e7d208f109b1361af96f0841ab97"
+      "sha256": "557dd2fbcc2ea81a8e39c4b70cc958acf0dfa456c29b21e504213a4dc486b5f0"
     },
     {
       "path": "packages/server/src/db/migrations/004_archive.sql",
-      "sha256": "1b2d7965699d6aaf0a4056c0f55882583d5ce3a9f1ef58fb4c0c8ee52b429260"
+      "sha256": "d8b6a8e23f7aa22cd631e53fe9c4bd6c5c54c0170c4df5b83319d90875279a63"
     },
     {
       "path": "packages/server/src/db/migrations/005_schedule.sql",
-      "sha256": "2e37f5cc1076dfbc1d400da909c7dbad745ff591c5e68e1a4d73642295a37035"
+      "sha256": "b9870ecc9a99d6dfa2bca88672019d174563011e471437a691b26274ec512819"
     },
     {
       "path": "packages/server/src/db/migrations/006_agent.sql",
-      "sha256": "6ca2cc347d10a466c84d8891af8a18f85d8a898382442dfaf7929f18266f6e2e"
+      "sha256": "ea3b5e886b05c50d3a09189a95b7b4ab3c52f16745e596615b7eeb7a33be24fc"
     },
     {
       "path": "packages/server/src/db/migrations/007_evidence_review.sql",
-      "sha256": "c551dc47d77c93b14e39050ed5b19d6e80f2b39a9930b0ff05451c46c413707b"
+      "sha256": "e1b56174705eac1a51d5ce66dfd7c32f0ea708a85d7ea21729fca2737a9c951f"
     },
     {
       "path": "packages/server/src/db/migrations/008_indexes.sql",
-      "sha256": "b424faefeca8d5f87ccc5c5a8f33e98a9f956fe18be8a0728057531a5c16b506"
+      "sha256": "fbb945b51eb6f821413fba52102a10c7a869f7d9c441df2b0178805e662c06e6"
     },
     {
       "path": "packages/server/src/db/migrations/009_integrity.sql",
-      "sha256": "ba21bb80c1f5589293dbbfd0dd5c5a96589bd9c0e515dd9f52eb8700fc5be25c"
+      "sha256": "ff4241ce7be24bd1bede1273ff247a50241337e5e7e08eac383b8144f0dc2499"
     },
     {
       "path": "packages/server/src/db/migrations/010_folder_binding.sql",
-      "sha256": "eddf53f4bd92f0f4211a90812057064148a37e237050c657fb85263dc669152b"
+      "sha256": "892c878c638deeacd63fd1928237785c91415fa385c59bd11469fcd487b23156"
     },
     {
       "path": "packages/server/src/db/migrations/011_period_dir.sql",
-      "sha256": "a39fbe23a6145f4a9f62b5253f0f46b4ca06c00e39870d8250393b8b2017978c"
+      "sha256": "057def3c866718d06f123e3c89c62f7e8ba9318dd85002ec1fd568a985f34279"
     },
     {
       "path": "packages/server/src/db/migrations/012_kb_source.sql",
-      "sha256": "d2611e0860dfef7e21e3cfaec8a38964935af69396ec185f1967edc87df8e930"
+      "sha256": "2e34cb2da88561fbe99f72d1d284b801fc0185a7e2b0fdce6df452ff45b67c29"
     },
     {
       "path": "packages/server/src/db/migrations/013_output_mode.sql",
-      "sha256": "ee86518d023373566ca1db9f0b4a28ebed0db213e1d9cb090e7f55c416a2c346"
+      "sha256": "414c19634199aa05e39d79b516bd37c102b9e857ee12254492777081e35b5e7c"
     },
     {
       "path": "packages/server/src/db/migrations/014_template_health.sql",
-      "sha256": "792def93d155feb149974ae77db643b736681a13ae34fe2ad3f422fb10b4356c"
+      "sha256": "c047b74c01242a0b32f1fa6778818e3cef932292c23f3e2d31a0b3c599df9a02"
     },
     {
       "path": "packages/server/src/db/migrations/015_trash.sql",
-      "sha256": "806ecd09e035cf27fa393004f1201112a853d90328cdd521fbb6b58983124e42"
+      "sha256": "1df73499175c0e5928d91d3de3c914345ecc9a9ebd7a090f6c485eab56e9bb91"
     },
     {
       "path": "packages/server/src/db/migrations/017_doc_version.sql",
-      "sha256": "c551ed6f0dc829eed72269688c46f0fa9903675d7f7f507d9430803aad453b2c"
+      "sha256": "720dcfe1464ce70f0822af6834f4f8bfae3284ecf20f9bc9b4f1947e7726a863"
     },
     {
       "path": "packages/server/src/db/migrations/018_position_template_doc.sql",
-      "sha256": "fa437c5a20112d3ca7f910184059e0049256ae3abf0415330c5be6c2d2474e94"
+      "sha256": "2c2c30d152d5de90d11f37c2bdfa4d2e14bb98ab821637d039f282da1ef687c1"
     },
     {
       "path": "packages/server/src/db/migrations/019_kb_extract.sql",
-      "sha256": "a7b7fd75f8bd03d391f60b5915eeaed1611a01ffd0c4e1118de2e95894678887"
+      "sha256": "805561f638aaadedb870be0a0d1a50bbfc43f94e0ff5ca76ad27a769f4eb648d"
     },
     {
       "path": "packages/server/src/db/migrations/020_app_health_event.sql",
-      "sha256": "5de3f01c5cd97142531025474e0f46bb1ffe5997c00894279e3499ff9c06b686"
+      "sha256": "6f05b7f57f474d790502e0db32ba029c8f6ae0693cf5e574e77d5c52b554e338"
     },
     {
       "path": "packages/server/src/db/migrations/020b_kb_cite.sql",
-      "sha256": "fc5e3db9ffeb2373ab38a30cc65d9bcbbd7a827db61201cffa3a13fdfc684b41"
+      "sha256": "5c43a15a9bc7066f67db985df3328510bd97cadbcf8c75f26ab3c56a34f43a6d"
     },
     {
       "path": "packages/server/src/db/migrations/021_doc_kb_link.sql",
-      "sha256": "e82ae123ec97d5da5378e5fa1df55839b1153e17360ba4eeecab77e1f0404686"
+      "sha256": "429be933e140288acf2f1060176f237200e8469b9f6bd5e52e27a3c2e6818fd8"
     },
     {
       "path": "packages/server/src/db/migrations/022_doc_version_final_unique.sql",
-      "sha256": "f8da5bc8c1182acf730d129909298c8294f458dc26a7cd5cd95286d1c8ebcf7c"
+      "sha256": "817be7859a0dbcdf162391780f5e49be029a588abb08200e1e13bdbd0e0f1b26"
     },
     {
       "path": "packages/server/src/db/migrations/023_workflow.sql",
-      "sha256": "97484e15e3ab0e3b6978ced7a2f7ca8b4b9652b1aff83ed9bd67edb4556b6ef1"
+      "sha256": "b14e66c8b458e35e2be77a2107b0a8ee5549f46737a273ece3f91096b6abdaee"
     },
     {
       "path": "packages/server/src/db/migrations/024_project_doc_snapshot.sql",
-      "sha256": "a7fac71f176742ced3a43c3339a4052663628bee838a3271e25304ab3799ca1b"
+      "sha256": "e4e10e966f5f89ccd6bae33d394d5d03416b52a99c370106dba8e2af6df0b932"
     },
     {
       "path": "packages/server/src/db/migrations/025_memory_facts.sql",
-      "sha256": "ffe60ad0f27e3fdc17e13ec21fa910ab0f6a75503dbefed6708dac24aaeb8c91"
+      "sha256": "4607f4df7aefae5d387833897b200727cb5af5b4647114d4c5e195dc42b395db"
     },
     {
       "path": "packages/server/src/db/migrations/026_policy_requirements.sql",
-      "sha256": "14c55f6492ef45d0e6ebdfe665e29f099a2db80f70a23639cfe0289ffe3b756f"
+      "sha256": "b4c61a064319355c727c342ed0ff966ff36b24b9927bd028da3cb5d6aae3d218"
     },
     {
       "path": "packages/server/src/db/migrations/027_business_structure.sql",
-      "sha256": "5ad18fe68183905ba18493e3e1c67393095f9e1c1e03dd393a501660763625c3"
+      "sha256": "b4046d97f8483901a7d9405c09b8d7241045cbf3bde43a36a0feca33f1ec304a"
     },
     {
       "path": "packages/server/src/db/migrations/028_document_requirements.sql",
-      "sha256": "5beeed03fec615ac130bd6124aab9266dfce95c5c2e02a551f725987e1d9bc45"
+      "sha256": "2082eaa786708c45b46d337f4ee577291f6eb013cd629f41a410eaeab9e1c6c7"
     },
     {
       "path": "packages/server/src/db/migrations/029_template_history.sql",
-      "sha256": "b134a4182897fa78f13359265179048fb89ae9a882c8f1de4f9eb06fd881bca7"
+      "sha256": "213fa69ac3093ff6f68392f947cc51229996fd88c9661f800abf8c0534d8c0f2"
     },
     {
       "path": "packages/server/src/db/migrations/030_business_execution.sql",
-      "sha256": "7995b711ea833cbb6f0bdd21db8af9db7b55e0474474ae836ba76d3f4740c334"
+      "sha256": "7583c2b30b733bd57dfddd0bdf685c84ace8681c3c376ed0a49a3c1c9ec4dc53"
     },
     {
       "path": "packages/server/src/db/migrations/031_document_experience.sql",
-      "sha256": "a43dd79f592ab28ad0fdb93165a45371e22663956ea643cf15982d1285d412c6"
+      "sha256": "05c5ab32a6b304029b719ab1c47fb88890dd7102ab37e0424e4fa276ff8c37d0"
     },
     {
       "path": "packages/server/src/db/migrations/032_file_roles.sql",
-      "sha256": "104a5aa2f7f2c6fa0d0fb1c8fa6c0302b1e847bf7bbfcf2e370acd61051183a2"
+      "sha256": "468ff6a8ce00caa0f35d8a12f36de507d091e26f26429199812709341312d6b7"
     },
     {
       "path": "packages/server/src/db/migrations/033_inspection_records.sql",
-      "sha256": "2b5c04b3ed86b91e4ca6df096744a1b8b8a826bbad4b44c6bc1126a8940da4a9"
+      "sha256": "4eda834830bb1e0ce2e8579bde7db921d2a908c7088d5c324fd5cebab6423a81"
     },
     {
       "path": "packages/server/src/db/migrations/034_inspection_business_fields.sql",
-      "sha256": "cb3dee7f89dba809e06483769a8b720c7906050d7403d59809862ef723091e4f"
+      "sha256": "b7f1b3b52085517fc2b07df8587726da7bb93cffb1424bbdb41bdcf836d67783"
     },
     {
       "path": "packages/server/src/db/migrations/035_business_assistant.sql",
-      "sha256": "04e5a056f59b5b812023d0c60f7accff3d670c809775fad64eb4f48be8259c7f"
+      "sha256": "d6ce2f8f530abcba65f31c56c20b454fd2a3d598729d14d511b91c70468d6b1b"
     },
     {
       "path": "packages/server/src/db/migrations/036_evidence_writing.sql",
-      "sha256": "9850e2181c5521d03aba486b6d96dd2cb88b73823187e11eb9e27c6d089a9a4e"
+      "sha256": "b995a01506eb9f1b1fc34fd217afd5b94e73c67460a46b70749e8c8e896a857c"
     },
     {
       "path": "packages/server/src/db/migrations/037_work_type_navigation.sql",
-      "sha256": "ea24696341fd55bd8d29b4c4a61c1997293d609b81eeeb39496549623d304bdd"
+      "sha256": "63acbf026e034954cba466d2d0559150504701d592be76807b41bab0641d01d0"
     },
     {
       "path": "packages/server/src/db/migrations/038_work_records.sql",
-      "sha256": "d3869abadd23dc25f3ecc0dcd0fd9ca58fe7e05721d9fc64dcbed8a5a85d094b"
+      "sha256": "fb13b7f73c214c0f464da09f87e075b75f05e9d27dc944633b0736cde424a70e"
     },
     {
       "path": "packages/server/src/db/migrations/039_inspection_drafts.sql",
-      "sha256": "c546be8d3772550409271bb81b6212915abe296f72c088589e235eff92ba946a"
+      "sha256": "f248a4b0e7e3c999ca2978c173ef3a999970e1bb8dc3b2ab89ffb314d40f3f72"
     },
     {
       "path": "packages/server/src/db/migrations/040_monthly_workspaces.sql",
-      "sha256": "fcf19e6c13a5dd8fe97967b9c6f14f20811ca69ccf85b885d2a9f440a6e2840e"
+      "sha256": "1284d18c4f4d54baf7e279eea055a629852526e03dd0a9770c0c3c9f3b43a220"
     },
     {
       "path": "packages/server/src/db/migrations/041_workflow_config.sql",
@@ -515,11 +515,11 @@
     },
     {
       "path": "packages/server/src/domain/archive.ts",
-      "sha256": "4cf7555849ac2232253ddb22e5ba06921e2174773a9c657b4ff64161d194acb3"
+      "sha256": "335b8fc8184982226baac081144ec9d81e20ca5f18a2752b7e31cdc5cec784d3"
     },
     {
       "path": "packages/server/src/domain/business-assistant.ts",
-      "sha256": "f9a5ffa999543460acdd0ba5af16659884d74f8959d73c039c8972c137990fa8"
+      "sha256": "3fd433de04cc38e45c13f2e7d3671c0f9415948edc260a81433761763dffe4e7"
     },
     {
       "path": "packages/server/src/domain/business-evidence.ts",
@@ -531,7 +531,7 @@
     },
     {
       "path": "packages/server/src/domain/document-write.ts",
-      "sha256": "3a117767e92daf9f2a06b2f9a9eb45e19f9747e6e413b213371678629d5a9fe9"
+      "sha256": "705358fc7628628a93cbf8443f8b70f9b87fdd48d8d5552a521315ee9e0d2730"
     },
     {
       "path": "packages/server/src/domain/dossier.ts",
@@ -539,23 +539,23 @@
     },
     {
       "path": "packages/server/src/domain/evidence-checks.ts",
-      "sha256": "252c44410f091040c0f04c1a8a909e8f7aed40e9ac07ef051e056e24efe87e01"
+      "sha256": "37fd5c13d8d2c5b52d9a0fb9696957e5ee3fc391f9593f63d971e28fe750e506"
     },
     {
       "path": "packages/server/src/domain/evidence-citations.ts",
-      "sha256": "4f6ca073b887ea3068f03b1a51393ee7e78caf27045dd2f67f0052e07237ef4f"
+      "sha256": "50a6ee3cb887460899499a8e9e9b3024d7383d5e2231aefc463d28ec306b637b"
     },
     {
       "path": "packages/server/src/domain/evidence-task.ts",
-      "sha256": "73cce520df9dd4870df09a0f654cca58d51a6e816f689c41b3c14ea626717d06"
+      "sha256": "4a463dba2f1decf1531526e2937f98c2d5e0adf6bff188f6d5c5b6c969e665d3"
     },
     {
       "path": "packages/server/src/domain/evidence-writing.ts",
-      "sha256": "ad1f591cc419bbd0fa29846bca225b600f77280289bb923676386b00d6f4cd47"
+      "sha256": "450add069e61d2efe4134dc77cf107d61e8980b7a1d69be6e8627d0e6e9fc640"
     },
     {
       "path": "packages/server/src/domain/extract-info.ts",
-      "sha256": "8d1feec69ca730b11ea389d467db5db4bec26545cdb87cb232f4aeb616a5e3b7"
+      "sha256": "e7f542dacca0d53b00e3485aa061e21245a1579669000355872ea5ed85f7b001"
     },
     {
       "path": "packages/server/src/domain/finalization.ts",
@@ -583,7 +583,7 @@
     },
     {
       "path": "packages/server/src/domain/kb-links.ts",
-      "sha256": "3b249705164cb8f2259ffa75af2bc98bdd950166de0dc7087485c5be6af858f8"
+      "sha256": "4432c79274186fbd191694b7aac784d36feb3857a25bad19adc16d60155d9010"
     },
     {
       "path": "packages/server/src/domain/ledger-office.ts",
@@ -599,11 +599,11 @@
     },
     {
       "path": "packages/server/src/domain/policy-reference.ts",
-      "sha256": "7b61f977f4181aba516e10ed873df16877674aaae34befa9bf222678ede69362"
+      "sha256": "11d8d894cd9dc5142dc90e242c86c95eadcaca21e33b0388b85554b1d081f4be"
     },
     {
       "path": "packages/server/src/domain/policy-requirements.ts",
-      "sha256": "2a8999e358730f15462877549c0232216123fae2ab8351e3e7030fcdca3b04e4"
+      "sha256": "f42c1e79bbcd22f30c6d78890d6270072f20169446d8a1f61fd8e5b51ff39427"
     },
     {
       "path": "packages/server/src/domain/project-report.ts",
@@ -611,7 +611,7 @@
     },
     {
       "path": "packages/server/src/domain/schedule.ts",
-      "sha256": "3daaf6fc2e95a385f076a83d74cd42339f59920b21d089c85228f66c204da0ab"
+      "sha256": "28dc447e7b53949c1e4e7e989579a8bbb159831ffd049d9f7dd245aeefa4dabb"
     },
     {
       "path": "packages/server/src/domain/seed.ts",
@@ -623,15 +623,15 @@
     },
     {
       "path": "packages/server/src/domain/template-autofill.ts",
-      "sha256": "d2905093f5beaa3abaef703d9919c743d958b4d8e90ca032dec3ca7e76104d86"
+      "sha256": "e63fba328e90a9c2e147aaba051f973fe25a170e1af3475ba1369e8f0b14edb1"
     },
     {
       "path": "packages/server/src/domain/template-history.ts",
-      "sha256": "b5439611900fde9074e3e064ba0c6a18815562ae32a066c639af280462933ec2"
+      "sha256": "2998f49fbcaf35746c0602f913ea7d584066fdc820cc79f2be989f19d9fa56db"
     },
     {
       "path": "packages/server/src/domain/template-revision.ts",
-      "sha256": "29bbbe9b30d4b23d3fe81ca58805b7b18f234b44477f989730321a3a8485a98c"
+      "sha256": "5309cb2445cbeff7cde72d4f5644444dd7420eefdde03b584f807aef44913cc8"
     },
     {
       "path": "packages/server/src/domain/timesheet-formulas.ts",
@@ -663,7 +663,7 @@
     },
     {
       "path": "packages/server/src/domain/work-record-chat.ts",
-      "sha256": "5080de068342e13d694434d64309bb2907b7a4738ba11b038357b46de52daf96"
+      "sha256": "2f4d7567a4bc02be01a31189596d1bba0ffaae75260e43a075a0666aec1c3828"
     },
     {
       "path": "packages/server/src/domain/work-records.ts",
@@ -671,7 +671,7 @@
     },
     {
       "path": "packages/server/src/domain/work-type-navigation.ts",
-      "sha256": "807851d5c4a2e7827f683653afebd43b20ecacf71078a875ee48fad80bc5c59d"
+      "sha256": "20d6d31066502af828d719d7ae4a5836a7ab319f06772f8d4b542163bc5204ec"
     },
     {
       "path": "packages/server/src/domain/workflow-application.ts",
@@ -723,7 +723,7 @@
     },
     {
       "path": "packages/server/test/shared/periods-browser.ts",
-      "sha256": "7950ee5b7937de516931bc023cf53055862687b889489eec40fec9ec0bf15f13"
+      "sha256": "94ba76afd8a0f8c6bd92e60b18fe7f89fa5dddd0faa8b069484668ba6dc6f991"
     },
     {
       "path": "packages/server/test/shared/periods.ts",
@@ -755,7 +755,7 @@
     },
     {
       "path": "packages/server/test/shared/search-library-browser.ts",
-      "sha256": "31fe4b8ffa320952bf5a8058b51a72602009fded274aeeb2949c9fd567bc02b9"
+      "sha256": "6503795f325f899a814b4a8345d9993ca6b5763fef8581ad2f2a26f2b86a29df"
     },
     {
       "path": "packages/server/test/shared/startup-build.ts",
@@ -779,7 +779,7 @@
     },
     {
       "path": "packages/server/test/shared/timesheet-browser.ts",
-      "sha256": "078b4f6309c803f30ccb3f5b94745f9e0a2855827bdaac1b132e129433302274"
+      "sha256": "436dd1c9908c5d3fc8c9dfec5ad99a01a9b3839c24fed81d5b24f4c66ff35218"
     },
     {
       "path": "packages/server/test/shared/timesheet-fixture.ts",
@@ -811,7 +811,7 @@
     },
     {
       "path": "packages/web/src/App.tsx",
-      "sha256": "0dffb8d616755b0bb0e003366086da7dc73579e77e356d670df7919433cb74bd"
+      "sha256": "07b5af61d7497ea651e9ba13f844930c919dffe2ebe99c3e260077a6dcc45493"
     },
     {
       "path": "packages/web/src/api.ts",
@@ -831,23 +831,23 @@
     },
     {
       "path": "packages/web/src/components/BusinessAssistantEvidence.tsx",
-      "sha256": "544c21de6c8f99089cb49050f1986ced3bab67b1b4d08f6e404cce1f8136a824"
+      "sha256": "83c6d3bbb9d7e22625791b2fbb4d76fb6711aff100b09ff7ecd744b64ec6002c"
     },
     {
       "path": "packages/web/src/components/BusinessEvidence.tsx",
-      "sha256": "854ac9aa053752eef8edcad7b52308415208c7bc8a192bf08bb360e9018936c6"
+      "sha256": "6ab6676cd00a5fa89f6acab4fcbdce1bd70ac04a97879408788fad5c12327721"
     },
     {
       "path": "packages/web/src/components/ConsentHost.tsx",
-      "sha256": "c5ef726e5bbd50b3038c2546f61470f5a66d2b42d81d896788fdf3163fdb66e5"
+      "sha256": "bbcfeef00f484b2faafc5f5b29bbb8254500e0737f338081a411e4c5839c4265"
     },
     {
       "path": "packages/web/src/components/DesignSystem.tsx",
-      "sha256": "e3c04fe9381ee4859a976e5eceac7ddef79d5392dd23d6cf841c919e6ae7579d"
+      "sha256": "21ca5050944aaab81fb2ec9d818546cc08d5d635b77714a94a3102e67424e3b2"
     },
     {
       "path": "packages/web/src/components/FilePreview.tsx",
-      "sha256": "74b147a0ef4763972eccb98a07a345b56c420baa4fe70827a5ffb270aa238c13"
+      "sha256": "485fa3fc27a1e259f71892bfc721875b1e831cd7f5748aae7c953c8ff8d0a8ec"
     },
     {
       "path": "packages/web/src/components/ImportResult.tsx",
@@ -863,15 +863,19 @@
     },
     {
       "path": "packages/web/src/components/LocalModelSettings.tsx",
-      "sha256": "21b7fc8289c0704b514d406233a3f91e522f2b61e7b662a27cd7ec1c1a8551fe"
+      "sha256": "98ecd138c55351c76e589d756fdb3345808f82e18caf9de6e67aef06443c4b4a"
     },
     {
       "path": "packages/web/src/components/NavigationGuard.tsx",
-      "sha256": "92b15c03df99693c1887417c88a38f1a391e8989c7058fb9e801054f44088a68"
+      "sha256": "2a7fdb5c49aef9654cea068447e9024d3841c1b83c9b2831e1f598bda61cd01f"
+    },
+    {
+      "path": "packages/web/src/components/PageActions.tsx",
+      "sha256": "8006fb3918bc99a3c5a0d841648678f2a4521e3578a749726088dc91e6dda5d4"
     },
     {
       "path": "packages/web/src/components/PeriodAttachments.tsx",
-      "sha256": "85d523b7ff24699b31edb9a32cd846078d0629f548b490101da7b106ace79e0d"
+      "sha256": "83753ddaea6b6922e87f5b2f03ce9d422468c29534b133eabfc5226e428204ce"
     },
     {
       "path": "packages/web/src/components/PeriodExecution.tsx",
@@ -887,7 +891,7 @@
     },
     {
       "path": "packages/web/src/components/ReferenceFolder.tsx",
-      "sha256": "31f2ef1af6885c081db6b2ed8598026d3f077008964da567cb100f508b5c9d58"
+      "sha256": "d134d27b7a983c31c828cd1514618b05ce29ba12b308d48011851b52f490d0e4"
     },
     {
       "path": "packages/web/src/components/TemplateChoices.tsx",
@@ -895,11 +899,11 @@
     },
     {
       "path": "packages/web/src/components/TemplateFieldRecognition.tsx",
-      "sha256": "5dfa8e0704f8db5ff77961cf661055951bd404962028dd2a1335f320caea01e7"
+      "sha256": "8e76944cd58756c0843e8817c810c92e670ec60f4cae16b9072c42cf0914b0eb"
     },
     {
       "path": "packages/web/src/components/TemplatePreview.tsx",
-      "sha256": "6e129f5eb46e66ee8a35b4ddf98d9242ba83b768c7236ba14a0e9bb1076d5aed"
+      "sha256": "11464a98992ca5eee6d63374c666bb700491745c7e1a27d565a0ae2dd49e8b75"
     },
     {
       "path": "packages/web/src/components/WorkDocuments.tsx",
@@ -915,11 +919,11 @@
     },
     {
       "path": "packages/web/src/components/WorkTypeEditor.tsx",
-      "sha256": "3d4f4fbd76562c5999a7babecb78acd6e98d105029d7ed9f20d4e9831eaac31a"
+      "sha256": "d5b6029507c2d5b0d7634a9b2053d3d34704b938faeab07c3e299a9f41a29142"
     },
     {
       "path": "packages/web/src/components/WorkbenchSelect.tsx",
-      "sha256": "ea0ca2d2fed9c3b60a2ac62a5feab6c338eee2510c4fd7c6ba0d969d3eb35e00"
+      "sha256": "951b27ea60f1cbbbe55dfa8fde8601bcca1f9f945fc6ca150f329c310481943e"
     },
     {
       "path": "packages/web/src/components/WorkflowApplication.tsx",
@@ -939,43 +943,43 @@
     },
     {
       "path": "packages/web/src/components/useUnsavedClose.ts",
-      "sha256": "587a8ce96523e7b1f1036a9f5ae5b865fbe68f0850086a219341354d166a9ebb"
+      "sha256": "981e49e8485b50fba1ba620a9e0f02980c989f4097fd02eb224154e692244339"
     },
     {
       "path": "packages/web/src/components/useWorkbenchCollection.ts",
-      "sha256": "d3cc2628d3fed8837b13e3845591fc2c6b51da2e415c99af73c8a219e34c9147"
+      "sha256": "efc10398410d2264e651ff67da1960ca4ea7e0c961c90788b5177c8bfdf848f1"
     },
     {
       "path": "packages/web/src/design.css",
-      "sha256": "a94c09396ce2599e99eb385bdaac5a8847646cae6ffd4822a8bf2e522f1e4843"
+      "sha256": "cee19907c3b6836c930062308d892b69317e17f5ff758efc3a554dfd572742f8"
     },
     {
       "path": "packages/web/src/desktop.css",
-      "sha256": "673f5cc361082d571742017d14d831a585655195dc8d82baf143480a71f63f2e"
+      "sha256": "52de105962272bdca1720f62459ed0d8e6a677a085d4836d567f4ed159ac0637"
     },
     {
       "path": "packages/web/src/home.css",
-      "sha256": "84f79b3ae5c4a19f92f2a2490d2da840e255ad5bac1c08d5c0791dfcdac0fc99"
+      "sha256": "ec5fa2bcc59fbb4b086057cd0d35713c1b1b399155e610a8d3f19805436fa7ac"
     },
     {
       "path": "packages/web/src/main.tsx",
-      "sha256": "aff3b08d87db725e3514c602432b12993e1bd81460e51700f07395615bca98cf"
+      "sha256": "7579752e6152cec89cb28a3bfe1fe76245f8c33bf106c84282f01e9bfd8a75ac"
     },
     {
       "path": "packages/web/src/pages/Agent.tsx",
-      "sha256": "c3a0f6563694783a0bfe0ac093099bb20ffe2fc51ec9d1322254bbd5b347edee"
+      "sha256": "00c1038584b0d0c5da8b931d6fe079f77faeae41c1c452e9f55302403c32fbe1"
     },
     {
       "path": "packages/web/src/pages/Dashboard.tsx",
-      "sha256": "22ec03aee8eaed64309e50ae1fda6c4166174ffc90cb1f02b203a077c1b29d05"
+      "sha256": "cd2c5325a40956a97cfd19bb67305a03cd766eeac20e9ef421a8df184c2e0797"
     },
     {
       "path": "packages/web/src/pages/DocVersions.tsx",
-      "sha256": "11793054ac0da26815bb201039135b728378a310a3d52c5a795e5e4f3507d3e6"
+      "sha256": "71585759bb5ac55331bd51d252515f613eeb715c58967c718b6e1a737ea78de9"
     },
     {
       "path": "packages/web/src/pages/Files.tsx",
-      "sha256": "0e3856af65a92308675e5fc891d252c3d9c87691341cc4984348bd262474d73a"
+      "sha256": "170b917e97323bdacc01a50333134b4d7076f781dfd92778f5ae175df6f9ce19"
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
@@ -983,19 +987,19 @@
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
-      "sha256": "0cbc254356468d3507c8f5f74cd98a1c09d8dfcbdc4953a493f5e983fff7d4ff"
+      "sha256": "133f87fadbe06560605b05dea0afc501e055f3dd56bcb9eb0b79730977369f0e"
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
-      "sha256": "0b9f844a5b63420e71ea14ab69716ec3b265c434ca96cba9b52435cec8962c39"
+      "sha256": "31dd0d466514d6371c357395c8a493f562c3f1b0aa41dc4d2df27002ea0b7a16"
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "82de6eacaebe5c62e543bb21ca1f44db56632f592502af86a0e60c370a9e9e92"
+      "sha256": "68e75c2169bb47decef5084922540b1dbf9af026e40edbe44926967d9c769345"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
-      "sha256": "f181cbdc516e7e0c11ed053d1d2d38ab63e22dca6f7e386d15797b41920b1aa8"
+      "sha256": "4b8daeac6b56008926d82ca9c8ab1f17204cfb2efc1f6f50a70f0f1e1ec075f7"
     },
     {
       "path": "packages/web/src/pages/ProjectInfo.tsx",
@@ -1003,15 +1007,15 @@
     },
     {
       "path": "packages/web/src/pages/Proposals.tsx",
-      "sha256": "b1acc736ac84a395e4c260970eacef4a489e2a885b373ccfb0d205fb59913bb0"
+      "sha256": "90bfc71836f0634a860f5cb67dc00c2fa7c629dd2cd53524ffb3ecc42fa2ae09"
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "848286de8731e2c6a44108b187f02a32d955f2755ab752e79b31bb0edb58cbff"
+      "sha256": "295fd857ada6ed3a7675026986017238f6a620820288f3f384fa2ea2b74c5a37"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
-      "sha256": "2370d8a6bc648431718b8b562522155e7496a0c70ed236688c3bbc81ab9bfbd8"
+      "sha256": "9ee7f22ef8a37831b8504cf741ecda97c64441a8e69227b1c35800ad139c66b6"
     },
     {
       "path": "packages/web/src/pages/Timesheets.tsx",
@@ -1019,19 +1023,19 @@
     },
     {
       "path": "packages/web/src/pages/Trash.tsx",
-      "sha256": "226bf07783876e322021534986f654cfe9bff406c77574c4a18f009bd5e08124"
+      "sha256": "74da90d97242deaa9d9988c77cbb6a020db0915579fdba82428f4a023a56807d"
     },
     {
       "path": "packages/web/src/pages/WorkRecords.tsx",
-      "sha256": "8c832858d059b06ca23882e1fe55b06055d86509324c4dc9b651463f51eef6ac"
+      "sha256": "15021e36c1bd4c38bed75aa44d7e6c3bba1945a4e3a682c6ee8b77b203eb1438"
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "08dade3b6f1d1e9233ed706aff74a9d770a6cd246c194dfd6ba52c76323fcd92"
+      "sha256": "2dec8fd2bd83a7d357b2d5a75f111f3eb3452eca123f6886861f23da5c8d4e03"
     },
     {
       "path": "packages/web/src/pages/library-pages.css",
-      "sha256": "48b0f3630dc287d942e337eec306bd68156df3d84d960c1063f6fe687d924766"
+      "sha256": "78d0bd83544e45f51d4775c2ee39cdfe22ed2ac99e8abbbf529947da3daa8972"
     },
     {
       "path": "packages/web/src/styles.css",
@@ -1043,23 +1047,23 @@
     },
     {
       "path": "packages/web/src/work-detail.css",
-      "sha256": "2b0b361604e4827821a3c2198e10946368058faa57528c90c623a024d171bc01"
+      "sha256": "e5e5dd4cd41f38d298b72f32ab1d09e7eb698d09f6649325928ccbf66969728b"
     },
     {
       "path": "packages/web/src/work-management.css",
-      "sha256": "5dc016216db89ba97a4f256af9e24cb4997be80f5b57261abdd0e86391a81d3f"
+      "sha256": "b5cc7000ce6490ea380364d7222ed2a0996e8c2432f7fd524fb9992b215e6188"
     },
     {
       "path": "packages/web/src/work-type-navigation.css",
-      "sha256": "6518cc5e8849634e231bdec488ea519ad59781c6a7490bec7bdd9d5430e78820"
+      "sha256": "ed38ff0feeb4ba8bd1b2b23014c06cec61833a30d8ee67e69e47c220fe0bc905"
     },
     {
       "path": "packages/web/src/work-type-navigation.ts",
-      "sha256": "da2288bea57811dc81002404bc318a2e2e2fae7036264dc3c0539bed76c8e497"
+      "sha256": "1a1d9a2f0e58ed238ab3e6cf5fe6667be44ae33fabd95035a1e8d1162eb20d72"
     },
     {
       "path": "packages/web/tsconfig.json",
-      "sha256": "8f8b000e6423ee786b0679edf6c6565d42e704052abbd296e0a9d9c9b3c36aee"
+      "sha256": "e0fe3791f8e7af42aba65ec8abd4d56809c091f9b29df29d89e70d698f29b35e"
     },
     {
       "path": "packages/web/vite.config.ts",
@@ -1075,7 +1079,7 @@
     },
     {
       "path": "scripts/dev-monthly.mjs",
-      "sha256": "d35ffd6c3158f00761ba4ec7616b5fad2ab05d0720ff8131d10443c0a7d80dbc"
+      "sha256": "987b6764798dd73a2010a1455aedfd916e0b7e2e9c9f47382c78918c9e0315ff"
     },
     {
       "path": "scripts/dev-server.mjs",
@@ -1099,7 +1103,7 @@
     },
     {
       "path": "scripts/pack.mjs",
-      "sha256": "9c20dcc0c613502f6ad30a598ff2e1b51c0772350f4f46a8681695156b764069"
+      "sha256": "69a2ab78ed02f44fc4534212b6252c549cb975cf7f6aa78b138e405b54ad2bd5"
     },
     {
       "path": "scripts/repository-policy.mjs",
@@ -3012,7 +3016,7 @@
     {
       "version": "001_core",
       "file": "packages/server/src/db/migrations/001_core.sql",
-      "sha256": "1dc38441e862a280e5d1ad47c80a56c8974eeafab1b2818188554e5eedb520bc",
+      "sha256": "e6777d033b6dff032b80b4174cc6e050221a1dd6e5776c5456651c55215b478e",
       "createdTables": [
         "app_setting",
         "work_type",
@@ -3037,7 +3041,7 @@
     {
       "version": "002_fts",
       "file": "packages/server/src/db/migrations/002_fts.sql",
-      "sha256": "7a36615f47f82d841766dd11c35298072f214a63e14bfbb9dddfb35bfa6c56a0",
+      "sha256": "66ac21561d9dae6e8367d6f938e72eecba2a4d0758af5af628e9191ce9d72f07",
       "createdTables": [
         "artifact_search",
         "artifact_fts"
@@ -3047,7 +3051,7 @@
     {
       "version": "003_ocr",
       "file": "packages/server/src/db/migrations/003_ocr.sql",
-      "sha256": "c82c1f0988d9a6c09ef24db38f23efb980f1e7d208f109b1361af96f0841ab97",
+      "sha256": "557dd2fbcc2ea81a8e39c4b70cc958acf0dfa456c29b21e504213a4dc486b5f0",
       "createdTables": [
         "ocr_item"
       ],
@@ -3056,7 +3060,7 @@
     {
       "version": "004_archive",
       "file": "packages/server/src/db/migrations/004_archive.sql",
-      "sha256": "1b2d7965699d6aaf0a4056c0f55882583d5ce3a9f1ef58fb4c0c8ee52b429260",
+      "sha256": "d8b6a8e23f7aa22cd631e53fe9c4bd6c5c54c0170c4df5b83319d90875279a63",
       "createdTables": [
         "archive_field",
         "archive_alias",
@@ -3067,7 +3071,7 @@
     {
       "version": "005_schedule",
       "file": "packages/server/src/db/migrations/005_schedule.sql",
-      "sha256": "2e37f5cc1076dfbc1d400da909c7dbad745ff591c5e68e1a4d73642295a37035",
+      "sha256": "b9870ecc9a99d6dfa2bca88672019d174563011e471437a691b26274ec512819",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE work_type ADD COLUMN mode TEXT NOT NULL DEFAULT 'process';",
@@ -3081,7 +3085,7 @@
     {
       "version": "006_agent",
       "file": "packages/server/src/db/migrations/006_agent.sql",
-      "sha256": "6ca2cc347d10a466c84d8891af8a18f85d8a898382442dfaf7929f18266f6e2e",
+      "sha256": "ea3b5e886b05c50d3a09189a95b7b4ab3c52f16745e596615b7eeb7a33be24fc",
       "createdTables": [
         "agent_session",
         "agent_message",
@@ -3093,7 +3097,7 @@
     {
       "version": "007_evidence_review",
       "file": "packages/server/src/db/migrations/007_evidence_review.sql",
-      "sha256": "c551dc47d77c93b14e39050ed5b19d6e80f2b39a9930b0ff05451c46c413707b",
+      "sha256": "e1b56174705eac1a51d5ce66dfd7c32f0ea708a85d7ea21729fca2737a9c951f",
       "createdTables": [
         "evidence_review"
       ],
@@ -3102,14 +3106,14 @@
     {
       "version": "008_indexes",
       "file": "packages/server/src/db/migrations/008_indexes.sql",
-      "sha256": "b424faefeca8d5f87ccc5c5a8f33e98a9f956fe18be8a0728057531a5c16b506",
+      "sha256": "fbb945b51eb6f821413fba52102a10c7a869f7d9c441df2b0178805e662c06e6",
       "createdTables": [],
       "alterations": []
     },
     {
       "version": "009_integrity",
       "file": "packages/server/src/db/migrations/009_integrity.sql",
-      "sha256": "ba21bb80c1f5589293dbbfd0dd5c5a96589bd9c0e515dd9f52eb8700fc5be25c",
+      "sha256": "ff4241ce7be24bd1bede1273ff247a50241337e5e7e08eac383b8144f0dc2499",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN schedule_due_date TEXT;",
@@ -3122,7 +3126,7 @@
     {
       "version": "010_folder_binding",
       "file": "packages/server/src/db/migrations/010_folder_binding.sql",
-      "sha256": "eddf53f4bd92f0f4211a90812057064148a37e237050c657fb85263dc669152b",
+      "sha256": "892c878c638deeacd63fd1928237785c91415fa385c59bd11469fcd487b23156",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN external_root TEXT;",
@@ -3132,7 +3136,7 @@
     {
       "version": "011_period_dir",
       "file": "packages/server/src/db/migrations/011_period_dir.sql",
-      "sha256": "a39fbe23a6145f4a9f62b5253f0f46b4ca06c00e39870d8250393b8b2017978c",
+      "sha256": "057def3c866718d06f123e3c89c62f7e8ba9318dd85002ec1fd568a985f34279",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE position_template ADD COLUMN period_dir TEXT;"
@@ -3141,7 +3145,7 @@
     {
       "version": "012_kb_source",
       "file": "packages/server/src/db/migrations/012_kb_source.sql",
-      "sha256": "d2611e0860dfef7e21e3cfaec8a38964935af69396ec185f1967edc87df8e930",
+      "sha256": "2e34cb2da88561fbe99f72d1d284b801fc0185a7e2b0fdce6df452ff45b67c29",
       "createdTables": [
         "kb_source"
       ],
@@ -3150,7 +3154,7 @@
     {
       "version": "013_output_mode",
       "file": "packages/server/src/db/migrations/013_output_mode.sql",
-      "sha256": "ee86518d023373566ca1db9f0b4a28ebed0db213e1d9cb090e7f55c416a2c346",
+      "sha256": "414c19634199aa05e39d79b516bd37c102b9e857ee12254492777081e35b5e7c",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN output_mode TEXT;",
@@ -3160,7 +3164,7 @@
     {
       "version": "014_template_health",
       "file": "packages/server/src/db/migrations/014_template_health.sql",
-      "sha256": "792def93d155feb149974ae77db643b736681a13ae34fe2ad3f422fb10b4356c",
+      "sha256": "c047b74c01242a0b32f1fa6778818e3cef932292c23f3e2d31a0b3c599df9a02",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE template ADD COLUMN health_ok INTEGER;",
@@ -3171,7 +3175,7 @@
     {
       "version": "015_trash",
       "file": "packages/server/src/db/migrations/015_trash.sql",
-      "sha256": "806ecd09e035cf27fa393004f1201112a853d90328cdd521fbb6b58983124e42",
+      "sha256": "1df73499175c0e5928d91d3de3c914345ecc9a9ebd7a090f6c485eab56e9bb91",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN deleted_at TEXT;",
@@ -3185,7 +3189,7 @@
     {
       "version": "017_doc_version",
       "file": "packages/server/src/db/migrations/017_doc_version.sql",
-      "sha256": "c551ed6f0dc829eed72269688c46f0fa9903675d7f7f507d9430803aad453b2c",
+      "sha256": "720dcfe1464ce70f0822af6834f4f8bfae3284ecf20f9bc9b4f1947e7726a863",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE artifact ADD COLUMN version_group TEXT;",
@@ -3201,7 +3205,7 @@
     {
       "version": "018_position_template_doc",
       "file": "packages/server/src/db/migrations/018_position_template_doc.sql",
-      "sha256": "fa437c5a20112d3ca7f910184059e0049256ae3abf0415330c5be6c2d2474e94",
+      "sha256": "2c2c30d152d5de90d11f37c2bdfa4d2e14bb98ab821637d039f282da1ef687c1",
       "createdTables": [
         "position_template_doc"
       ],
@@ -3210,7 +3214,7 @@
     {
       "version": "019_kb_extract",
       "file": "packages/server/src/db/migrations/019_kb_extract.sql",
-      "sha256": "a7b7fd75f8bd03d391f60b5915eeaed1611a01ffd0c4e1118de2e95894678887",
+      "sha256": "805561f638aaadedb870be0a0d1a50bbfc43f94e0ff5ca76ad27a769f4eb648d",
       "createdTables": [
         "kb_chunk_search",
         "kb_chunk_fts",
@@ -3245,7 +3249,7 @@
     {
       "version": "020_app_health_event",
       "file": "packages/server/src/db/migrations/020_app_health_event.sql",
-      "sha256": "5de3f01c5cd97142531025474e0f46bb1ffe5997c00894279e3499ff9c06b686",
+      "sha256": "6f05b7f57f474d790502e0db32ba029c8f6ae0693cf5e574e77d5c52b554e338",
       "createdTables": [
         "app_health_event"
       ],
@@ -3254,7 +3258,7 @@
     {
       "version": "020b_kb_cite",
       "file": "packages/server/src/db/migrations/020b_kb_cite.sql",
-      "sha256": "fc5e3db9ffeb2373ab38a30cc65d9bcbbd7a827db61201cffa3a13fdfc684b41",
+      "sha256": "5c43a15a9bc7066f67db985df3328510bd97cadbcf8c75f26ab3c56a34f43a6d",
       "createdTables": [
         "compliance_rule",
         "compliance_exception"
@@ -3264,7 +3268,7 @@
     {
       "version": "021_doc_kb_link",
       "file": "packages/server/src/db/migrations/021_doc_kb_link.sql",
-      "sha256": "e82ae123ec97d5da5378e5fa1df55839b1153e17360ba4eeecab77e1f0404686",
+      "sha256": "429be933e140288acf2f1060176f237200e8469b9f6bd5e52e27a3c2e6818fd8",
       "createdTables": [
         "doc_kb_link",
         "kb_change_impact"
@@ -3274,7 +3278,7 @@
     {
       "version": "022_doc_version_final_unique",
       "file": "packages/server/src/db/migrations/022_doc_version_final_unique.sql",
-      "sha256": "f8da5bc8c1182acf730d129909298c8294f458dc26a7cd5cd95286d1c8ebcf7c",
+      "sha256": "817be7859a0dbcdf162391780f5e49be029a588abb08200e1e13bdbd0e0f1b26",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE artifact ADD COLUMN period_key TEXT;"
@@ -3283,7 +3287,7 @@
     {
       "version": "023_workflow",
       "file": "packages/server/src/db/migrations/023_workflow.sql",
-      "sha256": "97484e15e3ab0e3b6978ced7a2f7ca8b4b9652b1aff83ed9bd67edb4556b6ef1",
+      "sha256": "b14e66c8b458e35e2be77a2107b0a8ee5549f46737a273ece3f91096b6abdaee",
       "createdTables": [
         "work_period_rule",
         "work_period",
@@ -3308,7 +3312,7 @@
     {
       "version": "024_project_doc_snapshot",
       "file": "packages/server/src/db/migrations/024_project_doc_snapshot.sql",
-      "sha256": "a7fac71f176742ced3a43c3339a4052663628bee838a3271e25304ab3799ca1b",
+      "sha256": "e4e10e966f5f89ccd6bae33d394d5d03416b52a99c370106dba8e2af6df0b932",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE position_instance ADD COLUMN doc_requirements TEXT;"
@@ -3317,7 +3321,7 @@
     {
       "version": "025_memory_facts",
       "file": "packages/server/src/db/migrations/025_memory_facts.sql",
-      "sha256": "ffe60ad0f27e3fdc17e13ec21fa910ab0f6a75503dbefed6708dac24aaeb8c91",
+      "sha256": "4607f4df7aefae5d387833897b200727cb5af5b4647114d4c5e195dc42b395db",
       "createdTables": [
         "artifact_fact_review"
       ],
@@ -3329,7 +3333,7 @@
     {
       "version": "026_policy_requirements",
       "file": "packages/server/src/db/migrations/026_policy_requirements.sql",
-      "sha256": "14c55f6492ef45d0e6ebdfe665e29f099a2db80f70a23639cfe0289ffe3b756f",
+      "sha256": "b4c61a064319355c727c342ed0ff966ff36b24b9927bd028da3cb5d6aae3d218",
       "createdTables": [
         "template_policy_requirement",
         "artifact_policy_requirement"
@@ -3339,7 +3343,7 @@
     {
       "version": "027_business_structure",
       "file": "packages/server/src/db/migrations/027_business_structure.sql",
-      "sha256": "5ad18fe68183905ba18493e3e1c67393095f9e1c1e03dd393a501660763625c3",
+      "sha256": "b4046d97f8483901a7d9405c09b8d7241045cbf3bde43a36a0feca33f1ec304a",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE work_type ADD COLUMN domain TEXT NOT NULL DEFAULT 'admin' CHECK(domain IN ('admin','project'));",
@@ -3361,7 +3365,7 @@
     {
       "version": "028_document_requirements",
       "file": "packages/server/src/db/migrations/028_document_requirements.sql",
-      "sha256": "5beeed03fec615ac130bd6124aab9266dfce95c5c2e02a551f725987e1d9bc45",
+      "sha256": "2082eaa786708c45b46d337f4ee577291f6eb013cd629f41a410eaeab9e1c6c7",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN template_requirements TEXT;"
@@ -3370,7 +3374,7 @@
     {
       "version": "029_template_history",
       "file": "packages/server/src/db/migrations/029_template_history.sql",
-      "sha256": "b134a4182897fa78f13359265179048fb89ae9a882c8f1de4f9eb06fd881bca7",
+      "sha256": "213fa69ac3093ff6f68392f947cc51229996fd88c9661f800abf8c0534d8c0f2",
       "createdTables": [
         "template_revision"
       ],
@@ -3379,7 +3383,7 @@
     {
       "version": "030_business_execution",
       "file": "packages/server/src/db/migrations/030_business_execution.sql",
-      "sha256": "7995b711ea833cbb6f0bdd21db8af9db7b55e0474474ae836ba76d3f4740c334",
+      "sha256": "7583c2b30b733bd57dfddd0bdf685c84ace8681c3c376ed0a49a3c1c9ec4dc53",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE work_period_rule ADD COLUMN steps TEXT NOT NULL DEFAULT '[]';",
@@ -3391,7 +3395,7 @@
     {
       "version": "031_document_experience",
       "file": "packages/server/src/db/migrations/031_document_experience.sql",
-      "sha256": "a43dd79f592ab28ad0fdb93165a45371e22663956ea643cf15982d1285d412c6",
+      "sha256": "05c5ab32a6b304029b719ab1c47fb88890dd7102ab37e0424e4fa276ff8c37d0",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE workbench ADD COLUMN business_content TEXT NOT NULL DEFAULT '';",
@@ -3402,7 +3406,7 @@
     {
       "version": "032_file_roles",
       "file": "packages/server/src/db/migrations/032_file_roles.sql",
-      "sha256": "104a5aa2f7f2c6fa0d0fb1c8fa6c0302b1e847bf7bbfcf2e370acd61051183a2",
+      "sha256": "468ff6a8ce00caa0f35d8a12f36de507d091e26f26429199812709341312d6b7",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE artifact ADD COLUMN file_role TEXT NOT NULL DEFAULT 'source' CHECK(file_role IN ('source','external'));"
@@ -3411,7 +3415,7 @@
     {
       "version": "033_inspection_records",
       "file": "packages/server/src/db/migrations/033_inspection_records.sql",
-      "sha256": "2b5c04b3ed86b91e4ca6df096744a1b8b8a826bbad4b44c6bc1126a8940da4a9",
+      "sha256": "4eda834830bb1e0ce2e8579bde7db921d2a908c7088d5c324fd5cebab6423a81",
       "createdTables": [
         "inspection_record"
       ],
@@ -3426,7 +3430,7 @@
     {
       "version": "034_inspection_business_fields",
       "file": "packages/server/src/db/migrations/034_inspection_business_fields.sql",
-      "sha256": "cb3dee7f89dba809e06483769a8b720c7906050d7403d59809862ef723091e4f",
+      "sha256": "b7f1b3b52085517fc2b07df8587726da7bb93cffb1424bbdb41bdcf836d67783",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE inspection_record ADD COLUMN supervisor TEXT NOT NULL DEFAULT '';",
@@ -3439,7 +3443,7 @@
     {
       "version": "035_business_assistant",
       "file": "packages/server/src/db/migrations/035_business_assistant.sql",
-      "sha256": "04e5a056f59b5b812023d0c60f7accff3d670c809775fad64eb4f48be8259c7f",
+      "sha256": "d6ce2f8f530abcba65f31c56c20b454fd2a3d598729d14d511b91c70468d6b1b",
       "createdTables": [
         "business_ai_run"
       ],
@@ -3448,7 +3452,7 @@
     {
       "version": "036_evidence_writing",
       "file": "packages/server/src/db/migrations/036_evidence_writing.sql",
-      "sha256": "9850e2181c5521d03aba486b6d96dd2cb88b73823187e11eb9e27c6d089a9a4e",
+      "sha256": "b995a01506eb9f1b1fc34fd217afd5b94e73c67460a46b70749e8c8e896a857c",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE business_ai_run ADD COLUMN writing TEXT;"
@@ -3457,7 +3461,7 @@
     {
       "version": "037_work_type_navigation",
       "file": "packages/server/src/db/migrations/037_work_type_navigation.sql",
-      "sha256": "ea24696341fd55bd8d29b4c4a61c1997293d609b81eeeb39496549623d304bdd",
+      "sha256": "63acbf026e034954cba466d2d0559150504701d592be76807b41bab0641d01d0",
       "createdTables": [],
       "alterations": [
         "ALTER TABLE work_type ADD COLUMN navigation_group TEXT CHECK (navigation_group IN ('information','engineering','administration'));"
@@ -3466,7 +3470,7 @@
     {
       "version": "038_work_records",
       "file": "packages/server/src/db/migrations/038_work_records.sql",
-      "sha256": "d3869abadd23dc25f3ecc0dcd0fd9ca58fe7e05721d9fc64dcbed8a5a85d094b",
+      "sha256": "fb13b7f73c214c0f464da09f87e075b75f05e9d27dc944633b0736cde424a70e",
       "createdTables": [
         "work_record",
         "work_record_history",
@@ -3477,7 +3481,7 @@
     {
       "version": "039_inspection_drafts",
       "file": "packages/server/src/db/migrations/039_inspection_drafts.sql",
-      "sha256": "c546be8d3772550409271bb81b6212915abe296f72c088589e235eff92ba946a",
+      "sha256": "f248a4b0e7e3c999ca2978c173ef3a999970e1bb8dc3b2ab89ffb314d40f3f72",
       "createdTables": [
         "inspection_draft",
         "inspection_draft_history"
@@ -3490,7 +3494,7 @@
     {
       "version": "040_monthly_workspaces",
       "file": "packages/server/src/db/migrations/040_monthly_workspaces.sql",
-      "sha256": "fcf19e6c13a5dd8fe97967b9c6f14f20811ca69ccf85b885d2a9f440a6e2840e",
+      "sha256": "1284d18c4f4d54baf7e279eea055a629852526e03dd0a9770c0c3c9f3b43a220",
       "createdTables": [
         "timesheet_preferences",
         "annual_ledger",

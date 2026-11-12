@@ -1,3 +1,4 @@
+import {PageActions} from '../components/PageActions';
 import {useEditorGuard} from '../components/NavigationGuard';
 import {useModalSave} from '../components/useUnsavedClose';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
@@ -107,9 +108,24 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
       <div className="library-toolbar">
         <SectionNav value={kind} onChange={v=>{if(v==='template-library')go('knowledge',{module:'template'});else setKind(v);}}
           items={[{value:'',label:'全部业务文件',count:stats.data?.total},...categories]}/>
-        <Button size="sm" onClick={()=>go('workbench')}>按工作台看</Button>
+        <PageActions><Button size="sm" onClick={()=>go('workbench')}>按工作台看</Button>
         <Button size="sm" onClick={reloadAll}>刷新</Button>
-        <Button kind="primary" onClick={()=>setUploadOpen(true)}>上传文件</Button>
+            <Button
+              size="sm"
+              onClick={async () => {
+                try {
+                  const r = await api.post<{ reindexed: number }>('/api/files/reindex');
+                  toast(`已重建 ${r.reindexed} 条索引`, 'ok');
+                  stats.reload();
+                } catch (e) {
+                  toast((e as { message: string }).message, 'err');
+                }
+              }}
+              title="把手工复制进数据目录的文件重新纳入检索"
+            >
+              重建索引
+            </Button>
+        <Button kind="primary" onClick={()=>setUploadOpen(true)}>＋ 上传文件</Button></PageActions>
       </div>
       <Card className="file-results">
         <div className="file-filter-bar">
@@ -165,21 +181,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
       )}
 
         <div className="file-list-head"><h3>{searching?'检索结果':kind?KIND_TEXT[kind]:'全部业务文件'}</h3>
-            <Button
-              size="sm"
-              onClick={async () => {
-                try {
-                  const r = await api.post<{ reindexed: number }>('/api/files/reindex');
-                  toast(`已重建 ${r.reindexed} 条索引`, 'ok');
-                  stats.reload();
-                } catch (e) {
-                  toast((e as { message: string }).message, 'err');
-                }
-              }}
-              title="把手工复制进数据目录的文件重新纳入检索"
-            >
-              重建索引
-            </Button>
+
         </div>
         {(searching?searchResult.error:browse.error) ? <LoadError error={(searching?searchResult.error:browse.error)!} retry={reloadAll}/> : loading ? (
           <Loading />
@@ -192,7 +194,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
           <table className="table">
             <thead>
               <tr>
-                <th scope="col">文件</th>
+                <th scope="col">文件名称</th>
                 <th scope="col">所属工作</th>
                 <th scope="col">类别</th>
                 <th scope="col">版本 / 状态</th>

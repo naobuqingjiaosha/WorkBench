@@ -1,3 +1,4 @@
+import {SectionTitle} from './DesignSystem';
 import { useEffect, useId, useState } from 'react';
 import { api, type AiProfile, type AiProvider } from '../api';
 import { Button, Card, Field, Input, Tag, useAction } from '../ui';
@@ -30,7 +31,7 @@ export default function LocalModelSettings({ providers, profiles, onSaved }: {
   );
   const request = () => ({ baseUrl, apiKey: apiKey || (provider?.has_key ? undefined : '') });
 
-  return <Card title="本地模型 · LM Studio">
+  return <Card title={<SectionTitle icon="dashboard">本地模型 · LM Studio</SectionTitle>}>
     <div className="inline-fields">
       <Field label="服务地址" required>
         <Input value={baseUrl} disabled={busy} placeholder="http://127.0.0.1:1234/v1" onChange={value => {

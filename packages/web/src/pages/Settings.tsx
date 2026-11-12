@@ -1,5 +1,5 @@
 import {PolicyMaintenancePanel} from './Knowledge';
-import {SectionNav,LoadError} from '../components/DesignSystem';
+import {SectionNav,LoadError, SectionTitle} from '../components/DesignSystem';
 import {useEditorGuard} from '../components/NavigationGuard';
 import {useModalSave} from '../components/useUnsavedClose';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -37,7 +37,7 @@ const appForm = (values:Record<string,string>):AppForm => ({org:values['app.org'
 export default function SettingsPage({params={}}:{params?:Record<string,string>}) {
   const toast = useToast();
   const section = params.section === 'references' ? 'models'
-    : ['models','backup','app'].includes(params.section) ? params.section : 'runtime';
+    : ['runtime','backup','app'].includes(params.section) ? params.section : 'models';
   const panel = useRef<HTMLDivElement>(null);
   const positions = useRef(new Map<string, {pane:number; page:number; windowY:number}>());
   useLayoutEffect(() => {
@@ -124,7 +124,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
         </div>
         <LocalModelSettings providers={providers} profiles={profiles} onSaved={overview.reload} />
       </div>
-      <Card title="按用途配置模型" className="model-profiles">
+      <Card title={<SectionTitle icon="chart">按用途配置模型</SectionTitle>} className="model-profiles">
         {overview.loading && <Loading/>}
         {overview.error && <LoadError error={overview.error} retry={overview.reload}/>}
         {profiles.map((p) => (
@@ -139,7 +139,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
         <p className="muted small">未指定的文本用途回退到文书写作。图像识别与向量化需单独配置。</p>
       </Card>
       <Card className="model-providers"
-        title="模型服务商"
+        title={<SectionTitle icon="chart">模型服务商</SectionTitle>}
         extra={
           <Button size="sm" kind="primary" onClick={() => setEditProvider('new')}>
             ＋ 添加服务商
@@ -233,6 +233,11 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
         )}
       </Card>
 
+      <Card title={<SectionTitle icon="settings">更多模型与资料设置</SectionTitle>} className="model-maintenance">
+        <AiLogsCard/>
+        <details className="settings-maintenance card"><summary>资料提取与规则维护</summary><KbExtractCard/><ComplianceCard/></details>
+        <details className="settings-maintenance card"><summary>OCR 与文字识别</summary><OcrCard/></details>
+      </Card>
       </div>
 
       </div><div className="settings-panel" hidden={section!=='app'}>
@@ -295,13 +300,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
       </Card>
 
       <BackupCard />
-      </div><div className="settings-panel" hidden={section!=='models'}>
-
-        <AiLogsCard/>
-        <details className="settings-maintenance card"><summary>资料提取与规则维护</summary><KbExtractCard/><ComplianceCard/></details>
-        <details className="settings-maintenance card"><summary>OCR 与文字识别</summary><OcrCard/></details>
       </div>
-
       <div className={params.section === 'references' ? 'settings-panel settings-references-entry' : 'settings-panel'} hidden={section !== 'models'}>
         <details className="reference-maintenance card" open={referenceOpen} onToggle={e=>{setReferenceOpen(e.currentTarget.open);if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details>
       </div>

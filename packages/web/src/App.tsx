@@ -1,8 +1,9 @@
+import {PageActionTarget} from './components/PageActions';
 import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import { ToastHost } from './ui';
 import WorkRecordsPage from './pages/WorkRecords';
-import DashboardPage from './pages/Dashboard';
+import DashboardPage, {SearchControl} from './pages/Dashboard';
 import WorkbenchPage from './pages/Workbench';
 import ProcessPage from './pages/Process';
 import FilesPage from './pages/Files';
@@ -54,22 +55,22 @@ const NAV: { group: string; items: { key: RouteKey; label: string; icon: string;
   {
     group: '工作办理',
     items: [
-      { key: 'workbench', label: '我的工作台', icon: '▤', desc: '按工作类型组织，按适用阶段与独立期次办理' },
-      { key: 'files', label: '文件库', icon: '⌸', desc: '所有文件：按工作/类别筛、下载、改名、做 OCR' },
+      { key: 'workbench', label: '我的工作台', icon: '▤', desc: '管理正在办理的工作与历史成果' },
+      { key: 'files', label: '文件库', icon: '⌸', desc: '集中查看业务资料与成果文件' },
     ],
   },
   {
     group: '资料与工具',
     items: [
-      { key: 'process', label: '流程规范', icon: '⇉', desc: '每步该做什么、留什么材料' },
-      { key: 'knowledge', label: '知识库', icon: '❖', desc: '文书模板、变量与自动填写' },
-      { key: 'agent', label: 'AI 助手', icon: '✦', desc: '基于业务证据问答、分析和起草文书' },
+      { key: 'process', label: '流程规范', icon: '⇉', desc: '维护工作类型、办理阶段与材料要求' },
+      { key: 'knowledge', label: '知识库', icon: '❖', desc: '模板资料与业务参考' },
+      { key: 'agent', label: 'AI 助手', icon: '✦', desc: '问答、整理与工作记录' },
     ],
   },
   {
-    group: '系统管理',
+    group: '资源管理',
     items: [
-      { key: 'trash', label: '回收站', icon: '♻', desc: '删掉的工作台/文件/阶段都在这儿，能恢复，也能彻底删除' },
+      { key: 'trash', label: '回收站', icon: '♻', desc: '恢复误删的记录，谨慎清理不再需要的内容' },
       { key: 'settings', label: '系统配置', icon: '⚙', desc: '模型接入、目录、参数' },
     ],
   },
@@ -175,6 +176,7 @@ function AppShell() {
       .catch(() => setAiReady('error'));
   }, [route.key, route.params.id]);
 
+  const [actionTarget,setActionTarget]=useState<HTMLDivElement|null>(null);
   const current = NAV.flatMap((g) => g.items).find((i) => i.key === route.key);
 
   return (
@@ -215,17 +217,22 @@ function AppShell() {
           </div>
         </aside>
 
-        <main className="main" inert={mobileOpen}>
+        <PageActionTarget.Provider value={actionTarget}><main className="main" inert={mobileOpen}>
           <header className={`topbar${route.key==='dashboard'?' dashboard-topbar':''}${route.key==='workbench'&&(route.params.id||route.params.task)?' detail-topbar':''}`}>
             <button ref={menuButton} className="btn mobile-menu" onClick={()=>setMobileOpen(true)} aria-controls="primary-navigation" aria-expanded={mobileOpen} aria-label="切换导航">☰</button>
             <div>
               <h2>{current?.label ?? '工作记录'}</h2>
               <div className="sub">{current?.desc}</div>
             </div>
+            <div className="page-heading-tools">
+              {(route.key==='process'||(route.key==='workbench'&&!route.params.id&&!route.params.task))&&<SearchControl go={go}/>}
+              <div className="page-action-slot" ref={setActionTarget}/>
+              {(route.key==='process'||(route.key==='workbench'&&!route.params.id&&!route.params.task))&&<button className="heading-bell" aria-label="查看通知与提醒" onClick={()=>go('dashboard',{view:'alerts'})}><NavIcon name="bell"/></button>}
+            </div>
           </header>
           <div className={`content page-${route.key}`}>
             {route.key === 'records' && <WorkRecordsPage params={route.params} />}
-            {route.key === 'dashboard' && <DashboardPage go={go} />}
+            {route.key === 'dashboard' && <DashboardPage go={go} openAlerts={route.params.view==='alerts'} />}
             {route.key === 'workbench' && <WorkbenchPage go={go} params={route.params} />}
             {route.key === 'process' && <ProcessPage />}
             {route.key === 'files' && <FilesPage params={route.params} go={go} />}
@@ -234,7 +241,7 @@ function AppShell() {
             {route.key === 'trash' && <TrashPage />}
             {route.key === 'settings' && <SettingsPage params={route.params} />}
           </div>
-        </main>
+        </main></PageActionTarget.Provider>
       </div>
     </ToastHost>
   );

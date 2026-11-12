@@ -118,8 +118,8 @@ function MonthlyTimesheetForm({workbenchId,periodId,runId,initialMonth,embedded=
   {message&&<p role="status">{message}</p>}
   <section className="timesheet-source-panel"><h4>来源资料 · {[input.rdId,input.attendanceId,input.templateId].filter(Boolean).length} 份主资料</h4>{boundTemplates.length>0&&<div className="notice"><strong>{periodId?'本期':'本工作'}已绑定模板</strong><p className="small">选择适用的部门工时Excel模板作为计算输出格式，仍需核对本月人员、项目和日期。</p><div className="row">{boundTemplates.map(t=><Button key={t.id} disabled={busy||!input.month||!!input.pendingProjectReport||!!input.pendingAttendance} onClick={()=>void run(async()=>{const s=await api.post<{id:string;name:string}>(`/api/timesheets/library/${t.id}`,{});await install(s.id,s.name,'template');})}>使用 {t.name}</Button>)}</div></div>}<div className="timesheet-uploads">{([
     {kind:'rd',label:'研发中心工时表',id:input.rdId},
-    {kind:'template',label:'统一模板 / 上期部门工时表',id:input.templateId},
     {kind:'attendance',label:'考勤资料',id:input.attendanceId},
+    {kind:'template',label:'统一模板 / 上期部门工时表',id:input.templateId},
   ] as const).map(c=><label className="source-upload" key={c.kind}>
     <span className="source-format" aria-hidden="true">X</span>
     <span className="source-name"><strong>{c.label}</strong><small>{c.id?names[c.id]??'已保存资料副本':'选择 Excel 文件'}</small></span>
