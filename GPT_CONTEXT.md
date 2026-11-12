@@ -1,6 +1,6 @@
 # AI 项目接续入口
 
-文档ID：KB-AI-ENTRY。版本：1.55。更新：2026-11-12。性质：AI接续所需的最小上下文和阅读路线。
+文档ID：KB-AI-ENTRY。版本：1.56。更新：2026-11-12。性质：AI接续所需的最小上下文和阅读路线。
 
 工作台是Windows本机、单用户应用，以工作、期次、阶段、资料和成果组织行政管理及项目实施。技术上为React前端、Fastify后端、SQLite与磁盘文件；AI辅助起草、检索和整理。项目介绍由[README](README.md)维护。
 
@@ -16,9 +16,9 @@ README只介绍项目；本文不替代需求、完整架构或历史变更记�
 
 ## 2. 接续所需的项目状态
 
-Windows 最新启动改动在工作分支 `codex/simplify-daily-launch`，包含主线 `8d432f7` 和后续的构建复用、停止控制及单版本启动改动。换机先核对该分支与上游提交，再按[安装指南](docs/guides/INSTALLATION.md)启动。各设备的实际运行身份和验证范围查[开发进度](DEVELOPMENT_PROGRESS.md)。
+工作分支为 `codex/simplify-daily-launch`。GOV-13 的 13 页界面调整保存在工作区，已完成合成数据验证，待用户检查。接续这项工作时，先对照[开发进度](DEVELOPMENT_PROGRESS.md)核对源码、隔离构建与日常实例，再从[前台设计与验收指南](docs/guides/UI_DESIGN_IMPLEMENTATION.md)进入逐页依据和本机截图。用户保留提交、推送及正式切换的决定。
 
-新机使用 Node 24、npm 11 和锁定依赖。用 `npm test` 在独立临时环境运行共享合成回归。真实资料、凭证、配置与私有测试留在本机。用户双击“启动工作台.cmd”即可使用当前检出源码，终端入口为 `npm start`。
+换机使用 Node 24、npm 11 和锁定依赖。共享回归由 `npm test` 在独立临时环境运行。日常入口为“启动工作台.cmd”或等价的 `npm start`，启动器按检出目录中已保存的源码准备构建。在用户检查未发布的工作区期间，用隔离入口验证页面。真实资料、凭证、配置与私有测试留在各自设备。
 
 ## 3. 必须保持的业务边界
 
@@ -34,6 +34,6 @@ Windows 最新启动改动在工作分支 `codex/simplify-daily-launch`，包含
 
 开工先核对Git状态；涉及近期提交时核对远端。核对日常运行时读取 source-current.json、SOURCE_BUILD.json 和健康接口中的进程及构建身份；禁止仅凭文档、分支或迁移文件推定运行状态。路径规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)，具体命令见[开发指南](docs/guides/DEVELOPMENT.md)。
 
-修改后按[文档治理](docs/management/DOCUMENT_CONTROL.md)更新对应主记录、工作日志与索引。主负责人统一验收，经当前任务授权可分工并按批提交推送；设备发布另行授权。
+修改后按[文档治理](docs/management/DOCUMENT_CONTROL.md)更新对应主记录、工作日志与索引。主负责人统一核对交付范围。提交、推送和正式切换分别依据当前任务的授权执行。
 
 未知业务事实与未完成验收保持明确；下一步沿用GOV队列，不在本文新建平行待办。

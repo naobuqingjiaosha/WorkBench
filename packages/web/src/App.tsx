@@ -191,8 +191,7 @@ function AppShell() {
         <aside id="primary-navigation" ref={sidebar} className={`sidebar${mobileOpen?' mobile-open':''}`} role={mobileOpen?'dialog':undefined} aria-modal={mobileOpen||undefined} aria-label="主导航">
           <div className="brand">
             {mobileOpen && <button type="button" className="drawer-close icon-btn" aria-label="关闭导航" onClick={()=>setMobileOpen(false)}>×</button>}
-            <h1>工作台</h1>
-            <p>个人工作空间</p>
+            <h1><NavIcon name="knowledge"/>个人工作台</h1>
           </div>
           <nav className="nav">
             {NAV.map((g) => (

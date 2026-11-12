@@ -9,7 +9,7 @@ import {PeriodExecution} from '../components/PeriodExecution';
 import {PeriodRuleEditor,type PeriodRule} from '../components/PeriodRuleEditor';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi } from '../api';
-import { Button, Card, Field, Input, Select, Textarea, useAction, useToast } from '../ui';
+import { Button, Card, Field, Input, Textarea, useAction, useToast } from '../ui';
 interface Period {
     id: number;
     report_period: string;
@@ -65,14 +65,18 @@ export function PeriodPanel({ workbenchId, workTypeId, workTypeCode, initialPeri
     const requested=initialPeriodId || defaultId;
     const selected=items?.find(p=>String(p.id)===requested);
     const sync = () => run(async () => { await api.post(`/api/workbenches/${workbenchId}/periods/sync`); list.reload(); });
-    return <Card className="period-panel" title="办理期次" extra={<Button disabled={!list.data} onClick={()=>configure?navigation.request(()=>setConfigure(false)):setConfigure(true)}>高级排期设置</Button>}>
+    return <section className="period-panel"><Card title="办理期次" extra={<Button size="sm" disabled={!list.data} onClick={()=>configure?navigation.request(()=>setConfigure(false)):setConfigure(true)}>高级排期设置</Button>}>
  {list.error && <p role="alert">{list.error.message} <Button onClick={list.reload}>重试</Button></p>}
  {configure&&list.data&&<PeriodRuleEditor key={'rule-'+workbenchId} workbenchId={workbenchId} rule={list.data.rule} onClose={()=>setConfigure(false)} onSaved={()=>{list.reload();onRuleChanged?.();}}/>}
- <div className="row"><Select value={selected?String(selected.id):''} onChange={onPeriodSelected} placeholder={selected?undefined:'选择报告期'} options={(items ?? []).map(p => ({ value: String(p.id), label: `${p.report_period} · 截止 ${p.due_date} · ${p.status === 'done' ? '已完成' : '待办理'}` }))}/><Button disabled={busy} onClick={() => void sync()}>补齐期次</Button></div>
+ <div className="row"><select className="input select" aria-label="办理期次" value={selected?String(selected.id):''} onChange={e=>onPeriodSelected(e.target.value)}>
+   {!selected&&<option value="">选择报告期</option>}
+   {(items??[]).map(p=><option key={p.id} value={p.id}>{p.report_period} · 截止 {p.due_date} · {p.status==='done'?'已完成':'待办理'}</option>)}
+ </select><Button disabled={busy} onClick={() => void sync()}>补齐期次</Button></div>
  {!list.loading&&!list.data?.rule && <p>尚未启用独立期次。可按实际业务在高级设置启用排期。</p>}
  {initialPeriodId&&items&&!selected&&!list.loading&&<p role="alert">当前工作没有链接指定的期次，请重新选择报告期。</p>}
+ </Card>
  {selected && <PeriodDetail timesheet={timesheet} key={selected.id} id={selected.id} workbenchId={workbenchId} workTypeId={workTypeId} workTypeCode={workTypeCode} onChange={()=>{list.reload();onRuleChanged?.();}}/>}
- </Card>;
+ </section>;
 }
 function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,timesheet }: {
     id: number;
@@ -125,15 +129,14 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
     const resultRules=(typeof rawRules==='string'?JSON.parse(rawRules):rawRules??[]) as {key:string;kind:string;templateId:number|null}[];
     const resultRequirements=p.materials.flatMap(m=>{const rule=resultRules.find(r=>r.kind==='generated'&&r.key===m.config_key);return rule?[{...m,templateId:rule.templateId}]:[];});
     const readiness=p.readiness;
-    const nextSection=!readiness.recordDocumentsReady?'checks':!readiness.recordsReady?'documents':'attachments';
-    const goToSection=()=>{const section=document.getElementById(`period-${id}-${nextSection}`);if(section instanceof HTMLDetailsElement)section.open=true;section?.scrollIntoView({behavior:'smooth',block:'start'});section?.querySelector<HTMLElement>('button:not(:disabled),input:not(:disabled)')?.focus({preventScroll:true});};
     const documentPanel = <WorkDocuments resultRequirements={resultRequirements} validFinalIds={readiness.validFinalIds} refreshKey={p.files.map(f=>`${f.id}-${f.is_final}`).join()} inspectionMode={monthly} workbenchId={workbenchId} workTypeId={workTypeId} periodId={id} content={content} contentLabel={monthly?'本月补充说明（可选）':'本次业务内容'} onContentChange={changeContent} onSaveContent={saveContent} templates={templates} inspectionRevisions={readiness.inspectionRevisions} disabled={contentBusy} onChanged={refresh}/>;
     return <div className="col period-workspace">
  {conflict!==null&&<div className="notice notice-warn" role="alert"><strong>其他入口已保存了新的本期内容</strong><p style={{whiteSpace:'pre-wrap'}}>{conflict||'（空）'}</p>
  <Button onClick={()=>{setSavedContent(conflict);setContent(conflict);contentDirty.current=false;setConflict(null);detail.reload();}}>采用已保存内容</Button>
  <Button onClick={()=>{setSavedContent(conflict);contentDirty.current=content!==conflict;setConflict(null);}}>保留我的输入，继续核对</Button></div>}
  {detail.error&&<p role="alert">状态刷新失败：{detail.error.message} <Button onClick={detail.reload}>重试</Button></p>}
- <p className={`period-summary${monthly?' monthly-summary':''}`}><strong>{p.report_period}</strong> · {monthly?`${readiness.recordCount} 次已确认检查 · ${readiness.recordsReady?'文件已生成':'待起草／编辑中'}`:timesheet?'本期部门工时：上传资料，核对人员与项目后计算':'准备内容，生成文件后可下载或继续修改'}</p>
+ <div className="period-completion"><div><p className={`period-summary${monthly?' monthly-summary':''}`}><strong>{p.report_period}</strong> · {monthly?`${readiness.recordCount} 次已确认检查 · ${readiness.recordsReady?'文件已生成':'待起草／编辑中'}`:timesheet?'本期部门工时：上传资料，核对人员与项目后计算':'准备内容，生成文件后可下载或继续修改'}</p>
+ {p.status==='done'?<span>本期已确认完成。</span>:readiness.missing.length?<details><summary>完成前需核对 {readiness.missing.length} 项</summary><ul>{readiness.missing.map((item,i)=><li key={i}>{item}</li>)}</ul></details>:<span>已满足本期材料要求。</span>}</div> <Button kind="primary" disabled={busy||p.status!=='done'&&!readiness.canComplete} onClick={()=>navigation.request(()=>void update({status:p.status==='done'?'open':'done'}))}>{p.status==='done'?'重新打开本期':'确认本期办理完成'}</Button></div>
 
  {workTypeCode==='integrity-quarter-summary'&&<PeriodExecution period={p} purpose="summary" onSaved={refresh}/>}
  {monthly&&<div id={`period-${id}-checks`}><AnnualLedger key={id} periodId={id} month={p.report_period} onChanged={refresh}/><details><summary><span>检查草稿、已确认记录与单次表册</span> · 待确认草稿 {readiness.draftCount} 份，已确认 {readiness.recordCount} 次</summary><InspectionRecords periodId={id} workbenchId={workbenchId} month={p.report_period} templates={templates.filter(t=>t.generation_scope!=='period')} disabled={false} onChanged={refresh}/></details></div>}
@@ -148,9 +151,7 @@ function PeriodDetail({ id, workbenchId, workTypeId, workTypeCode, onChange,time
  <PeriodAttachments periodId={id} workbenchId={workbenchId} materials={readiness.external} files={p.files} disabled={false} onChanged={refresh}/>
  {!monthly&&workTypeCode!=='integrity-quarter-summary'&&<PeriodExecution period={p} purpose="general" onSaved={refresh}/>}
  {!monthly&&templates.map(t=><ImportResult key={t.id} name={t.name} workbenchId={workbenchId} periodId={id} templateId={t.id} disabled={false} onSaved={refresh}/>)}
- <details><summary>本期办理状态与截止日期</summary>
- <p>{p.status==='done'?'本期已确认完成。':readiness.missing.length?`待补：${readiness.missing.join('；')}`:'已满足本期材料要求，可按实际办理情况确认完成。'}</p>
- <Button disabled={busy||p.status!=='done'&&!readiness.canComplete} onClick={()=>navigation.request(()=>void update({status:p.status==='done'?'open':'done'}))}>{p.status==='done'?'重新打开本期':'确认本期办理完成'}</Button><Field label="本期截止日期"><Input type="date" value={due} onChange={setDue} disabled={false}/></Field><Button disabled={busy} onClick={()=>void update({due_date:due})}>保存截止日期</Button></details>
  </details>
+ <details className="secondary-panel period-date"><summary>调整本期截止日期</summary><div className="row"><Field label="本期截止日期"><Input type="date" value={due} onChange={setDue} disabled={false}/></Field><Button disabled={busy} onClick={()=>void update({due_date:due})}>保存截止日期</Button></div></details>
  </div>;
 }

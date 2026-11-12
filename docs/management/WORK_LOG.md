@@ -1,10 +1,35 @@
 # 项目工作日志
 
-文档ID：PM-WORK-LOG。版本：1.48。更新：2026-11-12。性质：逐次实际工作的过程与交付记录。
+文档ID：PM-WORK-LOG。版本：1.50。更新：2026-11-12。性质：逐次实际工作的过程与交付记录。
 
 每项任务一条记录，最新在前；同一任务的补充合入原条目，不为每次操作新建日志文件。记录当时的目标、依据、修改、验证、五份文档复核、未完成项与交付状态。当前有效说明维护在对应主文档，执行队列只维护[PROJECT_PLAN](PROJECT_PLAN.md)。格式见[文档治理第5节](DOCUMENT_CONTROL.md#5-任务收尾与变更记录规范)。
 
 [CHANGELOG](CHANGELOG.md)保留启用本日志前的已有历史，不迁移或重复抄写。历史记录中的“本机”“已发布”“未提交”仅代表当时；当前状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。日志不包含业务正文、凭证或私人配置值。
+
+## 2026-11-12｜GOV-13｜按 13 张设计图整理工作台页面
+
+**范围与身份。** 按用户提供的 01–13 图逐页对照，首页先在隔离 Edge 中运行，再处理其他页面。开工时分支为 `codex/simplify-daily-launch`，HEAD 与同名远端均为 `f5e51c8`；原有工作日志改动由另一项 Dify 工作提交为 `5098db4`，该提交和原记录均保留。只读核对 8787 健康接口、source-current 与 SOURCE_BUILD：开工时日常进程 33648 加载 `93f7bc56126f`。收尾时 8787 拒绝连接且无监听，锁中 PID 33648 已不存在；指针与清单仍指向原构建。退出原因未核实，未重启或清锁。日常入口、数据库与资料目录未做切换。
+
+**修改清单。** 以下路径以项目根为起点，三个新样式文件需与组件一起保留。
+
+| 范围 | 文件及变化 |
+|---|---|
+| 公共外观与首页 | `packages/web/src/{App.tsx,main.tsx,desktop.css}`、`components/{DesignSystem,WorkflowPanels}.tsx`、`pages/{Dashboard,WorkRecords}.tsx`（组件及页面路径均相对 `packages/web/src/`）。实底侧栏与页头、紧凑表格，待办五条一页，登记与截止分列。右侧直接显示概览、截止、最近成果和复用现有保存接口的随手记。 |
+| 工作列表、新建、配置与回收 | `pages/{Workbench,Settings,Trash}.tsx`、新增 `work-management.css`。列表整页滚动及位置恢复，工作性质并排选择；模型按用途展开；恢复、彻底删除和清空范围分别确认。 |
+| 流程、知识、文件、会话 | `pages/{Process,Knowledge,Template,Files,Agent}.tsx`、新增 `pages/library-pages.css`。总览三步引导、编辑字段分组、按模板分类查看内联详情、文件表底分页，以及使用既有消息接口恢复会话。业务问答证据、写入提议确认、后台参考资料维护仍各自可用。 |
+| 期次、阶段、部门工时 | `pages/{Workbench,Periods,MonthlyTimesheet}.tsx`、`components/WorkRecordLinks.tsx`、新增 `work-detail.css`。工作级关联记录和核对入口可见，本期完成与附件分开；阶段备注、完成与暂不适用复用原更新接口。三主来源、名单与项目表单沿用原解析、采用、计算与导出流程。 |
+| 共享回归 | `packages/server/test/shared/{periods-browser,projects-browser,editor-navigation-browser,search-library-browser}.ts`。以办理期次标签、页面滚动区域、资料详情操作定位，继续检查原期次、保存/未保存、返回位置及归档状态。 |
+| 五份根文档 | `GPT_CONTEXT.md` 增加未提交工作的接续入口；`CONTEXT.md` 明确截止月历、时间、记录、会话与模板分类的术语；`PRODUCT_REQUIREMENTS.md` 将 PR-18 按 01—13 图分别列出验收条件；`SYSTEM_ARCHITECTURE.md` 说明页面构成、原接口及草稿归属；`DEVELOPMENT_PROGRESS.md` 分列工作区、既有日常构建、隔离验收和待确认项。 |
+| 执行与验收规范 | `AGENTS.md`、`docs/guides/{DEVELOPMENT,DEVICE_HANDOFF}.md`、`docs/management/{PROJECT_PLAN,QUALITY_AND_ACCEPTANCE,RISKS_AND_DECISIONS,WORK_LOG}.md`。统一按当次授权交付，换机从现有 GOV 队列接续。质量矩阵单列 13 页核查范围；历史 Office、旧版布局和既有提交授权各自保留原适用范围。 |
+| 操作指南与机器索引 | `docs/guides/{UI_DESIGN_IMPLEMENTATION,USER_GUIDE}.md` 对齐实页浏览路径、会话恢复、日常与历史快照边界。仅更新 `scripts/docs-maintenance.mjs` 中两项指南的目录说明，通过生成器维护 `docs/README.md`、`docs/knowledge-index.json`、`docs/reference/source-inventory.json`。 |
+
+**浏览器核验。** 使用独立临时 SQLite、原 Fastify 接口和合成工作、文件与记录。13 页各有 1440×900 和 390×844 两张实页截图，另核对首页 1366×650、1280×600、空态及读取失败，短窗口可关闭新建弹窗。[本机 26 张截图图册](../../outputs/ui-reference-13-20261112/index.html)。检查首页保存及搜索返回、38 项工作翻页与详情返回、流程草稿、模板选择与归档、文件预览、会话切换、工时来源、期次完成门槛、阶段补件/跳过理由/备注、设置分栏及回收确认。错误响应由隔离测试注入。未调用真实模型或读取真实业务行。
+
+**回归结果。** `npm run build -- --outDir <临时目录>`、`npm run typecheck`、`npm test`（13 组）和 `npm run test:browser`（最终构建，11 组）均通过。会话专项验证保存/放弃、切换或恢复时读取失败后重试，以及会话动作与模板建议独立计数。初次并行构建遇到尚未写完的 CSS，初轮浏览器用例有旧容器定位，两项均已重跑通过。额外执行 `npm run typecheck:tests`，在 10 个本次未修改的测试文件中仍有 15 条已有诊断，涉及测试夹具、Blob 类型和脚本声明。完整结果为本机 [构建](../../outputs/ui-reference-13-20261112/final-build.log)、[应用类型](../../outputs/ui-reference-13-20261112/final-app-types.log)、[共享回归](../../outputs/ui-reference-13-20261112/final-shared.log)、[浏览器回归](../../outputs/ui-reference-13-20261112/final-browser.log)、[测试源码类型诊断](../../outputs/ui-reference-13-20261112/final-test-types.log)。文档维护 generate/check、工作区交付边界和 diff 空白检查均通过。
+
+**文档收尾复核。** 依文档治理第 5 节逐一核对五份根文档，修订内容见上表。与原需求、页面源码、图册及原始测试日志交叉核对。文档整理时本地 HEAD 与远端工作分支均为 `5098db4`，磁盘构建记录与清单一致，8787 仍拒绝连接。重新生成和检查文档索引、核对 13 项验收条款与 26 张截图、运行工作区共享范围及 Git 差异检查；业务回归结果沿用上段记录。
+
+**交付。** 本地保存，未暂存、提交、推送或发布。业务验收和正式切换待用户决定，保留旧运行版本。独立日程另议；文件网格及多选操作尚未实现。工作级关联记录不能据此归到某一期；首页仅在已有登记日期时显示，无法推定外部收件时间。建议提交说明为 `feat(ui): 对齐十三页设计图并保留办理校验`。
 
 ## 2026-11-12｜GOV-02 / GOV-10｜按行政事项和项目类型拆分 Dify 工作流
 

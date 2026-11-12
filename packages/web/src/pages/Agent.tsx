@@ -14,7 +14,7 @@ import {WorkbenchSelect} from '../components/WorkbenchSelect';
  * 这是上面定下的底线，界面上必须让它显眼。
  */
 import WorkRecordsPage,{RecordMessageText} from './WorkRecords';
-import {SectionNav,LoadError} from '../components/DesignSystem';
+import {LoadError} from '../components/DesignSystem';
 import {InspectionDrafts} from '../components/InspectionDrafts';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi } from '../api';
@@ -74,8 +74,6 @@ type Tab = 'records' | 'chat' | 'memory' | 'proposals' | 'audit';
 export default function AgentPage() {
   const [tab, setTab] = useState<Tab>('chat');
   const navigation=useNavigationGuard();
-  const [savedRun,setSavedRun]=useState<number|null>(null);
-  const history=useApi<{items:{id:number;question:string;artifact_id:number|null;created_at:string}[]}>('/api/agent/business');
   const [pendingCount, setPendingCount] = useState(0);
 
   const tabs: [Tab, string][] = [
@@ -88,19 +86,16 @@ export default function AgentPage() {
 
   return (
     <div className="col" style={{ gap: 14 }}>
-      <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+      <div className="view-tabs agent-tabs" aria-label="助手功能">
         {tabs.map(([k, label]) => (
-          <button key={k} className={`btn btn-sm${tab === k ? ' btn-primary' : ''}`} onClick={() => {if(k!==tab)navigation.request(()=>setTab(k));}}>
+          <button key={k} className={tab===k?'selected':''} aria-pressed={tab===k} onClick={() => {if(k!==tab)navigation.request(()=>setTab(k));}}>
             {label}
             {k === 'proposals' && pendingCount > 0 ? `（${pendingCount}）` : ''}
           </button>
         ))}
-        <span className="muted small" style={{ marginLeft: 'auto' }}>
-          记住你告知的工作，查询来源；正式业务修改仍由你确认
-        </span>
       </div>
 
-      {tab === 'chat' && <div className="chat-layout"><aside className="chat-history"><Card title="最近业务问答" extra={<Button size="sm" onClick={history.reload}>刷新</Button>}>{history.error?<LoadError error={history.error} retry={history.reload}/>:history.loading?<Loading/>:!history.data?.items.length?<Empty text="还没有业务问答记录"/>:history.data.items.slice(0,20).map(r=><button className="chat-history-item" key={r.id} onClick={()=>setSavedRun(r.id)}>{r.question.slice(0,55)}<span className="small muted">{fmtTime(r.created_at)}</span></button>)}</Card></aside><div className="section-content"><ChatPanel onPending={setPendingCount}/>{savedRun&&<Card title="问答证据" extra={<Button size="sm" onClick={()=>setSavedRun(null)}>关闭</Button>}><BusinessAssistantEvidence key={savedRun} runId={savedRun}/></Card>}</div></div>}
+      {tab === 'chat' && <ChatPanel/>}
       {tab !== 'chat' && <div className="agent-secondary">
       {tab === 'records' && <WorkRecordsPage onAsk={()=>navigation.request(()=>setTab('chat'))}/>}
       {tab === 'memory' && <><MemoryPanel /><MemoryLifecycle /></>}
@@ -116,19 +111,30 @@ export default function AgentPage() {
 const chatDraftKey='workbench.chat.draft';
 type ChatRequest={body:string;key:string};
 type ChatDraft={text:string; sessionId:number|null; workbenchId:string; periodId:string; recordMode:string; retry?:ChatRequest|null};
-function readChatDraft(): ChatDraft | null {
+function readChatDraft(key=chatDraftKey): ChatDraft | null {
   try {
-    const draft=JSON.parse(sessionStorage.getItem(chatDraftKey)??'null');
+    const draft=JSON.parse(sessionStorage.getItem(key)??'null');
     if (draft && typeof draft.text==='string' && typeof draft.workbenchId==='string' && typeof draft.periodId==='string'
       && typeof draft.recordMode==='string' && (draft.sessionId===null || Number.isSafeInteger(draft.sessionId))
       && (!draft.retry || (typeof draft.retry.body==='string' && typeof draft.retry.key==='string'))) return draft;
   } catch { /* The composer also works without browser storage. */ }
   return null;
 }
-function clearChatDraft() { try { sessionStorage.removeItem(chatDraftKey); } catch { /* Storage can be unavailable. */ } }
+const sessionDraftKey=(id:number|null)=>chatDraftKey+'.'+(id??'new');
+function clearChatDraft(id:number|null) {
+  try {
+    sessionStorage.removeItem(sessionDraftKey(id));
+    if(readChatDraft()?.sessionId===id)sessionStorage.removeItem(chatDraftKey);
+  } catch { /* Storage can be unavailable. */ }
+}
 
-function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
-  const [restored]=useState(readChatDraft);
+function ChatPanel() {
+  const [savedRun,setSavedRun]=useState<number|null>(null);
+  const history=useApi<{items:{id:number;question:string;artifact_id:number|null;created_at:string}[]}>('/api/agent/business');
+  const sessions=useApi<{items:{id:number;title:string;updated_at:string}[]}>('/api/agent/sessions');
+  const [sessionPage,setSessionPage]=useState(0);
+  const [historyOpen,setHistoryOpen]=useState(false);
+  const [restored]=useState(()=>readChatDraft());
   const toast = useToast();
   const { busy, run } = useAction();
   const [sessionId, setSessionId] = useState<number | null>(restored?.sessionId??null);
@@ -146,31 +152,35 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
   const [recordMode,setRecordMode]=useState(restored?.recordMode??'');
   const navigation=useEditorGuard({dirty:input.length>0,busy,
     save:async()=>{
-      sessionStorage.setItem(chatDraftKey,JSON.stringify({text:input,sessionId,workbenchId,periodId,recordMode,retry:chatRequest.current} satisfies ChatDraft));
+      const draft=JSON.stringify({text:input,sessionId,workbenchId,periodId,recordMode,retry:chatRequest.current} satisfies ChatDraft);
+      sessionStorage.setItem(sessionDraftKey(sessionId),draft);
+      sessionStorage.setItem(chatDraftKey,draft);
       toast('对话草稿已保存在此浏览器标签页','ok');
     },
-    discard:()=>{clearChatDraft();chatRequest.current=null;setInput('');},
+    discard:()=>{clearChatDraft(sessionId);chatRequest.current=null;setInput('');},
   });
+  const currentSession=useRef(sessionId);
+  currentSession.current=sessionId;
+  const [restoreError,setRestoreError]=useState('');
+  const [restoreAttempt,setRestoreAttempt]=useState(0);
   useEffect(()=>{
     if(!restored?.sessionId)return;
     let active=true;
     api.get<{items:AgentMessage[]}>(`/api/agent/messages?sessionId=${restored.sessionId}`).then(r=>{
-      if(active)setMessages(existing=>[...r.items,...existing.filter(m=>!r.items.some(old=>old.id===m.id))]);
-    }).catch(()=>{if(active)toast('对话历史暂时无法读取，草稿已保留','err');});
+      if(active&&currentSession.current===restored.sessionId){
+        setMessages(existing=>[...r.items,...existing.filter(m=>!r.items.some(old=>old.id===m.id))]);
+        setRestoreError('');
+      }
+    }).catch(e=>{if(active&&currentSession.current===restored.sessionId)setRestoreError((e as Error).message||'对话历史暂时无法读取');});
     return ()=>{active=false;};
-  },[restored,toast]);
+  },[restored,restoreAttempt]);
   const endRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
   const workbenches = useWorkbenchCollection();
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if(busy)endRef.current?.scrollIntoView({block:'nearest'});
   }, [messages.length, busy]);
-
-  const loadActions = async (sid: number | null) => {
-    const r = await api.get<{ count: number }>(`/api/agent/actions${sid ? `?sessionId=${sid}` : ''}`);
-    onPending(r.count);
-  };
 
   /**
    * 发照片给助手看。
@@ -210,16 +220,16 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           artifactIds: ids,
           periodId:periodId?Number(periodId):null,
         });
-        clearChatDraft();
+        clearChatDraft(sessionId);
         setInput('');
         setSessionId(r.sessionId);
+        sessions.reload();
         setLastTrace(r.trace);
         const openedDraft=r.trace.find(t=>t.tool==='inspection_draft');if(openedDraft?.args.periodId)setPeriodId(String(openedDraft.args.periodId));if(openedDraft?.args.created)setSuggestOnOpen(Number(openedDraft.args.draftId));
         setMessages((prev) => [
           ...prev,
           { id: r.messageId, role: 'assistant', content: r.text, created_at: new Date().toISOString(), actions: r.actions, businessRunId:r.business?.id },
         ]);
-        await loadActions(r.sessionId).catch(()=>toast('回复已保存，待确认列表刷新失败','err'));
       } catch (e) {
         setMessages(prev=>prev.filter(message=>message.id!==optimisticId));
         toast('照片已上传，对话未收到成功回执：'+(e as Error).message, 'err');
@@ -251,16 +261,16 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           workbenchId: workbenchId ? Number(workbenchId) : null,
           periodId:periodId?Number(periodId):null,
         });
-        clearChatDraft();
+        clearChatDraft(sessionId);
         chatRequest.current=null;
         setSessionId(r.sessionId);
+        sessions.reload();
         setLastTrace(r.trace);
         const openedDraft=r.trace.find(t=>t.tool==='inspection_draft');if(openedDraft?.args.periodId)setPeriodId(String(openedDraft.args.periodId));if(openedDraft?.args.created)setSuggestOnOpen(Number(openedDraft.args.draftId));
         setMessages((prev) => [
           ...prev,
           { id: r.messageId, role: 'assistant', content: r.text, created_at: new Date().toISOString(), actions: r.actions, businessRunId:r.business?.id },
         ]);
-        await loadActions(r.sessionId).catch(() => toast('回复已保存，待确认列表刷新失败，请刷新页面查看', 'err'));
         if (!r.actions.length) toast(`完成（${r.model}，${(r.usage.total / 1000).toFixed(1)}k tokens）`, 'ok');
       } catch (e) {
         setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
@@ -300,50 +310,47 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
       const r = await api.get<{ items: AgentMessage[] }>(`/api/agent/messages?sessionId=${sessionId}`);
       setMessages(r.items);
     }
-    await loadActions(sessionId);
   };
 
   const pending = messages.flatMap((m) => m.actions).filter((a) => a.status === 'pending');
 
+  const openSession=(id:number|null)=>{
+    if(id===sessionId&&id!==null){
+      setHistoryOpen(false);
+      if(restoreError)setRestoreAttempt(n=>n+1);
+      return;
+    }
+    navigation(()=>void run(async()=>{
+      const items=id?(await api.get<{items:AgentMessage[]}>(`/api/agent/messages?sessionId=${id}`)).items:[];
+      const draft=readChatDraft(sessionDraftKey(id));
+      setSessionId(id);setMessages(items);setLastTrace([]);setSavedRun(null);setHistoryOpen(false);
+      setInput(draft?.text??'');setRecordMode(draft?.recordMode??'');setWorkbenchId(draft?.workbenchId??'');setPeriodId(draft?.periodId??'');
+      setSuggestOnOpen(undefined);chatRequest.current=draft?.retry??null;
+      setRestoreError('');
+    }));
+  };
+  const sessionRows=sessions.data?.items??[];
+  const currentTitle=sessionRows.find(r=>r.id===sessionId)?.title;
   return (
-    <>
+    <div className="chat-layout assistant-conversation">
+      <aside className={`chat-history${historyOpen?' show-history':''}`}>
+        <button className="btn chat-history-toggle" aria-expanded={historyOpen} onClick={()=>setHistoryOpen(!historyOpen)}>历史对话</button>
+        <Card className="session-list" title="历史对话" extra={<Button size="sm" disabled={busy} onClick={()=>openSession(null)}>新对话</Button>}>
+          {sessions.error?<LoadError error={sessions.error} retry={sessions.reload}/>:sessions.loading?<Loading/>:
+            !sessionRows.length?<p className="muted">暂无已保存的对话</p>:sessionRows.slice(sessionPage*8,(sessionPage+1)*8).map(item=>
+              <button type="button" key={item.id} className="chat-history-item" aria-pressed={sessionId===item.id} disabled={busy} onClick={()=>openSession(item.id)}>
+                {item.title}<span className="small muted">{fmtTime(item.updated_at)}</span></button>)}
+          {sessionRows.length>8&&<div className="library-pagination"><Button size="sm" disabled={!sessionPage} onClick={()=>setSessionPage(p=>p-1)}>上一页</Button>
+            <Button size="sm" disabled={(sessionPage+1)*8>=sessionRows.length} onClick={()=>setSessionPage(p=>p+1)}>下一页</Button></div>}
+          <details className="business-history"><summary>业务问答记录</summary><Button size="sm" onClick={history.reload}>刷新记录</Button>
+          {history.error?<LoadError error={history.error} retry={history.reload}/>:history.loading?<Loading/>:!history.data?.items.length?<p className="muted">还没有业务问答记录</p>:history.data.items.slice(0,20).map(r=><button className="chat-history-item" key={r.id} onClick={()=>setSavedRun(r.id)}>{r.question}<span>{fmtTime(r.created_at)}</span></button>)}</details>
+        </Card>
+      </aside><div className="section-content conversation-body">
+      {savedRun&&<Card title="问答证据" extra={<Button size="sm" onClick={()=>setSavedRun(null)}>关闭</Button>}><BusinessAssistantEvidence key={savedRun} runId={savedRun}/></Card>}
       {inspectionContext&&periodId&&<InspectionDrafts key={periodId} refreshKey={messages.length} suggestOnOpen={suggestOnOpen} onSuggestionStarted={()=>setSuggestOnOpen(undefined)} periodId={Number(periodId)} workbenchId={Number(workbenchId)} templates={inspectionContext.templates}/>}
-      <Card
-        title="本次对话"
-        extra={
-          <>
-            <Select value={recordMode} onChange={setRecordMode} options={[{value:'',label:'自动识别'},{value:'capture',label:'记工作记录'},{value:'query',label:'查工作记录／总结'}]}/>
-            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={v=>{setWorkbenchId(v);setPeriodId('');}} placeholder="不指定工作"/>
-            {!!businessPeriods.length&&<Select value={periodId} onChange={setPeriodId} placeholder="期间由问题或唯一资料期次确定" options={businessPeriods.map(p=>({value:String(p.id),label:p.report_period}))}/>}
-            {sessionId && (
-              <Button
-                size="sm"
-                onClick={() => navigation(() => {
-                  setInput('');
-                  setSessionId(null);
-                  setMessages([]);
-                  setLastTrace([]);
-                  onPending(0);
-                })}
-              >
-                新对话
-              </Button>
-            )}
-          </>
-        }
-      >
-        <div className="notice notice-info">
-          直接说事就行，例如：
-          <strong>「记一下：今天已经把会议材料发给办公室了」</strong>、
-          <strong>「我这个月做了什么？」</strong>，也可以询问项目进展或起草正式文书。
-          <br />
-          <span className="small">
-            工作记录保存在本机，可跨对话查询、更正与撤回；不需要配置模型。记录回顾按原话列出，正式业务分析与文书起草使用对应证据和模型。
-            <strong>定稿、实际完成与业务修改仍需明确确认。</strong>
-          </span>
-        </div>
-
-        {messages.length === 0 && !busy && (
+      <Card title={currentTitle||'本次对话'} className="chat-transcript">
+        {restoreError&&<LoadError error={{message:restoreError}} retry={()=>setRestoreAttempt(n=>n+1)}/>}
+        {messages.length === 0 && !busy && !restoreError && (
           <Empty text="可以在下方输入一件事，或问一句「我有哪些工作？」" />
         )}
 
@@ -355,7 +362,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
                 <div style={{ flex: 1, whiteSpace: 'pre-wrap', lineHeight: 1.75 }}><RecordMessageText text={m.content}/></div>
                 <span className="muted small nowrap">{fmtTime(m.created_at)}</span>
               </div>
-              {m.businessRunId&&<BusinessAssistantEvidence runId={m.businessRunId}/>}
+              {m.businessRunId&&<details><summary>查看本次问答证据</summary><BusinessAssistantEvidence runId={m.businessRunId}/></details>}
               {m.actions.length > 0 && (
                 <div className="col" style={{ gap: 8, marginTop: 8, marginLeft: 46 }}>
                   {m.actions.map((a) => (
@@ -396,7 +403,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
       )}
 
       {lastTrace.length > 0 && (
-        <Card title="这一轮它做了什么" collapsible>
+        <Card title="本轮操作记录" collapsible defaultOpen={false}>
           <div className="col" style={{ gap: 6 }}>
             {lastTrace.map((t, i) => (
               <div key={i} className="small">
@@ -414,7 +421,7 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
           <div style={{ flex: 1 }}>
             <Textarea
               value={input}
-              onChange={value=>{setInput(value);if(!value)clearChatDraft();}}
+              onChange={value=>{setInput(value);if(!value)clearChatDraft(sessionId);}}
               disabled={busy}
               onKeyDown={e=>{
                 if(e.key!=='Enter'||e.shiftKey||e.nativeEvent.isComposing||e.nativeEvent.keyCode===229)return;
@@ -425,6 +432,10 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
               placeholder="交代一件事，或者问一句…（Enter 发送，Shift+Enter 换行）"
             />
           </div>
+        </div><div className="composer-options">
+            <Select value={recordMode} onChange={setRecordMode} options={[{value:'',label:'自动识别'},{value:'capture',label:'记工作记录'},{value:'query',label:'查工作记录／总结'}]}/>
+            <WorkbenchSelect collection={workbenches} value={workbenchId} onChange={v=>{setWorkbenchId(v);setPeriodId('');}} placeholder="不指定工作"/>
+            {!!businessPeriods.length&&<Select value={periodId} onChange={setPeriodId} placeholder="期间由问题或唯一资料期次确定" options={businessPeriods.map(p=>({value:String(p.id),label:p.report_period}))}/>}
           <Button disabled={busy} onClick={() => photoRef.current?.click()} title="把照片交给它看：拍到了什么、是否符合要求、接下来该做什么">
             📷 附照片
           </Button>
@@ -444,12 +455,12 @@ function ChatPanel({ onPending }: { onPending: (n: number) => void }) {
             sendPhotos(files);
           }}
         />
-        <p className="muted small" style={{ marginBottom: 0 }}>
-          照片会先存进{workbenchId ? '选中的这份工作' : '待归档'}，然后交给视觉模型看懂 ——
-          它据此判断、并把该做的事提成待确认动作（比如核销某条影像清单、记一条备忘）。
-        </p>
+        <details className="chat-help"><summary>对话和照片说明</summary>
+          <p>工作记录保存在本机，可查询、更正与撤回。定稿和业务修改需明确确认。</p>
+          <p>照片会先存入{workbenchId?'选中的工作':'待归档'}，再提交给视觉模型分析。</p>
+        </details>
       </Card>
-    </>
+      </div></div>
   );
 }
 

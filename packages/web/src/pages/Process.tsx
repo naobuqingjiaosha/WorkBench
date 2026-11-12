@@ -1,3 +1,4 @@
+import {NavIcon} from '../components/DesignSystem';
 import {useEffect,useRef,useState} from 'react';
 import {api,useApi,type WorkType,type Template} from '../api';
 import {Button,Card,Field,Input,Loading,Modal,Select,Textarea,Tag} from '../ui';
@@ -25,11 +26,23 @@ export default function ProcessPage(){
    returnType.current=null;
   }
  },[active]);
- return <div ref={layout} className={`col workflow-config${active!==null?' workflow-config-open':''}`} style={{gap:14}}><div className="notice notice-info">先编辑并保存草稿，再检查差异并发布配置。发布仅影响之后新建的工作；在办、历史和定稿保持原状。本轮尚不提供向在办工作的新版批量应用。</div>
- <div className="row"><h2>流程规范</h2><WorkTypeEditor types={types.data?.items??[]} onDone={id=>{types.reload();setActive(id);}}/></div>
+ return <div ref={layout} className={`col workflow-config${active!==null?' workflow-config-open':''}`} style={{gap:12}}>
+ <div className="workflow-toolbar"><WorkTypeEditor types={types.data?.items??[]} onDone={id=>{types.reload();setActive(id);}}/></div>
+ <div className="notice notice-info">先保存草稿，再核对差异并发布配置。发布后的规则供之后新建的工作使用。</div>
  {types.error&&<div role="alert">{types.error.message}<Button onClick={types.reload}>重试列表</Button></div>}
- <div className="page-split"><Card className="workflow-type-list" title="工作类型">{types.loading?<Loading/>:[...TYPE_GROUPS,{value:'',label:'待确认分类'}].map(g=><section key={g.value}><h3>{g.label}</h3>{types.data?.items.filter(t=>(t.navigation_group??'')===g.value).map(t=><button type="button" key={t.id} data-work-type={t.id} aria-pressed={active===t.id} className={`btn workflow-type-option ${active===t.id?'btn-primary':'btn-ghost'}`} onClick={()=>{if(active!==t.id)guard.request(()=>setActive(t.id));}}>{t.display_name||t.name} · {t.archived_at?'已停用':t.published_config_id?'已发布':'未发布草稿'}</button>)}</section>)}</Card>
- {active?<div className="col workflow-config-pane" tabIndex={-1}><ConfigLoader key={active} id={active} changed={types.reload} back={back}/></div>:<Card title="选择工作类型"><p>查看已发布配置、编辑草稿，或从已有配置复制一个新类型。</p></Card>}</div></div>;
+ <div className="page-split"><Card className="workflow-type-list" title="工作类型">{types.loading?<Loading/>:[...TYPE_GROUPS,{value:'',label:'待确认分类'}].map(group=>{
+   const entries=types.data?.items.filter(t=>(t.navigation_group??'')===group.value)??[];
+   return entries.length>0&&<section key={group.value}><h4>{group.label}</h4>{entries.map(t=>{
+     const status=t.archived_at?'已停用':t.published_config_id?'已发布':'未发布草稿';
+     return <button type="button" key={t.id} data-work-type={t.id} aria-label={`${t.display_name||t.name} · ${status}`} aria-pressed={active===t.id} className="workflow-type-option" onClick={()=>{if(active!==t.id)guard.request(()=>setActive(t.id));}}>
+       <span>{t.display_name||t.name}</span><Tag kind={t.archived_at?'default':t.published_config_id?'ok':'warn'}>{status}</Tag></button>;
+   })}</section>;
+ })}</Card>
+ {active?<div className="col workflow-config-pane" tabIndex={-1}><ConfigLoader key={active} id={active} changed={types.reload} back={back}/></div>:
+ <Card title="选择工作类型" className="workflow-intro">
+   <div className="workflow-intro-lead"><NavIcon name="files"/><h3>从工作类型中选择一项</h3><p>查看现行规则，编辑草稿，或复制一个新类型。</p></div>
+   <ol>{[['编辑配置','维护类型、阶段和材料要求'],['保存草稿','可继续修改和补全'],['检查差异并发布','核对变更后供新工作采用']].map(([title,hint],i)=><li key={title}><span>{i+1}</span><div><strong>{title}</strong><small>{hint}</small></div></li>)}</ol>
+ </Card>}</div></div>;
 }
 function ConfigLoader({id,changed,back}:{id:number;changed:()=>void;back:()=>void}){
  const loaded=useApi<ConfigState>('/api/workflow-config/'+id);
@@ -83,7 +96,7 @@ function ConfigEditor({initial,changed,back}:{initial:ConfigState;changed:()=>vo
  {history&&<div>{state.versions.map(v=><p key={v.id}>v{v.version_no} · {v.created_at} · {v.origin==='legacy-baseline'?'迁移兼容基线（不是旧实例来源证明）':'已发布'}：{v.change_note}</p>)}</div>}
  </Card>
  <fieldset disabled={busy} style={{border:0,padding:0,display:'grid',gap:14}}>
- <Card title="类型与执行方式"><div className="grid grid-2">{textField('类型名称',p.type.name,v=>edit(x=>{x.type.name=v;}))}<Field label="稳定编码"><Input value={p.type.code} disabled onChange={()=>{}}/></Field>
+ <Card title="类型与执行方式"><div className="grid workflow-basic-fields">{textField('类型名称',p.type.name,v=>edit(x=>{x.type.name=v;}))}<Field label="稳定编码"><Input value={p.type.code} disabled onChange={()=>{}}/></Field>
  <Field label="导航分类"><Select value={p.type.navigation_group??''} onChange={v=>edit(x=>{x.type.navigation_group=v as WorkflowConfig['type']['navigation_group'];x.type.domain=v==='administration'?'admin':'project';})} options={[{value:'',label:'待确认'},...TYPE_GROUPS]}/></Field>
  {textField('业务分类',p.type.category,v=>edit(x=>{x.type.category=v;}))}<Field label="执行方式"><Select value={p.type.mode} onChange={v=>edit(x=>{x.type.mode=v as 'process'|'document';})} options={[{value:'process',label:'阶段流程'},{value:'document',label:'文书 / 周期事务'}]}/></Field>
  <Field label="专用能力"><Select value={p.type.executor} onChange={v=>edit(x=>{x.type.executor=v as 'general'|'timesheet';})} options={[{value:'general',label:'通用材料与文书'},{value:'timesheet',label:'月度部门工时'}]}/></Field>

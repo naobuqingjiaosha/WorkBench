@@ -24,8 +24,8 @@
 | [安装与启动指南](guides/INSTALLATION.md) | 首次安装、本机配置、构建和日常启动步骤 |
 | [月度工时与年度台账操作及开发验收](guides/MONTHLY_DEVELOPMENT.md) | GOV-12月度工时与年度台账日常操作、隔离验收证据和已发布能力边界 |
 | [运行、备份、恢复与发布手册](guides/OPERATIONS.md) | 运行、备份、恢复、发布与排障 |
-| [前台设计 V2 实施与隔离核验](guides/UI_DESIGN_IMPLEMENTATION.md) | GOV-13前台设计V2限定发布、隔离预览、浏览器验证与验收边界 |
-| [使用说明](guides/USER_GUIDE.md) | 当前日常版操作、异常处理及反馈 |
+| [工作台前台设计与验收指南](guides/UI_DESIGN_IMPLEMENTATION.md) | GOV-13 十三页设计实施、隔离验收、实页截图与历史验证范围 |
+| [使用说明](guides/USER_GUIDE.md) | 当前源码的页面操作、异常处理与目标设备版本核对 |
 | [项目变更记录](management/CHANGELOG.md) | 既有任务历史记录；不代表当前状态，不再追加新任务 |
 | [文档治理与AI读取规范](management/DOCUMENT_CONTROL.md) | 知识权威规则、索引契约和维护方法 |
 | [项目章程与范围说明](management/PROJECT_CHARTER.md) | 目标、范围、交付、责任、资源和阶段出口 |

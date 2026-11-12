@@ -91,7 +91,7 @@ function wordTemplate(title:string,lines:string[]){
   const row=list.getByRole('row').filter({hasText:'安全例会纪要'});
   await row.getByText('待办期次截止 '+meeting.p.due_date,{exact:true}).waitFor();
   await row.getByRole('button',{name:'继续办理'}).click();
-  const select=page.locator('.period-panel > .card-body > .row select');
+  const select=page.getByRole('combobox',{name:'办理期次',exact:true});
   await page.waitForURL('**/workbench?id='+meeting.work.id+'&periodId='+meeting.p.id);
   await page.locator('.period-workspace').waitFor();
   assert.equal(await select.inputValue(),String(meeting.p.id));
@@ -227,7 +227,7 @@ function wordTemplate(title:string,lines:string[]){
   const table=list.locator('.workbench-list-content');
   const openLast=table.getByRole('button',{name:'继续办理',exact:true}).last();
   await openLast.scrollIntoViewIfNeeded();
-  const scrollTop=()=>table.evaluate((el:{scrollTop:number})=>el.scrollTop);
+  const scrollTop=()=>page.locator('.content.page-workbench').evaluate((el:HTMLElement)=>el.scrollTop);
   const top=await scrollTop();
   assert.ok(top>0);
   await openLast.click();await page.locator('.work-detail').waitFor();

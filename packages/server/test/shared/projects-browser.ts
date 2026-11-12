@@ -87,7 +87,7 @@ await withBrowserPage(async(page,base)=>{
   await stages.first().click();
   assert.equal(await stages.first().getAttribute('aria-expanded'),'true');
   await page.getByLabel('阶段说明',{exact:true}).fill('合成布局回归说明');
-  const pane=page.locator('.workflow-config-pane');
+  const pane=page.locator('.page-process');
   const save=button('保存草稿');
   assert.ok(await save.isEnabled());
   await pane.evaluate((el:HTMLElement)=>el.scrollTo(0,el.scrollHeight));

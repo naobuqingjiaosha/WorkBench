@@ -6,7 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import { api, useApi } from '../api';
 import { Button, Card, Field, Input, Select, Textarea, useAction } from '../ui';
 export interface Inbox {
-    other:{kind:string;title:string;reason:string;href:string;workbenchId:number;workbenchName:string}[];
+    other:{kind:string;dueAt?:string|null;title:string;reason:string;href:string;workbenchId:number;workbenchName:string}[];
     otherTruncated:boolean;
     periods: {
         id: number;
@@ -14,16 +14,19 @@ export interface Inbox {
         name: string;
         report_period: string;
         due_date: string;
+        created_at?: string;
         overdue: boolean;
         missing: string[];
         nextAction:string;
         canComplete:boolean;
     }[];
     todos: {
+        kind?:string;
         id: number;
         title: string;
         due_date: string | null;
         note: string;
+        created_at?: string;
     }[];
     timesheets: {
         id: number;

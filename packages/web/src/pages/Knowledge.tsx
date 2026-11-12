@@ -1,6 +1,6 @@
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
-import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
+import {LoadError} from '../components/DesignSystem';
 import {FilePreview} from '../components/FilePreview';
 /** 模板是日常知识库入口；制度维护移至系统配置。
  * 制度资料只在当前请求明确启用时参与引用，不因页面可见性自动启用。
@@ -85,14 +85,13 @@ export default function KnowledgePage({params,go}:{params:Record<string,string>;
   const id = Number(params.templateId);
   const linkedTemplateId = Number.isSafeInteger(id) && id > 0 ? id : undefined;
   const activeSection = linkedTemplateId ? 'template' : section;
-  return <PageSplit nav={<SectionNav value={activeSection} onChange={setSection} items={[
-    {value:'template',label:'模板库'}, {value:'coverage',label:'字段映射'},
-  ]}/>}><div className="section-content">
-    {activeSection === 'template' ? <TemplatePanel
-      linkedTemplateId={linkedTemplateId}
+  return <div className="section-content knowledge-library">
+    <div className="view-tabs" aria-label="知识库功能">{[['template','模板库'],['coverage','字段映射']].map(([key,label])=>
+      <button key={key} type="button" className={activeSection===key?'selected':''} aria-pressed={activeSection===key} onClick={()=>setSection(key)}>{label}</button>)}</div>
+    {activeSection === 'template' ? <TemplatePanel linkedTemplateId={linkedTemplateId}
       onCloseLinked={()=>{const rest={...params};delete rest.templateId;go('knowledge',rest);}}
     /> : <CoveragePanel />}
-  </div></PageSplit>;
+  </div>;
 }
 
 /** 保留原维护/查询能力，只在设置的折叠维护区由用户主动打开。 */

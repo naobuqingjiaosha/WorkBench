@@ -73,8 +73,108 @@ export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId
   const rows = allRows.filter(t => (!category || t.category===category || t.category.startsWith(category+'/')) &&
     (!keyword || [t.name,t.code,t.description,t.category].some(s=>s?.toLowerCase().includes(keyword.toLowerCase()))));
 
+  const detailRef=useRef<HTMLDivElement>(null);
+  const [selectedId,setSelectedId]=useState<number|null>(null);
+  const [page,setPage]=useState(0);
+  const pageSize=10;
+  const currentPage=Math.min(page,Math.max(0,Math.ceil(rows.length/pageSize)-1));
+  const visibleRows=rows.slice(currentPage*pageSize,(currentPage+1)*pageSize);
+  const selected=visibleRows.find(t=>t.id===selectedId)??visibleRows[0];
+  const selectCategory=(value:string)=>{setCategory(value);setPage(0);};
   return (
-    <div className="col" style={{ gap: 14 }}>
+    <div className="section-content template-library">
+
+      <div className="library-toolbar">
+            <Input value={keyword} onChange={v=>{setKeyword(v);setPage(0);}} placeholder="搜模板名" />
+            <Button onClick={()=>{setArchived(v=>!v);selectCategory('');setKeyword('');}}>{archived?'返回在用模板':'查看归档'}</Button>
+            <Button
+              disabled={checking}
+              onClick={() =>
+                runHealthCheck(async () => {
+                  const r = await api.post<{ checked: number; bad: number }>('/api/templates/health-check');
+                  list.reload();
+                  toast(`检查了 ${r.checked} 个模板，发现 ${r.bad} 个有问题`, r.bad ? 'err' : 'ok');
+                })
+              }
+            >
+              {checking ? '检查中…' : '检查模板是否可用'}
+            </Button>
+            <Button kind="primary" onClick={() => setUploadOpen(true)}>
+              ＋ 上传模板
+            </Button>
+      </div>
+      <div className="template-browser">
+        <Card className="template-categories" title="资料分类">
+          <nav aria-label="模板资料分类">{['',...folderOptions].map(value=><button type="button" key={value} aria-pressed={value===category}
+            onClick={()=>selectCategory(value)}>{value ? CATEGORY_TEXT[value]??value.replaceAll('/',' / ') : '全部资料'}</button>)}</nav>
+        </Card>
+        <Card className="template-list" title={archived?'已归档模板':'模板资料'} extra={<span className="muted">共 {rows.length} 份</span>}>
+        {list.loading ? (
+          <Loading />
+        ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : rows.length === 0 ? (
+          <Empty
+            text={allRows.length ? '当前目录或关键词下没有匹配的模板。' : archived ? '暂无已归档的模板。' : '暂无在用模板，可上传 Word 或 Excel 模板。'}
+            action={allRows.length ? <Button onClick={()=>{setKeyword('');setCategory('');}}>清除筛选</Button> : undefined}
+          />
+        ) : (
+          <><table className="table template-table">
+            <thead><tr><th>资料名称</th><th>变量</th><th>更新日期</th></tr></thead>
+            <tbody>{visibleRows.map(t=><tr key={t.id} className={t.id===selected?.id?'is-selected':''}>
+              <td><button className="template-select" type="button" aria-pressed={selected?.id===t.id} onClick={()=>{setSelectedId(t.id);if(matchMedia('(max-width:760px)').matches)detailRef.current?.scrollIntoView({block:'start'});}}><span className={`file-ico ${t.file_format?.includes('xls')?'xls':'doc'}`}>{t.file_format?.toUpperCase()}</span><strong>{t.name}</strong></button>
+                {t.file_exists===false&&<Tag kind="err">文件丢失</Tag>}{t.health_ok===0&&<Tag kind="err">模板损坏</Tag>}</td>
+              <td>{t.variable_count>0||t.vars_rel?t.variable_count+' 个':'暂无变量清单'}</td>
+              <td>{t.updated_at?.slice(0,10)||'—'}</td></tr>)}</tbody>
+          </table><div className="library-pagination"><span>第 {currentPage+1} 页，共 {Math.ceil(rows.length/pageSize)} 页</span>
+          <Button size="sm" disabled={!currentPage} onClick={()=>setPage(currentPage-1)}>上一页</Button>
+          <Button size="sm" disabled={(currentPage+1)*pageSize>=rows.length} onClick={()=>setPage(currentPage+1)}>下一页</Button></div></>
+        )}
+        </Card>
+        <div ref={detailRef} className="template-detail-pane"><Card className="template-details" title={selected?.name??'资料详情'}>
+          {!selected||list.error||list.loading?<p className="muted">选择模板查看详情。</p>:<>
+            <div className="row"><Tag kind="info">{selected.file_format?.toUpperCase()}</Tag><Tag kind={selected.health_ok===0||selected.file_exists===false?'err':selected.health_ok===1?'ok':'default'}>{selected.file_exists===false?'文件丢失':selected.health_ok===0?'模板损坏':selected.health_ok===1?'已校验':'未校验'}</Tag></div>
+            <dl className="template-meta"><dt>分类</dt><dd>{CATEGORY_TEXT[selected.category]??selected.category.replaceAll('/',' / ')}</dd>
+            <dt>变量</dt><dd>{selected.variable_count>0||selected.vars_rel?selected.variable_count+' 个':'暂无变量清单'}</dd>
+            <dt>填充</dt><dd>{selected.renderable===false?'不可填充':'可填充'}</dd>
+            <dt>更新</dt><dd>{fmtTime(selected.updated_at)}</dd></dl>
+            {selected.description&&<p>{selected.description}</p>}
+            {selected.health_ok===0&&<p className="notice notice-err">{brokenNote(selected)}。可重新上传修复后的文件。</p>}
+            <div className="template-operations">
+                    {archived && <Button size="sm" onClick={async()=>{try{await api.post(`/api/templates/${selected.id}/unarchive`);list.reload();toast('已恢复','ok');}catch(e){toast((e as {message:string}).message,'err');}}}>恢复</Button>}
+                      <Button size="sm" onClick={() => setReuploading(selected)}>
+                        重新上传
+                      </Button>
+                    <Button size="sm" onClick={() => setEditing(selected)}>
+                      设置
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const [r, s] = await Promise.all([
+                            api.post<{ preview: string; variables: { name: string }[]; warnings: string[] }>(`/api/templates/${selected.id}/scan`),
+                            /** 结构扫描：拿到「哪些是循环集合、哪些是图片」，好在这个弹窗里分开列 */
+                            api.get<{ variables: { name: string; raw: string }[] }>(`/api/templates/${selected.id}/scan-preview`),
+                          ]);
+                          setScanning({ id: selected.id, name: selected.name, preview: r.preview, variables: r.variables, warnings: r.warnings, raw: s.variables ?? [] });
+                          list.reload();
+                        } catch (e) {
+                          toast((e as { message: string }).message, 'err');
+                        }
+                      }}
+                    >
+                      扫描变量
+                    </Button>
+                    <Button size="sm" onClick={() => setPreviewing(selected)}>预览与核对</Button>
+                    <Button size="sm" kind="ghost" onClick={() => api.download(`/api/templates/${selected.id}/file`, `${selected.name}.${selected.file_format}`)}>
+                      下载
+                    </Button>
+                    <Button size="sm" kind={archived ? 'danger' : 'ghost'} onClick={() => setDeleting(selected)}>
+                      {archived ? '彻底删除' : '归档'}
+                    </Button>
+            </div>
+          </>}
+        </Card></div>
+      </div>
       <details className="template-guide card">
       <summary>模板使用说明 · 变量、循环与图片</summary>
       <div className="card-body">
@@ -138,128 +238,6 @@ export function TemplatePanel({linkedTemplateId,onCloseLinked}:{linkedTemplateId
       </div>
 
       </div></details>
-      <Card
-        title={`${archived ? '已归档模板' : '模板库'}（${rows.length}）`}
-        extra={
-          <>
-            <Button onClick={()=>{setArchived(v=>!v);setCategory('');setKeyword('');}}>{archived?'返回在用模板':'查看归档'}</Button>
-            <Input value={keyword} onChange={setKeyword} placeholder="搜模板名" />
-            <Select
-              value={category}
-              onChange={setCategory}
-              placeholder="全部目录"
-              options={folderOptions.map(value=>({value,label:CATEGORY_TEXT[value] ?? value.replaceAll('/',' / ')}))}
-            />
-            <Button
-              disabled={checking}
-              onClick={() =>
-                runHealthCheck(async () => {
-                  const r = await api.post<{ checked: number; bad: number }>('/api/templates/health-check');
-                  list.reload();
-                  toast(`检查了 ${r.checked} 个模板，发现 ${r.bad} 个有问题`, r.bad ? 'err' : 'ok');
-                })
-              }
-            >
-              {checking ? '检查中…' : '检查模板是否可用'}
-            </Button>
-            <Button kind="primary" onClick={() => setUploadOpen(true)}>
-              ＋ 上传模板
-            </Button>
-          </>
-        }
-      >
-        {list.loading ? (
-          <Loading />
-        ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : rows.length === 0 ? (
-          <Empty
-            text={allRows.length ? '当前目录或关键词下没有匹配的模板。' : archived ? '暂无已归档的模板。' : '暂无在用模板，可上传 Word 或 Excel 模板。'}
-            action={allRows.length ? <Button onClick={()=>{setKeyword('');setCategory('');}}>清除筛选</Button> : undefined}
-          />
-        ) : (
-          <table className="table template-table">
-            <thead>
-              <tr>
-                <th>模板名</th>
-                <th>类别</th>
-                <th>变量</th>
-                <th>格式</th>
-                <th>更新时间</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((t) => {
-                /** 只有明确校验为坏（0）才标红；null=还没校验过，不吓唬用户 */
-                const broken = t.health_ok === 0;
-                return (
-                <tr key={t.id}>
-                  <td>
-                    <div className="row" style={{ gap: 9 }}>
-                      <span className={`file-ico ${t.file_format?.includes('xls') ? 'xls' : 'doc'}`}>{t.file_format?.toUpperCase()}</span>
-                      <div className="check-main">
-                        <div className="check-title">
-                          {t.name}
-                          {broken && (
-                            <span title={brokenNote(t)} style={{ marginLeft: 6 }}>
-                              <Tag kind="err">模板损坏</Tag>
-                            </span>
-                          )}
-                        </div>
-                        {t.description && <div className="check-detail ellipsis">{t.description}</div>}
-                        {broken && (
-                          <div className="check-detail" style={{ color: 'var(--err)' }} title={brokenNote(t)}>
-                            打不开：{t.health_note ?? '文件结构已损坏'}　→ 请在 Word/Excel 里打开原件、「另存为」后点本行的「重新上传」替换文件。
-                          </div>
-                        )}
-                        {t.file_exists === false && <div className="check-detail" style={{ color: 'var(--err)' }}>模板文件丢失</div>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="small">{CATEGORY_TEXT[t.category] ?? t.category.replaceAll('/',' / ')}</td>
-                  <td className="small nowrap">{t.variable_count > 0 || t.vars_rel ? <Tag kind="info">{t.variable_count} 个</Tag> : <Tag>暂无变量清单</Tag>}</td>
-                  <td className="small nowrap">{t.renderable === false ? <Tag kind="err">不可填充</Tag> : <Tag kind="ok">可填充</Tag>}</td>
-                  <td className="small muted nowrap">{fmtTime(t.updated_at ?? undefined)}</td>
-                  <td className="nowrap">
-                    {archived && <Button size="sm" onClick={async()=>{try{await api.post(`/api/templates/${t.id}/unarchive`);list.reload();toast('已恢复','ok');}catch(e){toast((e as {message:string}).message,'err');}}}>恢复</Button>}
-                      <Button size="sm" onClick={() => setReuploading(t)}>
-                        重新上传
-                      </Button>
-                    <Button size="sm" onClick={() => setEditing(t)}>
-                      设置
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const [r, s] = await Promise.all([
-                            api.post<{ preview: string; variables: { name: string }[]; warnings: string[] }>(`/api/templates/${t.id}/scan`),
-                            /** 结构扫描：拿到「哪些是循环集合、哪些是图片」，好在这个弹窗里分开列 */
-                            api.get<{ variables: { name: string; raw: string }[] }>(`/api/templates/${t.id}/scan-preview`),
-                          ]);
-                          setScanning({ id: t.id, name: t.name, preview: r.preview, variables: r.variables, warnings: r.warnings, raw: s.variables ?? [] });
-                          list.reload();
-                        } catch (e) {
-                          toast((e as { message: string }).message, 'err');
-                        }
-                      }}
-                    >
-                      扫描变量
-                    </Button>
-                    <Button size="sm" onClick={() => setPreviewing(t)}>预览与核对</Button>
-                    <Button size="sm" kind="ghost" onClick={() => api.download(`/api/templates/${t.id}/file`, `${t.name}.${t.file_format}`)}>
-                      下载
-                    </Button>
-                    <Button size="sm" kind={archived ? 'danger' : 'ghost'} onClick={() => setDeleting(t)}>
-                      {archived ? '彻底删除' : '归档'}
-                    </Button>
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </Card>
 
       {preview && <TemplatePreview key={preview.id} template={preview} onClose={linkedTemplateId ? onCloseLinked : () => setPreviewing(null)} onRescanned={list.reload} />}
 

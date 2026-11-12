@@ -1,5 +1,5 @@
 import {PolicyMaintenancePanel} from './Knowledge';
-import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
+import {SectionNav,LoadError} from '../components/DesignSystem';
 import {useEditorGuard} from '../components/NavigationGuard';
 import {useModalSave} from '../components/useUnsavedClose';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -114,18 +114,31 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
 
 
   return (
-    <PageSplit nav={<SectionNav value={section} onChange={v=>{if(v!==section)window.location.hash='#/settings?section='+v;}} items={[{value:'runtime',label:'运行状态'},{value:'models',label:'模型与资料'},{value:'backup',label:'目录与备份'},{value:'app',label:'应用与导出'}]}/>}><div className="section-content" ref={panel}>
+    <div className="settings-view"><SectionNav value={section} onChange={v=>{if(v!==section)window.location.hash='#/settings?section='+v;}} items={[{value:'runtime',label:'运行状态'},{value:'models',label:'模型与资料'},{value:'backup',label:'目录与备份'},{value:'app',label:'应用与导出'}]}/><div className="section-content" ref={panel}>
       {section==='runtime'&&<><Card title="运行状态" extra={<Button onClick={health.reload}>重新检查</Button>}>{health.error?<LoadError error={health.error} retry={health.reload}/>:health.loading?<Loading/>:<><div className="summary-grid"><div>服务状态<strong>{health.data?.status==='ok'?'正常':'待核查'}</strong></div><div>前端构建<strong>{health.data?.webBuilt?'已加载':'未找到'}</strong></div><div>运行方式<strong>本机</strong></div></div><p className="small muted">检查时间 {fmtTime(health.data?.time)} · 当前连接 {window.location.origin}</p></>}</Card><Card title="高级诊断" collapsible defaultOpen={false}><dl className="kv"><dt>启动时间</dt><dd>{fmtTime(health.data?.loadedBuild.startedAt)}</dd><dt>后端摘要</dt><dd className="mono">{health.data?.loadedBuild.sourceSha256}</dd><dt>前端摘要</dt><dd className="mono">{health.data?.loadedBuild.frontendSha256}</dd></dl></Card></>}
       <div className="settings-panel" hidden={section!=='models'}>
-      <details className="reference-maintenance card" open={referenceOpen} onToggle={e=>{setReferenceOpen(e.currentTarget.open);if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details>
-      <div className="notice notice-info">
-        模型接口按 OpenAI 兼容协议接入，支持 LM Studio、Ollama 及兼容的云端服务。
-        API Key 只存在本机数据库里，只在本机 <code>127.0.0.1</code> 上使用，接口返回时一律打码。
+      <div className="models-layout">
+      <div className="models-primary">
+        <div className="notice notice-info">
+          支持 LM Studio、Ollama 及兼容 OpenAI 接口的服务。密钥存于本机，配置接口仅返回脱敏提示。
+        </div>
+        <LocalModelSettings providers={providers} profiles={profiles} onSaved={overview.reload} />
       </div>
-
-      <LocalModelSettings providers={providers} profiles={profiles} onSaved={overview.reload} />
-
-      <Card
+      <Card title="按用途配置模型" className="model-profiles">
+        {overview.loading && <Loading/>}
+        {overview.error && <LoadError error={overview.error} retry={overview.reload}/>}
+        {profiles.map((p) => (
+          <ProfileRow
+            key={p.purpose}
+            profile={p}
+            providers={providers}
+            meta={overview.data?.purposes?.find((x) => x.purpose === p.purpose)}
+            onSaved={overview.reload}
+          />
+        ))}
+        <p className="muted small">未指定的文本用途回退到文书写作。图像识别与向量化需单独配置。</p>
+      </Card>
+      <Card className="model-providers"
         title="模型服务商"
         extra={
           <Button size="sm" kind="primary" onClick={() => setEditProvider('new')}>
@@ -143,7 +156,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
                 <th>Base URL</th>
                 <th>API Key</th>
                 <th>状态</th>
-                <th />
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -220,35 +233,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
         )}
       </Card>
 
-      <details className="settings-maintenance card"><summary>按用途配置模型</summary><div className="card-body">
-        <div className="small muted mb12">
-          文本用途未配置时回退到「文书写作」；图像识别和向量化必须单独配置对应模型。
-        </div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>用途</th>
-              <th>服务商</th>
-              <th>模型名</th>
-              <th>温度</th>
-              <th>最长输出</th>
-              <th>超时</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {profiles.map((p) => (
-              <ProfileRow
-                key={p.purpose}
-                profile={p}
-                providers={providers}
-                meta={overview.data?.purposes?.find((x) => x.purpose === p.purpose)}
-                onSaved={overview.reload}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div></details>
+      </div>
 
       </div><div className="settings-panel" hidden={section!=='app'}>
       <Card title="应用设置">
@@ -311,9 +296,14 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
 
       <BackupCard />
       </div><div className="settings-panel" hidden={section!=='models'}>
+
         <AiLogsCard/>
         <details className="settings-maintenance card"><summary>资料提取与规则维护</summary><KbExtractCard/><ComplianceCard/></details>
         <details className="settings-maintenance card"><summary>OCR 与文字识别</summary><OcrCard/></details>
+      </div>
+
+      <div className={params.section === 'references' ? 'settings-panel settings-references-entry' : 'settings-panel'} hidden={section !== 'models'}>
+        <details className="reference-maintenance card" open={referenceOpen} onToggle={e=>{setReferenceOpen(e.currentTarget.open);if(e.currentTarget.open)setReferenceMounted(true);}}><summary>后台参考资料维护</summary>{referenceMounted&&<div className="card-body"><PolicyMaintenancePanel/></div>}</details>
       </div>
 
       {editProvider && (
@@ -326,7 +316,7 @@ export default function SettingsPage({params={}}:{params?:Record<string,string>}
           }}
         />
       )}
-    </div></PageSplit>
+    </div></div>
   );
 }
 
@@ -359,9 +349,9 @@ function ProfileRow({
   const meta = metaFromApi ?? PURPOSE_TEXT[profile.purpose] ?? { name: profile.name, usage: '', wired: true };
 
   return (
-    <tr>
-      <td>
-        <strong>{meta.name}</strong>
+    <details className="model-profile">
+      <summary><strong>{meta.name}</strong><span className="muted small">{profile.model || '未指定模型'}</span></summary>
+      <div className="profile-form">
         {!meta.wired && (
           <>
             {' '}
@@ -379,8 +369,7 @@ function ProfileRow({
             这条流程还没接上模型：现在配了也不会被调用，等做「照片是否合格」时才会用到。
           </div>
         )}
-      </td>
-      <td>
+      <Field label="服务商">
         <Select
           value={form.providerId}
           onChange={(v) => {
@@ -398,8 +387,8 @@ function ProfileRow({
           placeholder="未指定"
           options={providers.map((p) => ({ value: String(p.id), label: p.name }))}
         />
-      </td>
-      <td>
+      </Field>
+      <Field label="模型名">
         <Input value={form.model} onChange={(v) => setForm({ ...form, model: v })} placeholder="模型名" />
         {models.length > 0 && (
           <div className="small muted" style={{ maxWidth: 240 }}>
@@ -421,17 +410,19 @@ function ProfileRow({
             对话模型调 /embeddings 会返回 404。
           </div>
         )}
-      </td>
-      <td style={{ width: 80 }}>
+      </Field>
+      <div className="profile-numbers">
+      <Field label="温度">
         <Input value={form.temperature} onChange={(v) => setForm({ ...form, temperature: v })} />
-      </td>
-      <td style={{ width: 90 }}>
+      </Field>
+      <Field label="最长输出">
         <Input value={form.maxTokens} onChange={(v) => setForm({ ...form, maxTokens: v })} />
-      </td>
-      <td style={{ width: 90 }}>
+      </Field>
+      <Field label="超时（毫秒）">
         <Input value={form.timeoutMs} onChange={(v) => setForm({ ...form, timeoutMs: v })} />
-      </td>
-      <td className="nowrap">
+      </Field>
+      </div>
+      <div className="row">
         <Button
           size="sm"
           kind="primary"
@@ -480,8 +471,9 @@ function ProfileRow({
         >
           试调用
         </Button>
-      </td>
-    </tr>
+      </div>
+      </div>
+    </details>
   );
 }
 

@@ -108,11 +108,13 @@ await withBrowserPage(async (page, base) => {
   await button('查看归档').click();
   await page.getByText('暂无已归档的模板。').waitFor();
   await button('返回在用模板').click();
-  await row.getByRole('button',{name:'归档',exact:true}).click();
+  await row.getByRole('button').click();
+  await page.locator('.template-details').getByRole('button',{name:'归档',exact:true}).click();
   await button('确认归档').click();
   await row.waitFor({state:'hidden'});
   await button('查看归档').click();
-  await row.getByRole('button',{name:'恢复',exact:true}).click();
+  await row.getByRole('button').click();
+  await page.locator('.template-details').getByRole('button',{name:'恢复',exact:true}).click();
   await page.getByText('暂无已归档的模板。').waitFor();
   await button('字段映射').click();
   await page.getByText(/未映射变量（0 个名字/).waitFor();

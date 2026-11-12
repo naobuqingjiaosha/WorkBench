@@ -2,7 +2,7 @@ import {useEditorGuard} from '../components/NavigationGuard';
 import {useModalSave} from '../components/useUnsavedClose';
 import {useWorkbenchCollection} from '../components/useWorkbenchCollection';
 import {WorkbenchSelect} from '../components/WorkbenchSelect';
-import {PageSplit,SectionNav,LoadError} from '../components/DesignSystem';
+import {SectionNav,LoadError} from '../components/DesignSystem';
 import {DocVersionsModal} from './DocVersions';
 import { useEffect, useRef, useState } from 'react';
 import { api, useApi, type Artifact } from '../api';
@@ -64,6 +64,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   };
   const debounced = useDebounced(keyword, 400);
   const [page,setPage]=useState(0);
+  const pageSize=20;
   useEffect(()=>setPage(0),[debounced,workbenchId,kind,mode]);
 
   const workbenches = useWorkbenchCollection();
@@ -74,12 +75,12 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
   const searching = debounced.trim().length > 0;
   const searchResult = useApi<{ total: number; items: Artifact[]; keyword: string }>(
     searching
-      ? `/api/search?${new URLSearchParams({ q: debounced, ...(workbenchId ? { workbenchId } : {}), ...(kind ? { kind } : {}), mode, limit: '80',offset:String(page*80) }).toString()}`
+      ? `/api/search?${new URLSearchParams({ q: debounced, ...(workbenchId ? { workbenchId } : {}), ...(kind ? { kind } : {}), mode, limit: String(pageSize),offset:String(page*pageSize) }).toString()}`
       : null,
     [debounced, workbenchId, kind, mode],
   );
   const browse = useApi<{ total: number; items: Artifact[] }>(
-    !searching ? `/api/artifacts?${new URLSearchParams({ ...(workbenchId ? { workbenchId } : {}), ...(kind ? { kind } : {}), limit: '80',offset:String(page*80) }).toString()}` : null,
+    !searching ? `/api/artifacts?${new URLSearchParams({ ...(workbenchId ? { workbenchId } : {}), ...(kind ? { kind } : {}), limit: String(pageSize),offset:String(page*pageSize) }).toString()}` : null,
     [workbenchId, kind],
   );
 
@@ -97,20 +98,21 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
     stats.reload();
   };
 
+  const total=searching?searchResult.data?.total:browse.data?.total;
+  useEffect(()=>{
+    if(total!==undefined&&page*pageSize>=total&&page>0)setPage(Math.max(0,Math.ceil(total/pageSize)-1));
+  },[total,page]);
   return (
-    <PageSplit nav={<SectionNav value={kind} onChange={v=>{if(v==='template-library')go('knowledge',{module:'template'});else setKind(v);}}
-      items={[{value:'',label:'全部业务文件'},...categories]}/>}><div className="section-content">
-      <Card
-        title="查找文件"
-        extra={
-          <>
-            <Button kind="primary" onClick={()=>setUploadOpen(true)}>上传文件</Button>
-            <Button size="sm" onClick={() => go('workbench')}>
-              按工作台看
-            </Button>
-          </>
-        }
-      >
+    <div className="section-content file-library">
+      <div className="library-toolbar">
+        <SectionNav value={kind} onChange={v=>{if(v==='template-library')go('knowledge',{module:'template'});else setKind(v);}}
+          items={[{value:'',label:'全部业务文件',count:stats.data?.total},...categories]}/>
+        <Button size="sm" onClick={()=>go('workbench')}>按工作台看</Button>
+        <Button size="sm" onClick={reloadAll}>刷新</Button>
+        <Button kind="primary" onClick={()=>setUploadOpen(true)}>上传文件</Button>
+      </div>
+      <Card className="file-results">
+        <div className="file-filter-bar">
         <div className="file-search-inputs">
           <div>
             <Input value={keyword} onChange={setKeyword} placeholder="搜文件内容、标题、文件名…例如：验收资料 / 应急照明 / 开箱" />
@@ -136,9 +138,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
               options={Object.entries(KIND_TEXT).map(([v, l]) => ({ value: v, label: l }))}
             />
           </Field>
-          <Field label=" ">
-            <Button onClick={reloadAll}>刷新</Button>
-          </Field>
+        </div>
         </div>
         <div className="small muted">
           {searching ? (
@@ -151,7 +151,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
             </>
           )}
         </div>
-      </Card>
+
 
       {(stats.data?.missingFiles?.length ?? 0) > 0 && (
         <div className="notice notice-warn">
@@ -164,12 +164,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
         </div>
       )}
 
-      <div className="row"><Button disabled={!page} onClick={()=>setPage(p=>p-1)}>上一页</Button><span>第 {page+1} 页，共 {searching?searchResult.data?.total ?? 0:browse.data?.total ?? 0} 条</span><Button disabled={items.length<80} onClick={()=>setPage(p=>p+1)}>下一页</Button></div>
-      <Card
-        className="file-results"
-        title={searching ? '检索结果' : kind ? KIND_TEXT[kind] : '全部业务文件'}
-        extra={
-          <>
+        <div className="file-list-head"><h3>{searching?'检索结果':kind?KIND_TEXT[kind]:'全部业务文件'}</h3>
             <Button
               size="sm"
               onClick={async () => {
@@ -185,9 +180,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
             >
               重建索引
             </Button>
-          </>
-        }
-      >
+        </div>
         {(searching?searchResult.error:browse.error) ? <LoadError error={(searching?searchResult.error:browse.error)!} retry={reloadAll}/> : loading ? (
           <Loading />
         ) : items.length === 0 ? (
@@ -230,10 +223,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
                           </span>
                         )}
                         <div className="check-main">
-                          <div className="check-title ellipsis">{a.title || a.file_name}</div>
-                          <div className="check-detail mono ellipsis" title={a.file_rel}>
-                            {a.file_rel}
-                          </div>
+                          <div className="check-title" title={a.file_rel}>{a.title || a.file_name}</div>
                         </div>
                       </div>
                     </td>
@@ -301,6 +291,9 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
             </tbody>
           </table>
         )}
+        {total!==undefined&&total>0&&<div className="library-pagination"><span>共 {total} 个文件 · 第 {page+1} 页</span>
+          <Button size="sm" disabled={!page} onClick={()=>setPage(p=>p-1)}>上一页</Button>
+          <Button size="sm" disabled={(page+1)*pageSize>=total} onClick={()=>setPage(p=>p+1)}>下一页</Button></div>}
       </Card>
 
       <Card title="数据目录" collapsible defaultOpen={false}>
@@ -320,7 +313,7 @@ export default function FilesPage({ params, go }: { params: Record<string, strin
       <Modal open={uploadOpen} title="上传业务文件" onClose={closeUpload} footer={<><Button disabled={uploadBusy} onClick={closeUpload}>取消</Button><Button kind="primary" disabled={uploadBusy||!uploadFile||!workbenchId} onClick={()=>void saveUpload().catch(()=>{})}>{uploadBusy?'上传中…':'上传文件'}</Button></>}>
         <Field label="所属工作"><WorkbenchSelect collection={workbenches} value={workbenchId} onChange={setWorkbenchId} placeholder="请选择工作" disabled={uploadBusy}/></Field><Field label="类别"><Select disabled={uploadBusy} value={uploadKind} onChange={setUploadKind} options={[{value:'source',label:'原始资料'},{value:'other',label:'附件 / 其他'}]}/></Field><Field label="文件"><input type="file" disabled={uploadBusy} onChange={e=>setUploadFile(e.target.files?.[0]??null)}/></Field>{uploadError&&<p role="alert" className="notice notice-err">{uploadError}。所选文件保留，请核对文件库后重试。</p>}
       </Modal>
-    </div></PageSplit>
+    </div>
   );
 }
 

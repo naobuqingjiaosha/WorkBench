@@ -208,26 +208,17 @@ export default function TrashPage() {
   </>;
 
   return (
-    <div className="col" style={{ gap: 14 }}>
-      <Card
-        title="回收站"
-        extra={
-          <>
-            <Button size="sm" disabled={emptyBusy} onClick={() => list.reload()}>
-              刷新
-            </Button>
-            <Button size="sm" kind="danger" disabled={emptyBusy || !!busyId || (!list.data?.count && !emptyError)} onClick={() => setEmptyOpen(true)}>
-              清空回收站
-            </Button>
-          </>
-        }
-      >
+    <div className="trash-view">
+      <div className="trash-toolbar">
+        <Button size="sm" disabled={emptyBusy} onClick={list.reload}>刷新</Button>
+        <Button size="sm" kind="danger" disabled={emptyBusy || !!busyId || (!list.data?.count && !emptyError)} onClick={() => setEmptyOpen(true)}>清空回收站</Button>
+      </div>
         <div className="notice notice-info">
           移入回收站会隐藏记录，磁盘文件默认保留。
-          想撤回就点「恢复」；「彻底删除」才会真的清掉记录 —— <strong>那一步不可恢复</strong>。
+          恢复时将核对原关联。<strong>彻底删除不可恢复</strong>，操作前需再次确认。
         </div>
 
-        <div className="inline-fields mt12">
+        <div className="trash-filters">
           <div>
             <Select
               value={kind}
@@ -237,28 +228,27 @@ export default function TrashPage() {
               options={KIND_ORDER.map((k) => ({ value: k, label: `${KIND_TEXT[k]}（${countOf(k)}）` }))}
             />
           </div>
-          <div className="small muted" style={{ alignSelf: 'center', flex: '2 1 auto' }}>
-            回收站共 <strong>{list.data?.count ?? 0}</strong> 项，当前显示 {items.length} 项。清空操作适用于全部类型。
+          <div className="small muted">
+            {list.data && <>回收站共 <strong>{list.data.count}</strong> 项，当前显示 {items.length} 项。</>}清空操作适用于全部类型。
           </div>
         </div>
-      </Card>
 
       {(emptyResult || emptyError) && !emptyOpen && <Card title="最近一次清理结果">{emptyReport}</Card>}
       {purgeMessage && <Card title="最近一次单项删除结果"><p role="status">{purgeMessage}</p></Card>}
-      <Card title={kind ? `回收站 · ${KIND_TEXT[kind]}` : '回收站里的全部内容'}>
+      <Card className="trash-results" title={kind ? `回收站 · ${KIND_TEXT[kind]}` : '回收站里的全部内容'}>
         {list.loading ? (
           <Loading />
         ) : list.error ? <LoadError error={list.error} retry={list.reload}/> : items.length === 0 ? (
           <Empty text={kind ? `回收站里没有${KIND_TEXT[kind]}。` : '回收站是空的 —— 删除的工作台、文件、阶段、字段都会先到这里。'} />
         ) : (
-          <table className="table">
+          <table className="table trash-table">
             <thead>
               <tr>
                 <th>类型</th>
                 <th>名称</th>
                 <th>删除时间</th>
                 <th>说明</th>
-                <th />
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -271,7 +261,7 @@ export default function TrashPage() {
                     </td>
                     <td>
                       <div className="check-main">
-                        <div className="check-title ellipsis" title={e.title}>
+                        <div className="check-title" title={e.title}>
                           {e.title}
                         </div>
                         <div className="small muted mono">#{e.id}</div>
@@ -281,8 +271,8 @@ export default function TrashPage() {
                       {agoText(e.deletedAt)}
                     </td>
                     <td className="small muted">{e.extra ?? '—'}</td>
-                    <td className="nowrap">
-                      <Button size="sm" kind="primary" disabled={emptyBusy || busyId === key} onClick={() => {setRestoring(e);setRestoreResult('');}}>
+                    <td className="trash-actions">
+                      <Button size="sm" disabled={emptyBusy || busyId === key} onClick={() => {setRestoring(e);setRestoreResult('');}}>
                         {busyId === key ? '处理中…' : '恢复'}
                       </Button>
                       <Button

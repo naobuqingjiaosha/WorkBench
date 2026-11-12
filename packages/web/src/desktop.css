@@ -1,5 +1,4 @@
-/* Text-specified light desktop theme. Keep business layouts and scroll regions;
-   this layer follows compact.css and never scales the application canvas. */
+/* Shared desktop and narrow-screen layout for the reference pages. */
 :root {
   color-scheme: light;
   --bg: #f0f3f8;
@@ -220,146 +219,32 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
-/* CSS glass: bounded navigation surfaces over a static colour field.
-   Solid base colours work without backdrop-filter; content cards stay opaque. */
-.app {
-  background:
-    radial-gradient(ellipse at -8% 8%, #b5d5fb 0, transparent 44%),
-    radial-gradient(ellipse at 20% 110%, #d5c8ed 0, transparent 46%),
-    radial-gradient(ellipse at 100% -12%, #c3dbf8 0, transparent 48%),
-    linear-gradient(125deg, #eaf0fa, #f4f6fb 58%, #e5edf8);
-}
-.sidebar {
-  position: relative;
-  height: calc(100% - 24px);
-  margin: 12px 0 12px 12px;
-  background: #edf2f7;
-  border: 1px solid #ffffffd9;
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #94b1d336,
-    0 10px 30px #33578114, 0 2px 5px #3357810a;
-}
-.sidebar::before, .home-header-actions::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(135deg, #ffffff85 0, #ffffff08 22%, transparent 52%, #ffffff50 100%);
-}
-.sidebar > * { position: relative; z-index: 1; }
-.sidebar-status { color: var(--primary-dark); }
-.nav-item.active {
-  background: linear-gradient(125deg, #ffffffc7, #d5e5ff9e);
-  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #a8c1e155, 0 3px 9px #3c65a012;
-}
-.topbar {
-  background: #f3f6fa;
-  border-bottom: 1px solid #ffffffc9;
-  box-shadow: inset 0 1px #ffffffd9;
-}
-.home-header-actions {
-  position: relative;
-  background: #f1f5fa;
-  padding: 9px;
-  border: 1px solid #ffffffed;
-  border-radius: 22px;
-  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #90afd74d,
-    0 8px 24px #33578115, 0 2px 4px #3357810a;
-}
-.home-header-actions > * { position: relative; z-index: 1; }
-.home-search, .home-bell {
-  background: linear-gradient(150deg, #ffffffed, #ffffff80);
-  border-color: #aabdd6;
-  border-radius: 12px;
-  box-shadow: inset 0 1px 0 #fff;
-}
-.home-header-actions > .btn-primary {
-  border-radius: 12px;
-  background: linear-gradient(145deg, #326dce, #1f58b6);
-  border-color: #1f58b6;
-  box-shadow: inset 0 1px 0 #ffffff66, 0 3px 8px #225aad25;
-}
-/* Keep exclusions specificity-neutral so later preference rules can win. */
-.topbar:where(:not(.dashboard-topbar):not(.detail-topbar)) {
-  margin: 12px 24px;
-  padding: 16px 18px;
-  border: 1px solid #ffffffd9;
-  border-radius: 20px;
-  box-shadow: inset 1px 1px 0 #fff, 0 4px 18px #3357810c;
-}
-/* Secondary navigation uses translucency without another filtered layer. */
-.section-nav {
-  background: linear-gradient(145deg, #ffffffdb, #eaf1f9b8);
-  border-color: #ffffffed;
-  border-radius: 16px;
-  box-shadow: inset 1px 1px 0 #fff, 0 4px 14px #3357810b;
-}
-.action-dock {
-  background: linear-gradient(120deg, #f9fbff, #eef3fa);
-  border-color: #ccd8e8;
-  border-radius: 14px;
-  box-shadow: inset 0 1px 0 #fff, 0 -3px 14px #33578110;
-}
-.modal-mask { background: #26375040; }
-.modal {
-  background: #f3f6fa;
-  border: 1px solid #ffffffd9;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 0 #fff, 0 22px 70px #1c355a40, 0 3px 12px #1c355a1a;
-}
-.modal-head, .modal-foot { background: #f0f5fb; border-color: #ccd8e8; }
-.modal-body { background: var(--panel); }
-/* At short heights, scroll the whole dialog instead of squeezing its body
-   between non-shrinking headers and footers that can exceed the viewport. */
+/* Shared surfaces follow the reference pages. The content area owns page scrolling. */
+:root { --bg: #faf7f3; --primary: #075beb; --primary-dark: #074abc; --primary-soft: #edf3ff; --text: #182235; --line: #dfe3ea; --radius: 10px; }
+.app, .topbar { background: var(--bg); }
+.sidebar { margin: 0; height: 100%; border: 0; border-right: 1px solid #d9dfe7; border-radius: 0; background: #e9ecf2; box-shadow: none; }
+.brand, .app-home .brand { padding: 25px 16px 21px; }
+.brand h1 { display: flex; align-items: center; gap: 10px; font-size: 20px; }
+.brand h1 svg { padding: 4px; width: 28px; height: 28px; background: var(--primary); border-radius: 6px; color: white; }
+.nav > div, .app-home .nav > div { border-top: 1px solid #d2d8e1; padding-bottom: 12px; }
+.nav-item.active, .app-home .nav-item.active { background: #d2e3ff; color: #074abc; }
+.topbar { padding: 18px 24px 12px; border: 0; box-shadow: none; }
+.topbar h2, .home-header h2 { font-size: 27px; line-height: 1.35; font-weight: 700; }
+.topbar:where(:not(.dashboard-topbar):not(.detail-topbar)) { margin: 0; }
+.card { border: 1px solid var(--line); box-shadow: 0 1px 2px #29334206; }
+.btn, .tag, .view-tabs button, .home-search { border-radius: 6px; }
+.btn, .input { min-height: 34px; }
+.btn-sm { min-height: 29px; }
+.table th { background: #f1f3f6; }
+.table td { padding: 9px 10px; }
+.table tbody tr:nth-child(even) { background: transparent; }
+.table tbody tr:hover { background: var(--primary-soft); }
+.section-nav, .action-dock, .modal, .modal-head, .modal-foot { background: var(--panel); }
+.modal-mask { background: #24283255; }
+.modal { border-radius: 12px; }
 @media (max-height: 480px) {
   .modal { display: block; overflow: auto; }
   .modal-body { overflow: visible; }
-}
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .sidebar {
-    background: linear-gradient(155deg, #ffffff75, #ffffff12 48%, #e8e5ff52), #edf3fc5c;
-    -webkit-backdrop-filter: blur(20px) saturate(135%);
-    backdrop-filter: blur(20px) saturate(135%);
-  }
-  .topbar, .home-header-actions {
-    background: linear-gradient(125deg, #ffffff80, #ffffff10 48%, #ffffff5c), #eef4fc66;
-    -webkit-backdrop-filter: blur(14px) saturate(125%);
-    backdrop-filter: blur(14px) saturate(125%);
-  }
-  .modal { background: transparent; }
-  .modal-head, .modal-foot {
-    background: linear-gradient(130deg, #ffffff99, #ffffff26), #eaf2fcc7;
-    -webkit-backdrop-filter: blur(12px) saturate(120%);
-    backdrop-filter: blur(12px) saturate(120%);
-  }
-}
-/* Interaction-only motion, no perpetual shimmer, pointer tracking or blur animation. */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .home-search, .home-bell, .home-header-actions > .btn-primary {
-    transition: transform 140ms ease, box-shadow 140ms ease;
-  }
-  .home-search:hover, .home-bell:hover, .home-header-actions > .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: inset 0 1px 0 #fff, 0 4px 10px #33578124;
-  }
-  .home-search:active, .home-bell:active, .home-header-actions > .btn-primary:active { transform: translateY(0); }
-}
-/* Low-effects preferences also remove the GPU blur, with a solid fallback. */
-@media (prefers-reduced-transparency: reduce), (prefers-reduced-motion: reduce), (prefers-contrast: more), (update: slow) {
-  .app { background: var(--bg); }
-  .sidebar, .topbar, .home-header-actions, .section-nav, .modal, .modal-head, .modal-foot, .action-dock {
-    background: #f1f5fa;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
-  }
-  .sidebar::before, .home-header-actions::before { display: none; }
-  .nav-item.active { background: #dce7f8; box-shadow: none; }
-  .home-search, .home-bell { background: white; box-shadow: none; }
-  .home-header-actions > .btn-primary { background: var(--primary); box-shadow: none; }
 }
 @media (prefers-contrast: more) {
   :root { --line: #8995a5; --line-strong: #697789; --text-3: #3f4854; }
@@ -389,7 +274,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 }
 
 @media (max-width: 999px) {
-  .topbar:where(:not(.dashboard-topbar):not(.detail-topbar)) { margin: 12px 16px; }
+  .topbar:where(:not(.dashboard-topbar):not(.detail-topbar)) { margin: 0; }
   .sidebar.mobile-open { top: 0; }
 }
 
@@ -404,27 +289,57 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .file-search-inputs .input { width: 100%; min-width: 0; }
 .home-focused .home-bell { display: flex; width: auto; gap: 6px; padding: 6px 10px; }
 .home-notice-count { border-radius: 12px; padding: 1px 6px; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 600; }
-.home-stat-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 10px 0 18px; color: var(--text-2); font-size: 13px; }
-.home-stat-line strong { margin-left: 5px; color: var(--text); font-variant-numeric: tabular-nums; }
-.home-stat-line .loading { padding: 0; }
-.home-main-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(270px, 1fr); gap: 20px; align-items: start; }
-.home-primary, .home-secondary { display: flex; flex-direction: column; min-width: 0; gap: 20px; }
-.home-focused .card { height: auto; min-height: 0; }
+.home-stat-line { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.home-stat-line > span { padding: 7px 12px; background: #edf4ff; border-radius: 7px; font-size: 13px; }
+.home-stat-line > span:nth-child(2) { background: #fff7e9; }
+.home-stat-line > span:nth-child(3) { background: #edf7f1; }
+.home-stat-line strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.home-stat-line > .notice, .home-stat-line > .loading { grid-column: 1/-1; }
+.home-main-grid { display: grid; grid-template-columns: minmax(0,1.58fr) minmax(310px,1fr); align-items: start; gap: 14px; }
+.home-primary, .home-secondary { display: flex; flex-direction: column; min-width: 0; gap: 14px; }
+.home-focused .card { height: auto; min-height: 0; margin: 0; }
 .home-focused .card-body { flex: none; min-height: 0; overflow: visible; }
-.home-focused .home-action-row { flex: none; min-height: 84px; }
-.home-focused .home-inbox .home-action-row > .btn { background: transparent; color: var(--primary); border-color: var(--line-strong); }
-.home-focused .home-continue .home-action-row > .btn { background: transparent; color: var(--text); border-color: var(--line-strong); }
-.home-focused .home-action-row > .btn:hover { background: var(--primary-soft); }
-.home-focused .home-deadlines > .card-body > p { margin: 0 0 12px; }
+.home-page .home-card-title svg { color: var(--primary); }
+.home-focused .home-table { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
+.home-table th, .home-table td { padding: 8px 6px; font-size: 13px; text-align: left; }
+.home-table td { overflow-wrap: anywhere; }
+.inbox-table th:first-child { width: 31%; }
+.inbox-table th:nth-child(2) { width: 16%; }
+.continue-table th:first-child { width: 39%; }
+.home-table small { display: block; margin-top: 2px; color: var(--text-3); font-size: 12px; }
+.home-table small.err { color: #a12626; }
+.home-table .btn { text-decoration: none; color: var(--primary); padding: 3px 7px; white-space: normal; }
+.home-pagination > span:first-child { margin-right: auto; }
+.home-focused .home-pagination { padding-top: 10px; }
+.home-record .field { margin: 0 0 5px; }
+.home-record > .card-body { padding-top: 10px; }
+.home-record .row { justify-content: flex-end; }
+.home-record details { font-size: 13px; }
+.home-record textarea { resize: vertical; }
+@media (max-width: 650px) {
+  .home-table thead { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; }
+  .home-table tbody, .home-table tr { display:block; }
+  .home-table tbody tr { display:flex; align-items:center; gap:3px 10px; flex-wrap:wrap; padding:7px 0; border-bottom:1px solid var(--line); }
+  .home-table tbody td { padding:2px 0; border:none; }
+  .home-table tbody td:first-child { width:100%; }
+  .home-table tbody td:last-child { margin-left:auto; }
+  .home-table td[data-label]::before { content:attr(data-label) " "; font-size:12px; color:var(--text-3); }
+  .home-table small.home-status { display:inline; margin-left:4px; }
+}
+.home-focused .home-deadlines > .card-body > p { margin: 5px 0; }
+.home-focused .empty { padding: 8px 0; }
+.home-focused .empty::before { display: none; }
+.home-page .home-files-empty { min-height: 0; }
+.home-record textarea { min-height: 60px; }
 .home-deadline-list { list-style: none; padding: 0; margin: 0; }
 .home-deadline-list li + li { border-top: 1px solid var(--line); }
-.home-deadline-list a { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 10px; padding: 6px 0; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
-.home-deadline-list a > .small { grid-column: 2; }
+.home-deadline-list a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 2px 10px; padding: 6px 0; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.home-deadline-list a > .small { font-size: 12px; }
 .home-deadline-list a:hover strong { color: var(--primary); text-decoration: underline; }
 .home-deadline-date { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; }
 .home-deadline-date time { font-variant-numeric: tabular-nums; }
 .home-deadline-date .tag { font-size: 11px; }
-.home-calendar-disclosure { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.home-calendar-disclosure { margin-top: 4px; border-top: 1px solid var(--line); padding-top: 2px; }
 .home-calendar-disclosure > summary { color: var(--text-2); font-size: 13px; cursor: pointer; }
 .home-focused .home-calendar { border: 0; margin-top: 8px; }
 .home-focused .home-calendar .card-head, .home-focused .home-calendar .card-body { padding-left: 0; padding-right: 0; }
@@ -455,7 +370,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   .home-focused .home-action-row > .btn { grid-column: 2; justify-self: start; width: auto; min-width: 90px; }
   .home-focused .home-pagination { flex-wrap: wrap; }
   .home-notice-row { align-items: flex-start; flex-direction: column; }
-  .home-stat-line { column-gap: 16px; }
+  .home-stat-line { gap: 6px; }
 }
 
 /* Work list only: scroll rows separately from the bottom pagination. */

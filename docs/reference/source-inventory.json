@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "f5e51c85c3ddeba79a4670fac5a93e1b35e60eb7",
+  "committedBase": "5098db429b0e90c4214d99e7779453d4dbeab624",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -703,7 +703,7 @@
     },
     {
       "path": "packages/server/test/shared/editor-navigation-browser.ts",
-      "sha256": "0ee8214fa3755bda8304f451c9f6b4d1119e400b8082975d2791f560b45f9d03"
+      "sha256": "10f01fae7e99f39153f216196b035578857476d48f5a31838fe7cb4cccdd7d44"
     },
     {
       "path": "packages/server/test/shared/isolation.ts",
@@ -723,7 +723,7 @@
     },
     {
       "path": "packages/server/test/shared/periods-browser.ts",
-      "sha256": "f6afe673751f835171d55c3c64868aab5dc2aa89ad0eb1980faf4e5e8f502c7b"
+      "sha256": "7950ee5b7937de516931bc023cf53055862687b889489eec40fec9ec0bf15f13"
     },
     {
       "path": "packages/server/test/shared/periods.ts",
@@ -735,7 +735,7 @@
     },
     {
       "path": "packages/server/test/shared/projects-browser.ts",
-      "sha256": "cde09fa48f9f048f2ecdf6300c04c53af85550f41e10126ae2d855df83a1a599"
+      "sha256": "148f53196fa48451f01b13ab1f4be0aa16b9b507d260b9590d0c30c0a5d4db6a"
     },
     {
       "path": "packages/server/test/shared/projects.ts",
@@ -755,7 +755,7 @@
     },
     {
       "path": "packages/server/test/shared/search-library-browser.ts",
-      "sha256": "ebd1fd7bd2e6fb860aecfeef85def46135269b49218b109f7cc78da5d0cfa342"
+      "sha256": "31fe4b8ffa320952bf5a8058b51a72602009fded274aeeb2949c9fd567bc02b9"
     },
     {
       "path": "packages/server/test/shared/startup-build.ts",
@@ -811,7 +811,7 @@
     },
     {
       "path": "packages/web/src/App.tsx",
-      "sha256": "8a154fc44459ab74962b0650ff2e002b1355880f19ba012e9f9394b104a4991b"
+      "sha256": "0dffb8d616755b0bb0e003366086da7dc73579e77e356d670df7919433cb74bd"
     },
     {
       "path": "packages/web/src/api.ts",
@@ -843,7 +843,7 @@
     },
     {
       "path": "packages/web/src/components/DesignSystem.tsx",
-      "sha256": "825bd2ee1b74f51a9feaacb5b08f44b7b7f9c1218f90ec999ce655c9f8503668"
+      "sha256": "e3c04fe9381ee4859a976e5eceac7ddef79d5392dd23d6cf841c919e6ae7579d"
     },
     {
       "path": "packages/web/src/components/FilePreview.tsx",
@@ -911,7 +911,7 @@
     },
     {
       "path": "packages/web/src/components/WorkRecordLinks.tsx",
-      "sha256": "7fd4f5837dab415d936f2dbc1b7e10e01964d2446b68336277799f542e9a9aa6"
+      "sha256": "0fedecdf4eba569396492d87216672c8e1f14b5b63fe259bc2b8d83b6ba8a7b5"
     },
     {
       "path": "packages/web/src/components/WorkTypeEditor.tsx",
@@ -927,7 +927,7 @@
     },
     {
       "path": "packages/web/src/components/WorkflowPanels.tsx",
-      "sha256": "2513fe2010713867085b2b6d6d3ef12048de5b6fa35ce53d02d57d1f2a857fdf"
+      "sha256": "6785d2f79b9faf54da256ac1838d6087b830027ac5acf1003839339d77a9a730"
     },
     {
       "path": "packages/web/src/components/project-report-input.ts",
@@ -951,7 +951,7 @@
     },
     {
       "path": "packages/web/src/desktop.css",
-      "sha256": "96350c05131d330ed6e5d8b879bfbb94b8d8a21367e1297a39dae8c700f6b484"
+      "sha256": "673f5cc361082d571742017d14d831a585655195dc8d82baf143480a71f63f2e"
     },
     {
       "path": "packages/web/src/home.css",
@@ -959,15 +959,15 @@
     },
     {
       "path": "packages/web/src/main.tsx",
-      "sha256": "b090230c85b39906867a441d10125790ed6ce651bedd5da1f361f6b06cdc5d9e"
+      "sha256": "aff3b08d87db725e3514c602432b12993e1bd81460e51700f07395615bca98cf"
     },
     {
       "path": "packages/web/src/pages/Agent.tsx",
-      "sha256": "54cc22a09abcfbc7a09a8773cbac5809c245b90ee5c02d1691cf061d567cf4fb"
+      "sha256": "c3a0f6563694783a0bfe0ac093099bb20ffe2fc51ec9d1322254bbd5b347edee"
     },
     {
       "path": "packages/web/src/pages/Dashboard.tsx",
-      "sha256": "fcba225ce817a42e33a0fe25b60acc1f9fa1d3e5e36565806c450335f95fea30"
+      "sha256": "22ec03aee8eaed64309e50ae1fda6c4166174ffc90cb1f02b203a077c1b29d05"
     },
     {
       "path": "packages/web/src/pages/DocVersions.tsx",
@@ -975,7 +975,7 @@
     },
     {
       "path": "packages/web/src/pages/Files.tsx",
-      "sha256": "0c0919d7046d307c6472be086c25f54e3e095b6542cc68e16d72e9a099af487b"
+      "sha256": "0e3856af65a92308675e5fc891d252c3d9c87691341cc4984348bd262474d73a"
     },
     {
       "path": "packages/web/src/pages/GenerateModal.tsx",
@@ -983,19 +983,19 @@
     },
     {
       "path": "packages/web/src/pages/Knowledge.tsx",
-      "sha256": "86505bb986c192abfeb6c4fb8ace9c0f781c05b9039a6275d2dfb0319e90556e"
+      "sha256": "0cbc254356468d3507c8f5f74cd98a1c09d8dfcbdc4953a493f5e983fff7d4ff"
     },
     {
       "path": "packages/web/src/pages/MonthlyTimesheet.tsx",
-      "sha256": "eb30ba0f508a8c0011a193e9486147bf1860e25447a7dfeb87090a97e19279c8"
+      "sha256": "0b9f844a5b63420e71ea14ab69716ec3b265c434ca96cba9b52435cec8962c39"
     },
     {
       "path": "packages/web/src/pages/Periods.tsx",
-      "sha256": "5bdd07751e04cedf68e0104c9b410f40a1630d3dc29388a980615124a404009a"
+      "sha256": "82de6eacaebe5c62e543bb21ca1f44db56632f592502af86a0e60c370a9e9e92"
     },
     {
       "path": "packages/web/src/pages/Process.tsx",
-      "sha256": "953406fb214b0166bcf8346f87ea9730490a73be384c3c3944e326d641713675"
+      "sha256": "f181cbdc516e7e0c11ed053d1d2d38ab63e22dca6f7e386d15797b41920b1aa8"
     },
     {
       "path": "packages/web/src/pages/ProjectInfo.tsx",
@@ -1007,11 +1007,11 @@
     },
     {
       "path": "packages/web/src/pages/Settings.tsx",
-      "sha256": "482c6aafa9774a27cd057189e99f2c0b88891124da9016d0d994147b98a0f9a1"
+      "sha256": "848286de8731e2c6a44108b187f02a32d955f2755ab752e79b31bb0edb58cbff"
     },
     {
       "path": "packages/web/src/pages/Template.tsx",
-      "sha256": "bad4182b6417dd9495a7b5f7b7315d4e867150e4bada76566fb843a6dc569a0e"
+      "sha256": "2370d8a6bc648431718b8b562522155e7496a0c70ed236688c3bbc81ab9bfbd8"
     },
     {
       "path": "packages/web/src/pages/Timesheets.tsx",
@@ -1019,15 +1019,19 @@
     },
     {
       "path": "packages/web/src/pages/Trash.tsx",
-      "sha256": "74daee3711678e0ea510cf17094208943ad6b17b03c5dc05bbc79962e5bf1400"
+      "sha256": "226bf07783876e322021534986f654cfe9bff406c77574c4a18f009bd5e08124"
     },
     {
       "path": "packages/web/src/pages/WorkRecords.tsx",
-      "sha256": "15115def2d2dce91b0bfbec9adcb1c851b5c23d68a759c1689b64c4cc1b63044"
+      "sha256": "8c832858d059b06ca23882e1fe55b06055d86509324c4dc9b651463f51eef6ac"
     },
     {
       "path": "packages/web/src/pages/Workbench.tsx",
-      "sha256": "8c247e10cb808b0315c42a47d4c53de2af57a9687a19c7b89d11a4b8a2ffd7d2"
+      "sha256": "08dade3b6f1d1e9233ed706aff74a9d770a6cd246c194dfd6ba52c76323fcd92"
+    },
+    {
+      "path": "packages/web/src/pages/library-pages.css",
+      "sha256": "48b0f3630dc287d942e337eec306bd68156df3d84d960c1063f6fe687d924766"
     },
     {
       "path": "packages/web/src/styles.css",
@@ -1036,6 +1040,14 @@
     {
       "path": "packages/web/src/ui.tsx",
       "sha256": "f858534bbb0040414fa93f72501cebde07f4eb45cc4b0d7673a70ac59d6133d1"
+    },
+    {
+      "path": "packages/web/src/work-detail.css",
+      "sha256": "2b0b361604e4827821a3c2198e10946368058faa57528c90c623a024d171bc01"
+    },
+    {
+      "path": "packages/web/src/work-management.css",
+      "sha256": "5dc016216db89ba97a4f256af9e24cb4997be80f5b57261abdd0e86391a81d3f"
     },
     {
       "path": "packages/web/src/work-type-navigation.css",
@@ -1071,7 +1083,7 @@
     },
     {
       "path": "scripts/docs-maintenance.mjs",
-      "sha256": "ba4d4af8f28e6c954f53e9452e9f90a251c4501633dda69757201e419af961cc"
+      "sha256": "ed63ea45eb4b76b79e4c6a1617d0fa327dc448f68de5cff1c93780df40babda6"
     },
     {
       "path": "scripts/esbuild-transport.mjs",

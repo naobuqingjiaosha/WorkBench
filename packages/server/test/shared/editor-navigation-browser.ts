@@ -58,10 +58,11 @@ await withBrowserPage(async(page,base)=>{
   await page.getByRole('dialog').first().waitFor({state:'hidden'});assert.equal((await get<{artifact:{title:string}}>('/api/artifacts/'+artifactId)).artifact.title,'修改后标题');
 
   await go('knowledge');
-  const row=page.locator('tr').filter({hasText:'合成编辑模板'});
-  await row.getByRole('button',{name:'设置',exact:true}).click();await page.getByLabel('模板名称').fill('新模板名');
+  await page.locator('.template-select').filter({hasText:'合成编辑模板'}).click();
+  const templateDetails=page.locator('.template-details');
+  await templateDetails.getByRole('button',{name:'设置',exact:true}).click();await page.getByLabel('模板名称').fill('新模板名');
   await page.keyboard.press('Escape');await guard.getByRole('button',{name:'不保存离开'}).click();
-  await row.getByRole('button',{name:'设置',exact:true}).click();assert.equal(await page.getByLabel('模板名称').inputValue(),'合成编辑模板');
+  await templateDetails.getByRole('button',{name:'设置',exact:true}).click();assert.equal(await page.getByLabel('模板名称').inputValue(),'合成编辑模板');
   await page.getByLabel('模板名称').fill('新模板名');await page.keyboard.press('Escape');await guard.getByRole('button',{name:'保存并离开'}).click();
   await page.getByRole('dialog').first().waitFor({state:'hidden'});
   const savedTemplate=(await get<{template:{name:string;usage_note:string}}>(templatePath)).template;
@@ -77,11 +78,11 @@ await withBrowserPage(async(page,base)=>{
   await page.keyboard.press('Escape');await guard.getByRole('button',{name:'继续编辑'}).click();assert.equal(await key.inputValue(),'synthetic-value');
   await page.keyboard.press('Escape');await guard.getByRole('button',{name:'保存并离开'}).click();await provider.waitFor({state:'hidden'});
   assert.ok((await get<{providers:{name:string;has_key:boolean}[]}>('/api/ai/overview')).providers.some(p=>p.name==='合成服务' && p.has_key));
-  const pane=page.locator('.page-settings > .page-split > .section-content');
+  const pane=page.locator('.content.page-settings');
   await pane.evaluate((e:HTMLElement)=>{e.scrollTop=400;});await page.waitForTimeout(100);
   const y=await pane.evaluate((e:HTMLElement)=>e.scrollTop);assert.ok(y>0);
   await button('目录与备份').click();await page.getByRole('heading',{name:'目录与运行环境'}).waitFor();assert.equal(await pane.evaluate((e:HTMLElement)=>e.scrollTop),0);
-  await button('模型与资料').click();await page.waitForURL(/section=models/);await page.waitForFunction((value:number)=>document.querySelector('.page-settings > .page-split > .section-content')?.scrollTop===value,y);
+  await button('模型与资料').click();await page.waitForURL(/section=models/);await page.waitForFunction((value:number)=>document.querySelector('.content.page-settings')?.scrollTop===value,y);
   await button('运行状态').click();const fold=button('高级诊断');await fold.focus();await page.keyboard.press('Enter');
   assert.equal(await fold.getAttribute('aria-expanded'),'true');await page.keyboard.press('Space');assert.equal(await fold.getAttribute('aria-expanded'),'false');
 
