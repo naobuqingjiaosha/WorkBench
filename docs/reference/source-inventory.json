@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "8d432f77d0eb0e94eeba26239f49b668c6192376",
+  "committedBase": "6d196dcbf1ec8e26ada903b147ec1b97a640958f",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -751,7 +751,7 @@
     },
     {
       "path": "packages/server/test/shared/startup-build.ts",
-      "sha256": "7f46e4a2341b92fa14d53164384061d4f9b9a92fe4645418021aed2dcd6aa2f2"
+      "sha256": "5f6e3d13f236af465bb9911b93564bde53155dc7eff88cf8dbac37f2bde9ee43"
     },
     {
       "path": "packages/server/test/shared/startup-npm.ts",
@@ -763,7 +763,7 @@
     },
     {
       "path": "packages/server/test/shared/startup.ts",
-      "sha256": "cbcc8edd8519c8a86bab437a38ac61e9e74c856a820ddf7f8c59fd1885591785"
+      "sha256": "ef54c4873e001726cda52118a508898722cc7de0d7024f26fb39547c5ffcf9ef"
     },
     {
       "path": "packages/server/test/shared/templates-schedule-browser.ts",
@@ -1107,7 +1107,7 @@
     },
     {
       "path": "scripts/start-source.mjs",
-      "sha256": "94af0f31bb2f984e4bbbde957adf9d3564685f0a84fe1d6a881643045515faf9"
+      "sha256": "5233887619da6b215571ef8c956939f35f962ef2cafba313e35208f3f773e07a"
     },
     {
       "path": "scripts/start.mjs",

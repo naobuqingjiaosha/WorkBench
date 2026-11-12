@@ -17,15 +17,15 @@ const fault=pathToFileURL(join(root,'packages/server/test/shared/startup-transpo
 const trace=join(home,'transport-trace');writeFileSync(trace,'');
 const env={...process.env,STARTUP_TRANSPORT_FAULT:'files',STARTUP_TRANSPORT_TRACE:trace,
  NODE_OPTIONS:(process.env.NODE_OPTIONS||'')+' --import='+JSON.stringify(fault)};
-function launch(extra={}){
- const child=spawn(process.execPath,['scripts/start.mjs','--start-only'],{cwd:checkout,env:{...env,...extra},stdio:['ignore','pipe','pipe'],windowsHide:true});
+function launch(extra={},desktop=false){
+ const child=spawn(process.execPath,['scripts/start.mjs',desktop?'--desktop':'--start-only'],{cwd:checkout,env:{...env,...extra},stdio:['pipe','pipe','pipe'],windowsHide:true});
  let output='';child.stdout.on('data',d=>output+=d);child.stderr.on('data',d=>output+=d);
  const exit=new Promise<number|null>((ok,fail)=>{child.once('error',fail);child.once('exit',ok);});
  return {child,exit,output:()=>output};
 }
 const base=process.env.BASE!,pointer=join(process.env.WORKBENCH_RUNTIME_DIR!,'source-current.json');
 const health=async()=>fetch(base+'/api/health',{signal:AbortSignal.timeout(1000)}).then(r=>r.json()).then(r=>r.data).catch(()=>null);
-const first=launch();
+const first=launch({},true);
 let pid:number|undefined;
 async function stopped(run:ReturnType<typeof launch>){
  const timer=setTimeout(()=>run.child.kill('SIGKILL'),120000);
@@ -70,6 +70,20 @@ try{
  const esbuild=join(checkout,'node_modules/esbuild/lib/main.js'),old=readFileSync(esbuild);writeFileSync(esbuild,Buffer.concat([old,Buffer.from('\n// synthetic mismatch\n')]));
  const {spawnSync}=await import('node:child_process');
  const mismatch=spawnSync(process.execPath,['--import',adapter,'-e',''],{cwd:checkout,env,encoding:'utf8'});assert.notEqual(mismatch.status,0);assert.match(mismatch.stderr,/适配与锁定源码不匹配/);writeFileSync(esbuild,old);
+ // A newly opened control window can stop the existing instance. Opening it
+ // must also work while the original window is waiting for keyboard input.
+ writeFileSync(config,valid);
+ const control=launch({STARTUP_TRANSPORT_FAULT:'all'},true);
+ try{
+  for(let i=0;i<200 && !control.output().includes('输入 S') && control.child.exitCode===null;i++)await new Promise(r=>setTimeout(r,50));
+  assert.match(first.output(),/输入 S/);
+  assert.match(control.output(),/输入 S/);
+  await unchanged();
+  control.child.stdin.write('S\n');
+  assert.equal(await stopped(control),0,control.output());
+  assert.match(control.output(),/工作台已停止/);
+  assert.equal(await health(),null);
+ }finally{if(control.child.exitCode===null)control.child.kill();}
  console.log('启动构建：隔离真实Vite/后端就绪、同版本复用、构建语法失败/原生转译拒绝均保留原进程/库/文件/备份/成功指针；未重装、未隐式回退；适配摘要漂移拒绝');
 }finally{
  if(pid){
@@ -77,7 +91,7 @@ try{
   const current=await health();
   if(current?.loadedBuild?.pid===pid)await fetch(base+'/api/system/shutdown',{method:'POST',headers:{'Content-Type':'application/json','x-workbench-token':session?.data?.token||''},body:JSON.stringify({confirmed:true,startedAt:current.loadedBuild.startedAt})}).catch(()=>null);
  }
- if(first.child.exitCode===null){const timer=setTimeout(()=>first.child.kill('SIGTERM'),5000);try{await stopped(first);}finally{clearTimeout(timer);}}
+ if(first.child.exitCode===null){first.child.stdin.end();const timer=setTimeout(()=>first.child.kill('SIGTERM'),5000);try{await stopped(first);}finally{clearTimeout(timer);}}
  try{assert.equal(await health(),null,'isolated server must stop before runner cleanup');}
  finally{rmSync(checkout,{recursive:true,force:true});}
 }

@@ -8,7 +8,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-node.exe "%~dp0scripts\start.mjs" --start-only --background --open
+node.exe "%~dp0scripts\start.mjs" --desktop --open
 set "launcherExit=%errorlevel%"
 if not "%launcherExit%"=="0" pause
 exit /b %launcherExit%

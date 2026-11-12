@@ -7,6 +7,7 @@ assert.equal(pkg.scripts['preview:candidate'],undefined);
 assert.equal(existsSync('预览候选工作台.cmd'),false);
 const launcher=readFileSync('启动工作台.cmd','utf8');
 assert.ok(launcher.includes('scripts\\start.mjs'));
+assert.match(launcher,/scripts\\start\.mjs" --desktop --open/);
 assert.ok(!launcher.includes('--confirm-update'));
 await import('../../../../scripts/esbuild-transport.mjs');
 const {transform}=await import('esbuild');
