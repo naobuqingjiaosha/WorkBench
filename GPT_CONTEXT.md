@@ -1,6 +1,6 @@
 # AI 项目接续入口
 
-文档ID：KB-AI-ENTRY。版本：1.54。更新：2026-11-12。性质：AI接续所需的最小上下文和阅读路线。
+文档ID：KB-AI-ENTRY。版本：1.55。更新：2026-11-12。性质：AI接续所需的最小上下文和阅读路线。
 
 工作台是Windows本机、单用户应用，以工作、期次、阶段、资料和成果组织行政管理及项目实施。技术上为React前端、Fastify后端、SQLite与磁盘文件；AI辅助起草、检索和整理。项目介绍由[README](README.md)维护。
 
@@ -16,9 +16,9 @@ README只介绍项目；本文不替代需求、完整架构或历史变更记�
 
 ## 2. 接续所需的项目状态
 
-换机同步源码使用 `main`。工作分支 `codex/workbench-delivery` 的 12 个提交已快进纳入主线，从 `main/913b002` 和原工作区的首页、列表、工时输入改动接续。92f6099 是模板总计与保存竞态的修前对照；新候选的版本和包摘要查交付清单。Mac 日常实例另由源码启动器加载，Windows 日常实例的构建编号及健康状态见开发进度。运行身份、场景证据及未验项查[开发进度](DEVELOPMENT_PROGRESS.md)。
+Windows 最新启动改动在工作分支 `codex/simplify-daily-launch`，包含主线 `8d432f7` 和后续的构建复用、停止控制及单版本启动改动。换机先核对该分支与上游提交，再按[安装指南](docs/guides/INSTALLATION.md)启动。各设备的实际运行身份和验证范围查[开发进度](DEVELOPMENT_PROGRESS.md)。
 
-新机用 Node 24 / npm 11 安装锁定依赖，运行 `npm test`。经审查的共享用例自行生成合成资料，关闭服务后清理独立根；私有用例和历史报告另行接续。日常只使用[安装指南](docs/guides/INSTALLATION.md)的启动工作台入口；候选双击入口已移除，原预览资料保留。云端从已核实的 main/a07f14c 接续 Windows 启动修复：构建转译走标准输入输出、权限失败不重装，已通过 Linux 合成回归，由 fix/windows-esbuild-temp 工作分支按已核验授权提交并普通快进推送 main；实际提交身份以 Git 核对，日常设备未部署。Windows 原故障根因与普通用户双击验收尚未关闭，见开发进度。真实资料、凭证和配置保留本机。
+新机使用 Node 24、npm 11 和锁定依赖。用 `npm test` 在独立临时环境运行共享合成回归。真实资料、凭证、配置与私有测试留在本机。用户双击“启动工作台.cmd”即可使用当前检出源码，终端入口为 `npm start`。
 
 ## 3. 必须保持的业务边界
 
@@ -32,7 +32,7 @@ README只介绍项目；本文不替代需求、完整架构或历史变更记�
 
 ## 4. 开工与收尾
 
-开工先核对Git状态；涉及近期提交时核对远端。涉及运行时读取source-current/SOURCE_BUILD及健康/进程身份，显式历史恢复另核对发布指针和RELEASE；禁止仅凭文档、分支或迁移文件推定运行状态。路径规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)，具体命令见[开发指南](docs/guides/DEVELOPMENT.md)。
+开工先核对Git状态；涉及近期提交时核对远端。核对日常运行时读取 source-current.json、SOURCE_BUILD.json 和健康接口中的进程及构建身份；禁止仅凭文档、分支或迁移文件推定运行状态。路径规则见[资料边界](docs/guides/DATA_BOUNDARIES.md)，具体命令见[开发指南](docs/guides/DEVELOPMENT.md)。
 
 修改后按[文档治理](docs/management/DOCUMENT_CONTROL.md)更新对应主记录、工作日志与索引。主负责人统一验收，经当前任务授权可分工并按批提交推送；设备发布另行授权。
 

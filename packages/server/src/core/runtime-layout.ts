@@ -33,6 +33,13 @@ export interface RuntimeLayout {
   host: string;
 }
 
+/** All builds in this partition share a checkout and one database lock. */
+export function sourceBuildScope(layout: RuntimeLayout): string {
+  const paths = [layout.codeRoot, layout.runtimeRoot, layout.dbFile];
+  const identity = paths.map(p => process.platform === 'win32' ? p.toLowerCase() : p);
+  return createHash('sha256').update(JSON.stringify([layout.profile, ...identity])).digest('hex');
+}
+
 export function defaultHome(codeRoot: string, profile: 'daily' | 'development', env: NodeJS.ProcessEnv = process.env): string {
   const base = env.LOCALAPPDATA || env.XDG_DATA_HOME || join(homedir(), '.local', 'share');
   const app = join(base, 'WorkBench');

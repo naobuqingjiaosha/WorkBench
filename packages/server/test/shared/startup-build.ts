@@ -41,7 +41,9 @@ try{
  assert.equal(current.runtimeProfile,'test');assert.equal(current.dbFile,process.env.WORKBENCH_DB);
  assert.equal(current.loadedBuild.sourceBuildId,sourceIdentity(checkout).id);
  const record=readFileSync(pointer),saved=JSON.parse(record.toString());
- const good=join(home,'source-builds',saved.id),webHash=treeHash(join(good,'web')),manifest=readFileSync(join(good,'SOURCE_BUILD.json'));
+ const scope=current.loadedBuild.scope;
+ const cache=join(home,'source-builds','env-'+scope.slice(0,16));
+ const good=join(cache,saved.id),webHash=treeHash(join(good,'web')),manifest=readFileSync(join(good,'SOURCE_BUILD.json'));
  const files=process.env.WORKBENCH_DATA_DIR!,backups=process.env.WORKBENCH_BACKUP_DIR!;
  mkdirSync(backups,{recursive:true});writeFileSync(join(backups,'synthetic-backup'),'retained backup');
  writeFileSync(join(files,'synthetic-original'),'retained file');
@@ -53,7 +55,7 @@ try{
   assert.deepEqual(readFileSync(pointer),record);assert.deepEqual(readFileSync(join(good,'SOURCE_BUILD.json')),manifest);
   assert.equal(treeHash(join(good,'web')),webHash);assert.deepEqual(dbHash(),database);assert.equal(treeHash(files),fileHash);assert.equal(treeHash(backups),backupHash);
   assert.ok(!existsSync(join(process.env.WORKBENCH_RUNTIME_DIR!,'source-update.lock')));
-  assert.ok(!readdirSync(join(home,'source-builds')).some(n=>n.includes('.building-')));
+  assert.ok(!readdirSync(cache).some(n=>n.includes('.building-')));
  };
  // A second start reuses the same process, never chooses a second port/instance.
  const same=launch({STARTUP_TRANSPORT_FAULT:'all'});assert.equal(await stopped(same),0,same.output());await unchanged();
@@ -84,7 +86,26 @@ try{
   assert.match(control.output(),/工作台已停止/);
   assert.equal(await health(),null);
  }finally{if(control.child.exitCode===null)control.child.kill();}
- console.log('启动构建：隔离真实Vite/后端就绪、同版本复用、构建语法失败/原生转译拒绝均保留原进程/库/文件/备份/成功指针；未重装、未隐式回退；适配摘要漂移拒绝');
+ // A successful update retires the old program but preserves unknown content,
+ // the previous cache layout and other environments.
+ const privateId='a'.repeat(64),privatePath=join(cache,privateId);
+ mkdirSync(privatePath);writeFileSync(join(privatePath,'SOURCE_BUILD.json'),JSON.stringify({...JSON.parse(manifest.toString()),id:privateId}));
+ writeFileSync(join(privatePath,'user-file'),'keep');
+ const oldLayout=join(home,'source-builds',saved.id),other=join(home,'source-builds','env-other',saved.id);
+ for(const path of [oldLayout,other]){mkdirSync(path,{recursive:true});writeFileSync(join(path,'untouched'),'keep');}
+ writeFileSync(config,Buffer.concat([valid,Buffer.from('\n// synthetic update\n')]));
+ const next=launch({},true);
+ try{
+  for(let i=0;i<1200 && !next.output().includes('输入 S') && next.child.exitCode===null;i++)await new Promise(r=>setTimeout(r,100));
+  const updated=await health();assert.ok(updated?.loadedBuild?.sourceBuildId,next.output());pid=updated.loadedBuild.pid;
+  assert.match(next.output(),/输入 S/);
+  const record=JSON.parse(readFileSync(pointer,'utf8'));
+  assert.equal(record.id,updated.loadedBuild.sourceBuildId);assert.notEqual(record.id,saved.id);assert.equal(record.previousId,undefined);
+  assert.ok(!existsSync(good),'old generated build was retained');assert.ok(existsSync(join(cache,record.id)));
+  for(const path of [join(privatePath,'user-file'),join(oldLayout,'untouched'),join(other,'untouched')])assert.equal(readFileSync(path,'utf8'),'keep');
+  next.child.stdin.write('S\n');assert.equal(await stopped(next),0,next.output());assert.equal(await health(),null);
+ }finally{if(next.child.exitCode===null)next.child.kill();}
+ console.log('启动构建：隔离真实Vite/后端就绪、同版本复用、失败保留原实例，成功更新清理旧构建并保留其他环境及未知文件');
 }finally{
  if(pid){
   const session=await fetch(base+'/api/session').then(r=>r.json()).catch(()=>null);

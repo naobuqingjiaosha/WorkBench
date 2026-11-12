@@ -1,8 +1,8 @@
 /** Immutable, reproducible runtime copy. No private files or Git state are copied. */
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
-import {existsSync,readdirSync,readFileSync,mkdirSync,writeFileSync,copyFileSync,cpSync,renameSync,rmSync,lstatSync,unlinkSync,symlinkSync,realpathSync} from 'node:fs';
-import {join,relative,dirname,isAbsolute,delimiter} from 'node:path';
+import {existsSync,readdirSync,readFileSync,readlinkSync,mkdirSync,writeFileSync,copyFileSync,cpSync,renameSync,rmSync,lstatSync,unlinkSync,symlinkSync,realpathSync} from 'node:fs';
+import {join,relative,dirname,isAbsolute,delimiter,basename} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {isShareableFile} from './repository-policy.mjs';
 import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
@@ -149,10 +149,52 @@ export function treeHash(root) {
  const h=createHash('sha256');
  const walk=dir=>{for(const e of readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){const p=join(dir,e.name);assertNoPathLinks(p);if(e.isDirectory())walk(p);else {h.update(relative(root,p).replaceAll('\\','/'));h.update(readFileSync(p));}}};walk(root);return h.digest('hex');
 }
-export async function prepareBuild(root,cache,previous,identity=sourceIdentity(root)) {
+// Include every generated path, even empty directories and npm junctions. Read the
+// target text of links without traversing them. An unrecognized addition or edit
+// therefore prevents recursive removal of the entire old build.
+function buildReceipt(root) {
+ const digest=createHash('sha256');
+ function visit(dir) {
+  for(const name of readdirSync(dir).sort()){
+   if(dir===root && name==='SOURCE_BUILD.json')continue;
+   const path=join(dir,name),stat=lstatSync(path),key=relative(root,path).replaceAll('\\','/');
+   let kind,content='';
+   if(stat.isSymbolicLink()){kind='link';content=readlinkSync(path);}
+   else if(stat.isDirectory())kind='dir';
+   else if(stat.isFile()){kind='file';content=hash(readFileSync(path));}
+   else throw Error('运行副本包含未知文件类型');
+   digest.update(JSON.stringify([key,kind,content])+'\n');
+   if(kind==='dir')visit(path);
+  }
+ }
+ visit(root);return digest.digest('hex');
+}
+
+export function pruneOldBuilds(cache,currentId,scope) {
+ assertNoPathLinks(cache);
+ if(!/^[a-f0-9]{64}$/.test(currentId)||basename(cache)!=='env-'+scope.slice(0,16))throw Error('构建清理范围无效');
+ for(const entry of readdirSync(cache,{withFileTypes:true})){
+  if(entry.name===currentId||!/^[a-f0-9]{64}$/.test(entry.name)||!entry.isDirectory())continue;
+  const path=join(cache,entry.name);
+  try{
+   assertNoPathLinks(path);
+   const receipt=readBuild(path);
+   if(receipt?.scope!==scope||receipt.id!==entry.name||receipt.treeSha256!==buildReceipt(path)){
+    console.warn('保留来源无法核实或内容已变化的构建目录：'+path);continue;
+   }
+   rmSync(path,{recursive:true});
+  }catch(error){console.warn('旧构建目录未能清理：'+path+'；'+error.message);}
+ }
+}
+
+export async function prepareBuild(root,cache,previous,identity=sourceIdentity(root),scope) {
  assertNoPathLinks(cache);mkdirSync(cache,{recursive:true});
  const target=join(cache,identity.id);
- if(existsSync(target)){await verifyReadyBuild(target,identity.id,root);return {root:target,...identity};}
+ if(existsSync(target)){
+  const metadata=await verifyReadyBuild(target,identity.id,root);
+  if(metadata.scope!==scope)throw Error('运行副本不属于当前环境');
+  return {root:target,...identity};
+ }
  const stage=join(cache,identity.id+'.building-'+process.pid);mkdirSync(stage);
  try {
   for(const file of identity.files){const out=join(stage,file);mkdirSync(join(out,'..'),{recursive:true});copyFileSync(join(root,file),out);}
@@ -164,7 +206,7 @@ export async function prepareBuild(root,cache,previous,identity=sourceIdentity(r
   if(sourceIdentity(root).id!==identity.id)throw Error('构建期间源码发生变化，请重新启动');
   // Rebind Windows absolute junctions after all checks, before the directory rename.
   linkWorkspaces(stage,target);
-  writeFileSync(join(stage,'SOURCE_BUILD.json'),JSON.stringify({format:1,id:identity.id,dependencyKey:identity.dependencyKey,frontendSha256:treeHash(join(stage,'web')),createdAt:new Date().toISOString()}));
+  writeFileSync(join(stage,'SOURCE_BUILD.json'),JSON.stringify({format:1,id:identity.id,dependencyKey:identity.dependencyKey,frontendSha256:treeHash(join(stage,'web')),createdAt:new Date().toISOString(),scope,treeSha256:buildReceipt(stage)}));
   renameSync(stage,target);verifyBuild(target,identity.id);return {root:target,...identity};
  } catch(e) {
   try{rmSync(stage,{recursive:true,force:true});}

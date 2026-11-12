@@ -13,7 +13,7 @@ import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
-// Resolve against the build being checked, also for an older --last-good copy.
+// Resolve against the build being checked.
 const require=createRequire(join(process.cwd(),'package.json'));
 const entry=require.resolve('esbuild');
 if(createRequire(require.resolve('vite/package.json')).resolve('esbuild')!==entry){

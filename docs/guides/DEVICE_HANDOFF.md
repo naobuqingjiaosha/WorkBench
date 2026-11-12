@@ -1,6 +1,6 @@
 # 换机开发与接续清单
 
-文档ID：GUIDE-DEVICE-HANDOFF。版本：1.7。更新：2026-11-10。关联：GOV-11。性质：源码接续与完整运行迁移的操作规范。
+文档ID：GUIDE-DEVICE-HANDOFF。版本：1.8。更新：2026-11-12。关联：GOV-11。性质：源码接续与完整运行迁移的操作规范。
 
 Git 交付应用源码、通用工具、开发文档、配置样例和匿名合成回归。真实资料、私有用例、配置及原始运行证据单独保管。设备运行状态见[开发进度](../../DEVELOPMENT_PROGRESS.md)。
 
@@ -26,7 +26,7 @@ Git 交付应用源码、通用工具、开发文档、配置样例和匿名合�
 |---|---|---|
 | 项目做什么、不做什么 | README、PRODUCT_REQUIREMENTS、CONTEXT | 本机单用户行政/项目工作台；保留现有业务分类和事实边界 |
 | 代码如何组织和运行 | SYSTEM_ARCHITECTURE、DEVELOPMENT、INSTALLATION | React→Fastify→领域服务→SQLite/磁盘；区分daily/development/test |
-| 做完了什么、当前运行什么 | DEVELOPMENT_PROGRESS | 区分已提交基点、未提交候选、所选发布包和实际健康身份；旧机事实不套用新机 |
+| 做完了什么、当前运行什么 | DEVELOPMENT_PROGRESS | 区分已提交基点、磁盘源码与实际健康身份；旧机事实不套用新机 |
 | 哪些链路验过、哪些没验 | QUALITY_AND_ACCEPTANCE | 按首屏/接口/操作链/未测阅读；旧通过数不能当本机执行结果 |
 | 已知缺陷如何复现和关闭 | RISKS_AND_DECISIONS | RK-11/RK-12应用已通过Mac限定独立验收，测试工具P3收尾已通过限定独立复核；保留匿名复现及关闭条件 |
 | 接下来做什么 | PROJECT_PLAN | 唯一GOV队列；当前关联视图候选等待独立复核，其他范围按有效授权 |
@@ -68,7 +68,7 @@ node scripts/docs-maintenance.mjs check
 
 | 内容 | 必须核对的范围 |
 |---|---|
-| 正式运行身份 | 当前环境runtime/current-release.json、所选完整发布包、RELEASE、依赖锁及配套前端 |
+| 正式运行身份 | 源设备检出分支、HEAD、已保存的本地修改、依赖锁、运行目录 source-current.json、构建清单 SOURCE_BUILD.json 和在线健康身份 |
 | 成对数据 | 实际SQLite数据库与内部文件根，同一静止时点的快照及验证结果 |
 | 配置与外部资料 | 私有配置、必要环境变量、绑定目录与原件；模型密钥单独保护，不写入通用文档 |
 | 开发现场 | 所需源码、Git历史、尚未提交文件；本机测试与夹具按授权另行接续 |
@@ -89,8 +89,8 @@ node scripts/snapshot.mjs restore --snapshot <快照目录> --to <新恢复目�
 
 1. 建立旧、新路径对应表；检查配置及数据库中的绑定、工时来源和工具路径。不全库字符串替换，没有通用自动重定位承诺。
 2. 将已验证快照恢复到新目录。restore-environment.json不自动恢复发布指针，也不自动加载环境变量；按目标布局核对数据与配置。
-3. 默认入口会准备当前源码及配套依赖/界面，旧指针不再固定版本。不能用npm start探测搬来的真实库；首次启动前保留原始快照，核对待执行迁移。只有明确恢复历史包时才恢复并核对该包、指针与配套前端。
-4. 先做源码与隔离检查，再按授权使用npm start启动日常服务。核对健康接口中的数据库、文件根、webBuilt和loadedBuild，与实际SOURCE_BUILD及source-current一致（历史恢复另核对RELEASE）。
+3. 默认入口会准备当前源码及配套依赖/界面，旧指针不再固定版本。不能用npm start探测搬来的真实库；首次启动前保留原始快照，核对待执行迁移。
+4. 先做源码与隔离检查，再按授权使用npm start启动日常服务。核对健康接口中的数据库、文件根、webBuilt和loadedBuild，与实际SOURCE_BUILD及source-current 一致。
 5. 对照迁移快照检查业务行数、模板、成果与文件摘要，确认外部绑定可访问。历史设备的表数、模板数和文件数不能作为未来固定验收值。
 6. 按业务范围验证文档生成、Word分页、Excel重算与打印。Office、字体、本地模型和OCR需要独立核验，代码测试不能证明这些环境可用。
 

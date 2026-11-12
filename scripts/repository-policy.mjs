@@ -6,7 +6,7 @@ export const rootFiles = new Set([
 ]);
 export const sharedScripts = new Set([
   'esbuild-transport.mjs',
-  'start.mjs', 'start-release.mjs', 'start-source.mjs', 'source-build.mjs', 'source-npm.mjs', 'source-upgrade.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'isolation-env.mjs',
+  'start.mjs', 'start-source.mjs', 'source-build.mjs', 'source-npm.mjs', 'source-upgrade.mjs', 'backup.mjs', 'snapshot.mjs', 'pack.mjs', 'isolation-env.mjs',
   'test-isolated.mjs', 'test-preflight.mjs', 'dev-monthly.mjs', 'dev-server.mjs',
   'docs-maintenance.mjs', 'repository-policy.mjs', 'check-repository.mjs', 'install-git-hooks.mjs',
 ]);

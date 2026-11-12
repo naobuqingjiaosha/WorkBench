@@ -3,14 +3,16 @@ import {createServer} from 'node:net';
 import {existsSync,readFileSync,writeFileSync,mkdirSync,rmdirSync,openSync,closeSync,renameSync,unlinkSync} from 'node:fs';
 import {resolve,join,dirname} from 'node:path';
 import {createInterface} from 'node:readline/promises';
-import {loadRuntimeLayout} from '../packages/server/src/core/runtime-layout.ts';
-import {assertNoPathLinks} from '../packages/server/src/core/path-boundary.ts';
+import {loadRuntimeLayout,sourceBuildScope} from '../packages/server/src/core/runtime-layout.ts';
+import {assertNoPathLinks,inside} from '../packages/server/src/core/path-boundary.ts';
 import {assertTestIsolation} from '../packages/server/src/core/test-isolation.ts';
-import {prepareBuild,sourceIdentity,verifyReadyBuild} from './source-build.mjs';
+import {prepareBuild,sourceIdentity,pruneOldBuilds,readBuild} from './source-build.mjs';
 import {pendingMigrations,backupAndRehearse} from './source-upgrade.mjs';
 
 assertTestIsolation();
 const ROOT=resolve(import.meta.dirname,'..'),args=process.argv.slice(2);
+if(args.includes('--release')||args.includes('--last-good'))throw Error('旧版启动参数已移除。请从源码目录运行 npm start。');
+if(existsSync(join(ROOT,'SOURCE_BUILD.json')))throw Error('请从源码目录启动工作台。');
 const desktop=args.includes('--desktop');
 const background=desktop || args.includes('--background');
 process.env.WORKBENCH_LAYOUT_ROOT=ROOT;
@@ -20,7 +22,12 @@ const layout=loadRuntimeLayout(ROOT),port=Number(arg('--port')||layout.port),hos
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('端口无效');
 const address=['0.0.0.0','::'].includes(host)?'127.0.0.1':host;
 const url=`http://${address.includes(':')?'['+address+']':address}:${port}`;
-const cache=layout.profile==='test'?join(layout.home,'source-builds'):join(ROOT,'.local','source-builds');
+const cacheBase=layout.profile==='test'?join(layout.home,'source-builds'):join(ROOT,'.local','source-builds');
+const scope=sourceBuildScope(layout);
+const cache=join(cacheBase,'env-'+scope.slice(0,16));
+for(const path of [layout.runtimeRoot,layout.dbFile,layout.backupRoot,layout.dataRoot,layout.configFile].filter(Boolean)){
+ if(inside(cache,path)||inside(path,cache))throw Error('构建缓存不能与本机配置、数据库、业务文件或备份重叠');
+}
 const pointer=join(layout.runtimeRoot,'source-current.json');
 assertNoPathLinks(cache);assertNoPathLinks(pointer);
 mkdirSync(layout.runtimeRoot,{recursive:true});
@@ -51,6 +58,12 @@ async function stopInstance(running){
   if(!released()||await health())throw Error('工作台尚未停止，请稍后核对启动日志。');
 }
 async function showWorkbench(running){
+ // Only a healthy process holding this partition's database lock can retire
+ // its older copies. Build preparation and failed service starts keep them.
+ if(running.loadedBuild.scope===scope){
+  try{pruneOldBuilds(cache,running.loadedBuild.sourceBuildId,scope);}
+  catch(error){console.warn('旧构建清理未完成：'+error.message);}
+ }
  await openPage();
  if(!desktop)return;
  finishLock();
@@ -71,10 +84,10 @@ try{
  let saved=null;try{saved=JSON.parse(readFileSync(pointer,'utf8'));}catch(e){if(e.code!=='ENOENT')throw Error('上次启动记录无法读取，请核对 '+pointer);}
  // A record never gets to select an arbitrary path for execution.
  const savedRoot=saved?.id&&/^[a-f0-9]{64}$/.test(saved.id)&&saved.sourceRoot===ROOT?join(cache,saved.id):null;
- const identity=args.includes('--last-good') ? null : sourceIdentity(ROOT);
- if(savedRoot && identity?.id===saved.id){
+ const identity=sourceIdentity(ROOT);
+ if(savedRoot && identity.id===saved.id){
   const running=await health();
-  if(belongs(running) && running.loadedBuild?.sourceBuildId===identity.id){
+  if(belongs(running) && running.loadedBuild?.scope===scope && running.loadedBuild.sourceBuildId===identity.id){
    console.log('工作台已运行：'+url);
    await showWorkbench(running);
    returnFromStart();
@@ -82,16 +95,23 @@ try{
  }
  let build;
  try{
-  if(args.includes('--last-good')){if(!savedRoot)throw Error('本目录没有可核验的上次可用副本');const m=await verifyReadyBuild(savedRoot,saved.id,ROOT);build={root:savedRoot,...m};console.log('明确选择上次可用版本：'+m.id.slice(0,12));}
-  else build=await prepareBuild(ROOT,cache,savedRoot,identity);
- }catch(e){console.error('准备失败；未停止原服务，也未更新数据库。');console.error('修好问题后重新双击。需要恢复时，可明确运行 node scripts/start.mjs --last-good --open；历史发布包仍可用 --release 入口核对启动。');throw e;}
+  let dependencySource=savedRoot;
+  if(savedRoot && !existsSync(savedRoot)){
+   // The previous flat cache is shared across environments. Reuse only its
+   // locked dependencies, never execute it or change its contents.
+   const legacy=join(cacheBase,saved.id);
+   const record=readBuild(legacy);
+   if(record?.id===saved.id && record.dependencyKey===identity.dependencyKey)dependencySource=legacy;
+  }
+  build=await prepareBuild(ROOT,cache,dependencySource,identity,scope);
+ }catch(e){console.error('准备失败；未停止原服务，也未更新数据库。请修好问题后重新启动。');throw e;}
  const expectedPlan=pendingMigrations(layout.dbFile,build.root);
  if(!expectedPlan.fresh&&expectedPlan.pending.length)await confirm('数据库需要升级，待执行迁移：\n'+expectedPlan.pending.join('\n')+'\n将先备份数据库并在副本演练；失败不自动恢复或覆盖业务数据。');
  let running=await health();
  if(running){
   if(!belongs(running))throw Error('该端口属于不同环境，拒绝停止或改用其他端口；请核对配置。');
-  if(running.loadedBuild?.sourceBuildId===build.id){console.log('当前源码已在运行：'+url);await showWorkbench(running);returnFromStart();}
-  if(!running.loadedBuild?.sourceBuildId)throw Error('检测到旧启动方式的后台服务，不能安全自动接管。首次切换请先保存浏览器输入并停止旧服务（不清楚其启动窗口时，可重启电脑），再双击本入口；无需盘点或删除历史版本。');
+  if(running.loadedBuild?.scope===scope && running.loadedBuild.sourceBuildId===build.id){console.log('当前源码已在运行：'+url);await showWorkbench(running);returnFromStart();}
+  if(!running.loadedBuild?.sourceBuildId)throw Error('检测到旧启动方式的后台服务。请先保存浏览器输入并停止旧服务，再双击启动工作台。');
   await confirm('已准备最新版本。更新需要重启工作台，请先在所有浏览器页面保存输入；正在处理的请求将等待结束。');
   await stopInstance(running);
  }
@@ -112,9 +132,9 @@ try{
  if(background)child.unref();
  console.log('启动日志：'+logPath);
  const deadline=Date.now()+60000;let ready;
- while(Date.now()<deadline&&child.exitCode===null&&!spawnError){const h=await health();if(belongs(h)&&h.loadedBuild?.pid===child.pid&&h.loadedBuild?.sourceBuildId===build.id){ready=h;break;}await new Promise(r=>setTimeout(r,300));}
+ while(Date.now()<deadline&&child.exitCode===null&&!spawnError){const h=await health();if(belongs(h)&&h.loadedBuild?.pid===child.pid&&h.loadedBuild?.scope===scope&&h.loadedBuild.sourceBuildId===build.id){ready=h;break;}await new Promise(r=>setTimeout(r,300));}
  if(!ready)throw Error('新版本未就绪。未覆盖上次成功记录；服务可能仍在初始化，请先核对日志 '+logPath+'，不要反复启动或自动回退数据库。');
- const temp=pointer+'.'+process.pid+'.tmp';writeFileSync(temp,JSON.stringify({format:1,id:build.id,sourceRoot:ROOT,previousId:saved?.id??null,startedAt:new Date().toISOString()}));renameSync(temp,pointer);
+ const temp=pointer+'.'+process.pid+'.tmp';writeFileSync(temp,JSON.stringify({format:1,id:build.id,sourceRoot:ROOT,startedAt:new Date().toISOString()}));renameSync(temp,pointer);
  console.log('当前版本 '+build.id.slice(0,12)+' 已就绪：'+url);await showWorkbench(ready);
  if(!background){
   console.log('停止服务请按 Ctrl+C。');

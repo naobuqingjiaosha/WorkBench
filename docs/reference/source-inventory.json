@@ -8,7 +8,7 @@
     "SQL declarations require subsequent migrations for final schema",
     "Working tree may contain uncommitted and unreleased candidates"
   ],
-  "committedBase": "6d196dcbf1ec8e26ada903b147ec1b97a640958f",
+  "committedBase": "67cfb4868434cc9e510de68b6300d7bed3d69381",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -203,7 +203,7 @@
     },
     {
       "path": "packages/server/src/core/build-identity.ts",
-      "sha256": "d0d4cff8c411af61487f26360004c68c090677d4f0ffbab7becae4d2b750b9d8"
+      "sha256": "00c740a366b1b18576d7b838feeb87d0da66885759f211523a58a4f7c16d3348"
     },
     {
       "path": "packages/server/src/core/checklist.ts",
@@ -287,7 +287,7 @@
     },
     {
       "path": "packages/server/src/core/runtime-layout.ts",
-      "sha256": "e2b0df21bc5180474bf0668544a442d0b1a89f0da31bd623ec9d5a9e4139a678"
+      "sha256": "572059f147b5e585c11cf97da8ce78cf92e37eecb3fd68f1adeeae9550f77e33"
     },
     {
       "path": "packages/server/src/core/search-all.ts",
@@ -751,7 +751,7 @@
     },
     {
       "path": "packages/server/test/shared/startup-build.ts",
-      "sha256": "5f6e3d13f236af465bb9911b93564bde53155dc7eff88cf8dbac37f2bde9ee43"
+      "sha256": "66af159f17892aa6d18afdc0bb8f5108fbf50fbc8f7f4c777eed6710329c7470"
     },
     {
       "path": "packages/server/test/shared/startup-npm.ts",
@@ -763,7 +763,7 @@
     },
     {
       "path": "packages/server/test/shared/startup.ts",
-      "sha256": "ef54c4873e001726cda52118a508898722cc7de0d7024f26fb39547c5ffcf9ef"
+      "sha256": "8186c7304d1d60acd68b0cc675eff4699781a79396774a837437a33657c637c8"
     },
     {
       "path": "packages/server/test/shared/templates-schedule-browser.ts",
@@ -1063,11 +1063,11 @@
     },
     {
       "path": "scripts/docs-maintenance.mjs",
-      "sha256": "ba0938f8e353b437848ddbb051c7a68c4915e67a7f568dd4e12ec383cfade626"
+      "sha256": "ba4d4af8f28e6c954f53e9452e9f90a251c4501633dda69757201e419af961cc"
     },
     {
       "path": "scripts/esbuild-transport.mjs",
-      "sha256": "6f7d0f782d1af06968cb9c8ff2a3e527a008a376a6914580a8e070539745a138"
+      "sha256": "75e775097bad8782075b461fe95b6f94ec0d1b73ce16fbd478eab139ca2c316c"
     },
     {
       "path": "scripts/install-git-hooks.mjs",
@@ -1083,7 +1083,7 @@
     },
     {
       "path": "scripts/repository-policy.mjs",
-      "sha256": "3fc89e8f60d6d3cb642d37aa43d624497bc3cff06e80a4a20ee4c19e36544c4d"
+      "sha256": "4dc964d6babef38d110c655bbb19d7c73904c04d19349ae4ce33134fcc7353fa"
     },
     {
       "path": "scripts/snapshot.mjs",
@@ -1091,7 +1091,7 @@
     },
     {
       "path": "scripts/source-build.mjs",
-      "sha256": "c4cf73ad9c593638b0ca8e6c90ea51463deaa1cf83caa210dcbb01834b2006e8"
+      "sha256": "19d4be4d8bc8f0f5a3635bbc78b60a32cef774bc0213355c099e33dc65357ced"
     },
     {
       "path": "scripts/source-npm.mjs",
@@ -1102,16 +1102,12 @@
       "sha256": "f34858e977ef4aa2d8e4df91d9279fe59e306ff8492a12c69966ea3ece412168"
     },
     {
-      "path": "scripts/start-release.mjs",
-      "sha256": "e6c79cc8421e7c3b1709783f8c9f1d47fa5fe716d6e1bc2e1bd826eb732eb9a1"
-    },
-    {
       "path": "scripts/start-source.mjs",
-      "sha256": "5233887619da6b215571ef8c956939f35f962ef2cafba313e35208f3f773e07a"
+      "sha256": "acb716ebea9641903d29370788a73888ee5e66c5931803174c5f6cd2d542ca0f"
     },
     {
       "path": "scripts/start.mjs",
-      "sha256": "c62bd65c0b1e48ee95a7c20624e1646f30d8caa3ecd6c8a1f7d37ca675c801c5"
+      "sha256": "7dbc54376ba5cf5fc61b948da75937cbf3a9d030b710d3728d8d994f669b95a5"
     },
     {
       "path": "scripts/test-isolated.mjs",

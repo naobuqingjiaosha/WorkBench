@@ -16,7 +16,6 @@
 !/tsconfig.json
 !/workbench.config.example.json
 !/启动工作台.cmd
-!/预览候选工作台.cmd
 !/.githooks/
 /.githooks/*
 !/.githooks/pre-commit
@@ -44,11 +43,9 @@
 !/scripts/install-git-hooks.mjs
 !/scripts/isolation-env.mjs
 !/scripts/pack.mjs
-!/scripts/preview.mjs
 !/scripts/repository-policy.mjs
 !/scripts/snapshot.mjs
 !/scripts/start.mjs
-!/scripts/start-release.mjs
 !/scripts/start-source.mjs
 !/scripts/source-build.mjs
 !/scripts/esbuild-transport.mjs

@@ -1,6 +1,6 @@
 # 数据字典、接口约定与定位
 
-文档ID：REF-DATA-API。版本：1.0。更新：2026-10-21。范围：工作区静态说明；日常版本另核对。完整字段定义以迁移SQL和领域校验为准，不声称已有完整OpenAPI。
+文档ID：REF-DATA-API。版本：1.1。更新：2026-11-12。范围：工作区静态说明；日常版本另核对。完整字段定义以迁移SQL和领域校验为准，不声称已有完整OpenAPI。
 
 ## 1. 数据模型与关系
 
@@ -21,7 +21,7 @@
 | 模板适用position_template_doc | 阶段模板与文书模板关联 | 同模板可复用，不复制事实 | 018 |
 | 助手证据business_ai_run | 事实快照、来源及writing等 | 保留生成上下文、引用和核对 | 035、036 |
 | 旧记忆agent_memory | 来源、作用范围与更正 | 不等于新工作记录 | 006、025 |
-| 工作记录候选work_record/history/answer | 原话、时间、nature、revision、status、引用快照 | 038候选，日常未应用，不与旧记忆混写 | 038 |
+| 工作记录候选work_record/history/answer | 原话、时间、nature、revision、status、引用快照 | 038 迁移提供工作记录表，独立保存原话与修订 | 038 |
 | 设置、模型、日志、知识库、OCR、工时 | 各自元数据与状态 | 可能含敏感资料；知识文档不导出行内容 | 静态迁移索引及对应domain/core |
 
 039中草稿引用实际检查为ON DELETE SET NULL；期次删除级联草稿及历史；artifact的草稿关联置空。软件删除流程还涉及文件和其他表，仅有SQL约束不能证明全过程可靠。
@@ -72,6 +72,6 @@ suggest默认字段为subject/content/method；允许集合还含result/findings
 | 工时 | routes-timesheets.ts | timesheets |
 | 检索、知识与识别 | routes-search.ts、routes-kb.ts、routes-vision.ts | search-all、kb、vision、ocr |
 | 助手与外发确认 | routes-agent.ts、routes-ai.ts、routes-consent.ts | agent、business-evidence、ai/consent |
-| 工作记录候选 | routes-records.ts，经routes-agent注册 | work-records、work-record-chat；当前日常排除 |
+| 工作记录候选 | routes-records.ts，经routes-agent注册 | work-records、work-record-chat；具体设备按日常构建核对 |
 
 静态索引从TypeScript AST提取字面量路径及注册调用，包含可能不在日常包内的代码。接口参数不应凭路径名推断；修改前读领域函数和测试。当前没有宣称自动生成了完整请求/响应Schema或所有动态注册。

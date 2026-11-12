@@ -165,7 +165,7 @@ const documents = paths.map(p => {
     sha256: fs.existsSync(abs(p)) ? sha(p) : null, linksTo: sorted([...new Set(links.filter(l => paths.includes(l.path)).map(l => l.path))]), localLinks: links };
 });
 const index = { schemaVersion: 1, baselineDate: '2026-10-21', pathBase: 'repository-root', encoding: 'UTF-8',
-  authority: { requirements: 'Current user requirements and accepted scoped changes; see PRODUCT_REQUIREMENTS', implementation: 'Relevant working-tree or selected release source, explicitly identified', runtime: 'Release pointer, manifest, loadedBuild, actual migration set', validation: 'Version-bound evidence and actual test scope, not existence of code' },
+  authority: { requirements: 'Current user requirements and accepted scoped changes; see PRODUCT_REQUIREMENTS', implementation: 'Relevant working-tree or selected release source, explicitly identified', runtime: 'source-current.json, SOURCE_BUILD.json, live loadedBuild and actual migration set', validation: 'Version-bound evidence and actual test scope, not existence of code' },
   readingOrder, documents,
   relatedArtifacts: ['docs/reference/source-inventory.json'],
   excludedContent: ['business database rows', 'credentials', 'business files', 'node_modules', 'private external originals', 'local tests and fixtures', 'historical reports and runtime snapshots'] };
